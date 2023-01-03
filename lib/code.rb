@@ -3,7 +3,7 @@
 require_relative "monadic_gpt"
 
 module MonadicGpt
-  class Novel < App
+  class Code < App
     attr_accessor :template, :config, :params
 
     def initialize
@@ -11,25 +11,21 @@ module MonadicGpt
       params = {
         "model" => "text-davinci-003",
         "max_tokens" => 2000,
-        "temperature" => 0.5,
+        "temperature" => 0.0,
         "top_p" => 1.0,
         "stream" => false,
         "logprobs" => nil,
         "echo" => false,
         "stop" => nil,
-        "presence_penalty" => 0.1,
-        "frequency_penalty" => 0.1
+        "presence_penalty" => 0.0,
+        "frequency_penalty" => 0.0
       }
       super(params,
-            TEMPLATES["novel"],
-            "novel",
-            "text",
+            TEMPLATES["code"],
+            "conversation",
+            "response",
             proc do |res|
-              if res["num_tokens"].to_i > @num_tokens_kept
-                conv = res["plot"].split(/\n\n+/).map(&:strip)
-                conv.shift(2)
-                res["plot"] = conv.join("\n\n")
-              end
+              res["conversation"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
               res
             end
            )

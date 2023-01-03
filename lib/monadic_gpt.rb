@@ -32,8 +32,8 @@ module MonadicGpt
   BULLET = "\e[33m●\e[0m"
 
   class App
-    def initialize(template, prop_accumulated, prop_newdata, update_proc)
-      @template = template 
+    def initialize(params, template, prop_accumulated, prop_newdata, update_proc)
+      @template = File.read(template)
       @prop_accumulated = prop_accumulated
       @prop_newdata = prop_newdata
       @completion = nil
@@ -50,7 +50,7 @@ module MonadicGpt
         "stop" => nil,
         "presence_penalty" => 0.0,
         "frequency_penalty" => 0.0
-      }
+      }.merge(params)
     end
 
     def update_template(res)
@@ -122,10 +122,14 @@ module MonadicGpt
     end
 
     def banner
+      title = self.class.name.center(40, " ")
+      help = "Type \"help\" for menu".center(40, " ")
+      padding = "".center(40, " ")
       banner = <<~BANNER
-        #{PASTEL.on_magenta.bold("   Monadic GPT    ")}
-        #{PASTEL.on_magenta("  Version: #{MonadicGpt::VERSION}  ")}\n
-        Type "bye" to exit
+        #{PASTEL.on_cyan(padding)}
+        #{PASTEL.on_cyan.bold(title)}
+        #{PASTEL.on_cyan(help)}
+        #{PASTEL.on_cyan(padding)}
       BANNER
       TTY::Box.frame banner.strip
     end
@@ -278,8 +282,6 @@ module MonadicGpt
         when /\A(?:help|commands?|\?|h)\z/i
           show_help
         when /\A(?:bye|exit|quit)\z/i
-          prompt_monadic
-          print "Bye!\n"
           break
         when /\A(?:data|context)\z/i
           show_data

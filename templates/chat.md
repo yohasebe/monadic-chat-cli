@@ -27,7 +27,7 @@ Make sure the following requirements are all fulfilled:
 - the value of "response" must be included in the value of "conversation"
 - the "response" contains  your response, not the prompt 
 - the value of "response" must be different from any of your previous responses
-- the text string in the values of the JSON object must be properly escaped
+- double-quotation characters in the text values must be escaped by a back-slash character
 - the JSON object must be fully parsable using Ruby's "JSON.parse" method
 - never fail to wrap the json object with "```json\n" and "\n```\n".
 

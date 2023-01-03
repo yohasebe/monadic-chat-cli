@@ -8,7 +8,20 @@ module MonadicGpt
 
     def initialize
       @num_tokens_kept = 1000
-      super(File.read(TEMPLATES["chat"]),
+      params = {
+        "model" => "text-davinci-003",
+        "max_tokens" => 2000,
+        "temperature" => 0.3,
+        "top_p" => 1.0,
+        "stream" => false,
+        "logprobs" => nil,
+        "echo" => false,
+        "stop" => nil,
+        "presence_penalty" => 0.1,
+        "frequency_penalty" => 0.1
+      }
+      super(params,
+            TEMPLATES["chat"],
             "conversation",
             "response",
             proc do |res|
