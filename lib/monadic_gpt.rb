@@ -123,12 +123,14 @@ module MonadicGpt
 
     def banner
       title = self.class.name.center(40, " ")
-      help = "Type \"help\" for menu".center(40, " ")
+      help1 = "Type \"help\" for menu".center(40, " ")
+      help2 = "Type \"exit\" to quit".center(40, " ")
       padding = "".center(40, " ")
       banner = <<~BANNER
         #{PASTEL.on_cyan(padding)}
         #{PASTEL.on_cyan.bold(title)}
-        #{PASTEL.on_cyan(help)}
+        #{PASTEL.on_cyan(help1)}
+        #{PASTEL.on_cyan(help2)}
         #{PASTEL.on_cyan(padding)}
       BANNER
       TTY::Box.frame banner.strip
@@ -269,8 +271,8 @@ module MonadicGpt
         - **help** or **commands**: show this help
         - **params**, **settings**, or **config**: show and change values of parameters
         - **data** or **context**: show current contextual info
-        - **save** : save current contextual info to file
-        - **load** : load contextual info from file
+        - **save**: save current contextual info to file
+        - **load**: load contextual info from file
         - **bye**, **exit**, or **quit**: quit the app
       HELP
       print "#{TTY::Markdown.parse(help_md, indent: 0).strip}\n"

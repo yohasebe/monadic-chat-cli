@@ -4,6 +4,8 @@ require_relative "monadic_gpt"
 
 module MonadicGpt
   class Novel < App
+    DESC = "Interactive Story Plot Generator"
+
     attr_accessor :template, :config, :params
 
     def initialize

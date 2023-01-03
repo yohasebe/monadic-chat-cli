@@ -4,6 +4,8 @@ require_relative "monadic_gpt"
 
 module MonadicGpt
   class Chat < App
+    DESC = "Natural Language Chat Agent"
+
     attr_accessor :template, :config, :params
 
     def initialize

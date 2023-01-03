@@ -4,6 +4,8 @@ require_relative "monadic_gpt"
 
 module MonadicGpt
   class Code < App
+    DESC = "Interactive Program Code Generator"
+
     attr_accessor :template, :config, :params
 
     def initialize
