@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# require_relative "../lib/chat"
+require_relative "../lib/novel"
+
+# chat = MonadicGpt::Chat.new
+# chat.run
+
+novel = MonadicGpt::Novel.new
+novel.run
