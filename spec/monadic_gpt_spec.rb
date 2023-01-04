@@ -50,25 +50,26 @@ RSpec.describe OpenAI do
 
     it "can iterate multiple prompts" do
       prompts = [
-        "what is the capital of Japan?",
+        "what is the largest city of Japan?",
         "what is the second largest city of Japan?",
         "what is the third largest city of Japan?"
       ]
 
       template = <<~TEMPLATE
-        Set your response to the following prompt at the end of the value list of "responses" property of a JSON object in the structure shown blow. Then set the prompt at the end of the value list of the "prompts" property of the JSON object. \n
+        Set the following prompt at the end of the list of the "prompts" property of the JSON object.
+        Then respond to the prompt and set your answer at the end of the "responses" list of the JSON object\n
         Prompt: {{PROMPT}}\n
         ```json
         {
-          "responses": [],
-          "prompts": []
+          "prompts": ["what is the capital of Japan?"],
+          "responses": ["Tokyo"]
         }
-        ```
+        ```\n
       TEMPLATE
 
       replace_key = "{{PROMPT}}"
 
-      num_prompts = prompts.size
+      num_prompts = prompts.size + 1
       res = completion.run_iteration(params, prompts, template, replace_key)
       expect(res.keys).to include "responses", "prompts"
       expect(res["responses"].size).to be num_prompts

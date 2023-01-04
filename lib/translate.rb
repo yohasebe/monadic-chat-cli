@@ -8,7 +8,7 @@ module MonadicGpt
 
     attr_accessor :template, :config, :params, :completion
 
-    def initialize(openai_completion)
+    def initialize(openai_completion, replacements = nil)
       params = {
         "model" => "text-davinci-003",
         "max_tokens" => 2000,
@@ -21,13 +21,15 @@ module MonadicGpt
         "presence_penalty" => 0.0,
         "frequency_penalty" => 0.0
       }
+      replacements ||= {
+        "mode" => :interactive,
+        "{{ORIGINAL}}" => "Original text",
+        "{{TARGET_LANG}}" => "Target language",
+        "{{PROMPT}}" => "translate the original text"
+      }
       super(params,
             TEMPLATES["translate"],
-            {
-              "{{ORIGINAL}}" => "Original text",
-              "{{TARGET_LANG}}" => "Target language",
-              "{{PROMPT}}" => "translate the original text"
-            },
+            replacements,
             "translations",
             "translation",
             proc do |res|

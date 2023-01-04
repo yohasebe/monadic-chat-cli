@@ -7,10 +7,10 @@ PROMPT: {{PROMPT}}
   "mode": "chat",
   "prompt": "Can I ask something?",
   "response":"Sure!",
-  "conversation": ["Hi!", "Hello!", "Can I ask something?", "Sure!"],
-  "num_tokens": 26,
   "language": "English",
-  "topics": []
+  "topics": [],
+  "conversation": ["Hi!", "Hello!", "Can I ask something?", "Sure!"],
+  "num_tokens": 26
 }
 ```
 
@@ -23,18 +23,15 @@ Make sure the following requirements are all fulfilled:
 - the value of "response" must be one that naturally follows the past conversation contained in "conversation" 
 - if necessary, use the information in "conversation" to identify the referents of pronouns used in the prompt
 - if the prompt is in a language other than the current value of "language", set the name of the language to "language" and make sure that "response" is made in that language
-- update the value of "num_tokens" with the number of tokens contained in the new value of "conversation"
 - analyze the topic of the prompt and insert it at the end of the value list of the "topics" property
 - avoid giving a response that is the same or similar to one of the previous responses in "conversation"
 - program code in the response must be embedded in a code block in the markdown text
 - the value of "response" must be included in the value of "conversation"
 - the "response" contains  your response, not the prompt 
 - the value of "response" must be different from any of your previous responses
-- backslashes in the text values of "prompt" must be escaped by another backslash character
-- backslashes in the text values of "response" must be escaped by another backslash character
-- backslashes in the text items of "conversation" must be escaped by another backslash character
-- double quotes in the text values of "prompt" must be escaped by a backslash character
-- double quotes in the text values of "response" must be escaped by a backslash character
-- double quotes in the text items of "conversation" must be escaped by a backslash character
+- double quotes in the text values of "prompt" must be escaped
+- double quotes in the text values of "response" must be escaped
+- double quotes in the text items of "conversation" must be escaped
+- update the value of "num_tokens" with the number of tokens contained in the new value of "conversation"
 - the JSON object must be fully parsable using Ruby's "JSON.parse" method
 - wrap the json object with "```json\n" and "\n```\n"

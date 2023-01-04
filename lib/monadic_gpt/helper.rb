@@ -56,7 +56,7 @@ module MonadicGpt
   def self.prompt_gpt3
     box_width = 10
     color = "red"
-    name = "GPT-3".center(box_width, " ")
+    name = "GPT".center(box_width, " ")
     print "\n#{PASTEL.send(:"on_#{color}", name)}\n"
   end
 

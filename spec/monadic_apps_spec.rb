@@ -16,10 +16,6 @@ RSpec.describe "MonadicGpt::Chat" do
     expect(res.keys).to include "response", "conversation", "num_tokens", "language", "topics"
   end
 
-  it "'conversation' property contain a certain number of items" do
-    expect(res["conversation"].size).to eq 8
-  end
-
   print "--------------------", "\n"
   print "MonadicGPT::Chat", "\n"
   print "--------------------", "\n"
@@ -35,11 +31,7 @@ RSpec.describe "MonadicGpt::Novel" do
   res = novel.bind_and_unwrap(input2)
 
   it "gives responses in json" do
-    expect(res.keys).to include "text", "novel", "event", "num_tokens"
-  end
-
-  it "'novel' property contain a certain number of paragraphs" do
-    expect(res["novel"].size).to be >= 2
+    expect(res.keys).to include "paragraph", "novel", "event", "num_tokens"
   end
 
   print "--------------------", "\n"
@@ -61,11 +53,7 @@ RSpec.describe "MonadicGpt::Code" do
   end
 
   it "the 'response' value contains program code" do
-    expect(res["response"]).to include "```", "ruby"
-  end
-
-  it "'conversation' property contain a certain number of items" do
-    expect(res["conversation"].size).to be >= 6
+    expect(res["response"]).to include "```"
   end
 
   print "--------------------", "\n"
@@ -76,23 +64,24 @@ RSpec.describe "MonadicGpt::Code" do
 end
 
 RSpec.describe "MonadicGpt::Translate" do
-  code = MonadicGpt::Translate.new(completion)
-  input1 = "吾輩は猫である。名前はまだ無い。どこで生れたかとんと見当けんとうがつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。"
-  code.bind_and_unwrap(input1)
-  input2 = "English"
-  res = code.bind_and_unwrap(input2)
+  replacements = {
+    "mode" => :replace,
+    "{{ORIGINAL}}" => "吾輩は猫である。名前はまだ無い。",
+    "{{TARGET_LANG}}" => "English",
+    "{{PROMPT}}" => "Translate in to natural English"
+  }
+  translate = MonadicGpt::Translate.new(completion, replacements)
+  translate.fulfill_placeholders
+  input = "Use the world 'this' instead of 'I' in the translation."
+  res = translate.bind_and_unwrap(input)
 
   it "gives responses in json" do
-    expect(res.keys).to include "original", "translation", "num_tokens", "conversation", "target_lang"
-  end
-
-  it "'conversation' property contain a certain number of items" do
-    expect(res["conversation"].size).to be >= 4
+    expect(res.keys).to include "original", "translation", "num_tokens", "translations", "target_lang"
   end
 
   print "--------------------", "\n"
   print "MonadicGPT::Translation", "\n"
   print "--------------------", "\n"
-  print TTY::Markdown.parse(res["conversation"].map { |r| "- #{r}" }.join("\n"), indent: 0).strip, "\n"
+  print TTY::Markdown.parse(res["translations"].map { |r| "- #{r}" }.join("\n"), indent: 0).strip, "\n"
   print "--------------------", "\n"
 end

@@ -25,7 +25,7 @@ module MonadicGpt
             TEMPLATES["novel"],
             {},
             "novel",
-            "text",
+            "paragraph",
             proc do |res|
               res["novel"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
               res

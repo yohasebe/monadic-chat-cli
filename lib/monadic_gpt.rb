@@ -25,7 +25,7 @@ module MonadicGpt
 
   PASTEL = Pastel.new
 
-  PROMPT = TTY::Prompt.new(active_color: :white)
+  PROMPT = TTY::Prompt.new(active_color: :blue)
 
   spinner_opts = { clear: true, format: :pulse_2 }
   SPINNER = TTY::Spinner.new(PASTEL.cyan("[:spinner] Thinking ..."), spinner_opts)
@@ -132,7 +132,7 @@ module MonadicGpt
         save_data
       end
       File.open(filepath, "w") do |f|
-        m = /```json\n(.+)\n```/m.match(template)
+        m = /\n\n```json\n(.+)\n```\n\n/m.match(template)
         f.write JSON.pretty_generate(JSON.parse(m[1]))
         print "Data has been saved successfully\n"
       end
@@ -304,7 +304,7 @@ module MonadicGpt
               # pp e.backtrace
               SPINNER.stop("")
               input = ask_retrial(input)
-              retry
+              next
             end
           end
         end
@@ -316,21 +316,34 @@ module MonadicGpt
     def fulfill_placeholders
       input = nil
       replacements = []
+      mode = :replace
+
       @placeholders.each do |key, val|
-        if key == "{{PROMPT}}"
+        case key
+        when "mode"
+          mode = val
+          next
+        when "{{PROMPT}}"
           input = val
           next
         end
-        input = PROMPT.ask("#{val}:")
+
+        input = if mode == :replace
+                  val
+                else
+                  PROMPT.ask("#{val}:")
+                end
+
         unless input
           replacements.clear
           break
         end
-
         replacements << [key, input]
-        @template.gsub!(key, input)
       end
-      parse input unless replacements.empty?
+      replacements.each do |key, value|
+        @template.gsub!(key, value)
+      end
+      parse input if mode == :interactive
     end
 
     def run

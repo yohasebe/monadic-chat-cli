@@ -7,7 +7,7 @@ require "parallel"
 require "tty-progressbar"
 
 module OpenAI
-  def self.query(access_token, mode, method, timeout_sec = 60, query = {})
+  def self.query(access_token, mode, method, timeout_sec = 120, query = {})
     target_uri = "https://api.openai.com/v1/#{method}"
     uri = URI.parse(target_uri)
 
@@ -76,7 +76,10 @@ module OpenAI
       end
       parsed
     rescue StandardError => e
-      print json
+      pp res
+      pp e
+      pp e.backtrace
+      print text
       raise e unless enable_retry
 
       sleep 2
@@ -91,10 +94,10 @@ module OpenAI
       json = ""
       prompts.each do |prompt|
         params["prompt"] = template.sub(replace_key, prompt)
-        res = run_expecting_json(params)
+        res = run_expecting_json(params, enable_retry: true)
         json = JSON.pretty_generate(res)
         bar.advance(1)
-        template = template.sub(/```json.+?```/m, "```json\n#{json}\n```")
+        template = template.sub(/\n\n```json.+?```\n\n/m, "\n\n```json\n#{json}\n```\n\n")
       end
       bar.finish
       JSON.parse(json)
