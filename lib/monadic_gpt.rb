@@ -69,7 +69,7 @@ module MonadicGpt
       others = +"#Contextual Data\n"
       data.each do |key, val|
         if key == @prop_accumulated
-          accumulated << val.to_s
+          accumulated << val.map { |v| "- #{v}" }.join("\n")
         else
           others << "- **#{key.capitalize}**: #{val}\n"
         end
@@ -140,7 +140,7 @@ module MonadicGpt
 
     def load_data
       input = PROMPT.ask("Enter the path and file name of the saved data:\n")
-      return if input.to_s == ""
+      return false if input.to_s == ""
 
       filepath = File.expand_path(input)
       unless File.exist? filepath
@@ -154,12 +154,13 @@ module MonadicGpt
         raise if json["mode"] != self.class.name.downcase.split("::")[-1]
       rescue StandardError
         print "The data structure is not valid for this app\n"
-        return
+        return false
       end
 
       new_template = template.sub(/```json.+?```/m, "```json\n#{data.strip}\n```")
       print "Data has been loaded successfully\n"
       @template = new_template
+      true
     end
 
     def change_parameter
@@ -254,7 +255,6 @@ module MonadicGpt
     end
 
     def show_help
-      MonadicGpt.prompt_monadic
       help_md = <<~HELP
         # List of Commands\n\n
         - **help**, **menu**, or **commands**: show this help
@@ -262,6 +262,7 @@ module MonadicGpt
         - **data** or **context**: show current contextual info
         - **save**: save current contextual info to file
         - **load**: load contextual info from file
+        - **clear**: clear screen
         - **bye**, **exit**, or **quit**: quit the app
       HELP
       print "#{TTY::Markdown.parse(help_md, indent: 0).strip}\n"
@@ -287,6 +288,8 @@ module MonadicGpt
           save_data
         when /\A(?:load)\z/i
           load_data
+        when /\A(?:clear)\z/i
+          MonadicGpt.clear_screen
         when /\A(?:params?|parameters?|config|configuration)\z/i
           change_parameter
         else
@@ -340,20 +343,40 @@ module MonadicGpt
         end
         replacements << [key, input]
       end
-      replacements.each do |key, value|
-        @template.gsub!(key, value)
+      if replacements.empty?
+        false
+      else
+        replacements.each do |key, value|
+          @template.gsub!(key, value)
+        end
+        true
       end
-      parse input if mode == :interactive
     end
 
     def run
       MonadicGpt.banner(self.class.name, self.class::DESC, "cyan")
-      MonadicGpt.prompt_user
+      show_help
       if @placeholders.empty?
+        MonadicGpt.prompt_user
         input = PROMPT.ask
         parse input
       else
-        fulfill_placeholders
+        MonadicGpt.prompt_monadic
+        loadfile = PROMPT.select("Load saved file?", default: 2) do |menu|
+          menu.choice "Yes", "yes"
+          menu.choice "No", "no"
+        end
+        if loadfile == "yes"
+          if load_data
+            MonadicGpt.prompt_user
+            input = PROMPT.ask
+            parse input
+          end
+        elsif fulfill_placeholders
+          MonadicGpt.prompt_user
+          input = PROMPT.ask
+          parse input
+        end
       end
     end
   end

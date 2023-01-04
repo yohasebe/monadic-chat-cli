@@ -61,11 +61,11 @@ module MonadicGpt
   end
 
   def self.banner(title, desc, color)
-    title = title.center(40, " ")
-    desc = desc.center(40, " ")
-    help1 = "Type \"help\" for menu".center(40, " ")
-    help2 = "Type \"exit\" to quit".center(40, " ")
-    padding = "".center(40, " ")
+    title = title.center(60, " ")
+    desc = desc.center(60, " ")
+    help1 = "Type \"help\" for menu".center(60, " ")
+    help2 = "Type \"exit\" to quit".center(60, " ")
+    padding = "".center(60, " ")
     banner = <<~BANNER
       #{PASTEL.send(:"on_#{color}", padding)}
       #{PASTEL.send(:"on_#{color}").bold(title)}
@@ -76,5 +76,9 @@ module MonadicGpt
       #{PASTEL.send(:"on_#{color}", padding)}
     BANNER
     print TTY::Box.frame banner.strip
+  end
+
+  def self.clear_screen
+    print "\e[2J\e[f"
   end
 end

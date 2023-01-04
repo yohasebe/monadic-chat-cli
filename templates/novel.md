@@ -10,7 +10,7 @@ Your response must be returned in the form of a JSON object having the structure
   "event": "The prefice to the novel is presented",
   "paragraph": "What follows is the story that GPT-3 tells. It is guaranteed that this will be an incredibly realistic and interesting novel.",
   "novel": ["What follows is the story that GPT-3 tells. It is guaranteed that this will be an incredibly realistic and interesting novel."],
-  "num_tokens": 0
+  "num_tokens": 28
 }
 ```
 
@@ -24,5 +24,6 @@ Make sure the following requirements are all fulfilled:
 - double quotes in the text values of "paragraph" must be escaped
 - double quotes in the text values of "novel" must be escaped
 - update the value of "num_tokens" with the number of tokens contained in the new value of "novel"
-- the resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
 - wrap the json object with "```json\n" and "\n```\n"
+
+The resulting JSON object must be fully parsable using Ruby's "JSON.parse" method

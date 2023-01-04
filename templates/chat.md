@@ -33,5 +33,6 @@ Make sure the following requirements are all fulfilled:
 - double quotes in the text values of "response" must be escaped
 - double quotes in the text items of "conversation" must be escaped
 - update the value of "num_tokens" with the number of tokens contained in the new value of "conversation"
-- the JSON object must be fully parsable using Ruby's "JSON.parse" method
 - wrap the json object with "```json\n" and "\n```\n"
+
+The JSON object must be fully parsable using Ruby's "JSON.parse" method

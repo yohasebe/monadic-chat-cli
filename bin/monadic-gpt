@@ -8,9 +8,9 @@ require_relative "../lib/code"
 require_relative "../lib/novel"
 require_relative "../lib/translate"
 
-title = "/M/O/N/A/D/I/C/ /G/P/T/".center(40, " ")
-version = "Version: #{MonadicGpt::VERSION}".center(40, " ")
-padding = "".center(40, " ")
+title = "/M/O/N/A/D/I/C/ /G/P/T/".center(60, " ")
+version = "Version: #{MonadicGpt::VERSION}".center(60, " ")
+padding = "".center(60, " ")
 
 banner = <<~BANNER
   #{MonadicGpt::PASTEL.on_magenta.bold(padding)}
@@ -23,9 +23,10 @@ BANNER
 openai_completion = nil
 parameter = ""
 
-print TTY::Box.frame banner.strip
-
 loop do
+  MonadicGpt.clear_screen
+  print TTY::Box.frame banner.strip
+
   openai_completion ||= MonadicGpt.authenticate
 
   MonadicGpt.prompt_monadic
@@ -36,6 +37,8 @@ loop do
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Translate")} - #{MonadicGpt::Translate::DESC}", "translate"
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Quit")}      - Quit the app", "exit"
   end
+
+  MonadicGpt.clear_screen
 
   case parameter
   when "chat"
