@@ -45,6 +45,10 @@ module OpenAI
       @access_token = access_token
     end
 
+    def models
+      OpenAI.models(@access_token)
+    end
+
     def run(params)
       response = OpenAI.query(@access_token, "post", "completions", 60, params)
       if response["error"]
@@ -60,44 +64,33 @@ module OpenAI
       res = run(params)
       text = res["choices"][0].fetch("text", "").to_s
       case text
-      when /```json\n(.+)\n`+(?:\n|\z)/m,
-        /```\n(.+)\n`+(?:\n|\z)/m,
-        /(\{.+\})/m
-        parsed = JSON.parse(Regexp.last_match(1))
-      when /(\{.+)/m
-        parsed = JSON.parse("#{Regexp.last_match(1)}\n")
+      when /```json\n\{(.+)\}\n`+(?:\n|\z)/m,
+        /```.*?\{(.+)\}`+(?:\n|\z)/m,
+        /\{(.+)\}/m,
+        /\{(.+)/m
+        json = "{\n#{Regexp.last_match(1).strip}\n}"
+        parsed = JSON.parse(json)
       else
-        pp res
-        pp text
+        print text
         raise "valid json object not found"
       end
       parsed
     rescue StandardError => e
+      print json
       raise e unless enable_retry
 
       sleep 2
       retry
     end
 
-    def run_iteration(params, prompts)
-      template = <<~TEMPLATE
-        Set your response to the following prompt at the end of the value list of "responses" property of a JSON object in the structure shown blow. Then set the prompt at the end of the value list of the "prompts" property of the JSON object. \n
-        Prompt: {{PROMPT}}\n
-        ```json
-        {
-          "responses": [],
-          "prompts": []
-        }
-        ```
-      TEMPLATE
-
+    def run_iteration(params, prompts, template, replace_key = "{{PROMPT}}")
       bar = TTY::ProgressBar.new("[:bar] :current/:total :total_byte :percent ET::elapsed ETA::eta",
                                  total: prompts.size,
                                  bar_format: :box)
       bar.start
       json = ""
       prompts.each do |prompt|
-        params["prompt"] = template.sub("{{PROMPT}}", prompt)
+        params["prompt"] = template.sub(replace_key, prompt)
         res = run_expecting_json(params)
         json = JSON.pretty_generate(res)
         bar.advance(1)

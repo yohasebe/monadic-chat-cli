@@ -4,20 +4,22 @@ PROMPT: {{PROMPT}}
 
 ```json
 {
-  "prompt": "I have a request for you."
+  "mode": "code",
+  "prompt": "I have a request for you.",
   "response":"Sure!",
-  "conversation": ["Hi.", "Hello!", "I have a request for you.", "Sure!"]
-  "num_tokens": 18
+  "conversation": ["Write code in Ruby to print \"hello\".", "Sure! Here it is:\n\n```ruby\nprint \"hello\"\n```\n"],
+  "num_tokens": 30
 }
 ```
 
 Make sure the following requirements are all fulfilled:
 
+- keep the value of the "mode" property at "code"
 - set the prompt to the "prompt" property
 - your response to the prompt is included both in the property "response" and "conversation" of the JSON object
 - the value of "response" must be one that naturally follows the past conversation contained in "conversation" 
+- if your response contains program code, it must be retained in the value of "response"
 - update the "conversation" property by inserting the prompt and response to the value of "conversation" after the preexisting items
-- update "conversation" by inserting the "prompt" value and the "response" value to the "conversation" list after the existing items
 - update the value of "num_tokens" with the number of tokens contained in the new value of "conversation"
 - avoid giving a response that is the same or similar to one of the previous responses in "conversation"
 - program code in the response must be embedded in a code block in the markdown text
@@ -25,8 +27,11 @@ Make sure the following requirements are all fulfilled:
 - the value of "response" must be included in the value of "conversation"
 - the "response" contains  your response, not the prompt 
 - the value of "response" must be different from any of your previous responses
-- the text string in the values of the JSON object must be properly escaped
-- double-quotation characters in the text values must be escaped by a back-slash character
+- backslashes in the text values of "prompt" must be escaped by another backslash character
+- backslashes in the text values of "response" must be escaped by another backslash character
+- backslashes in the text items of "conversation" must be escaped by another backslash character
+- double quotes in the text values of "prompt" must be escaped by a backslash character
+- double quotes in the text values of "response" must be escaped by a backslash character
+- double quotes in the text items of "conversation" must be escaped by a backslash character
 - the resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
-- never fail to wrap the json object with "```json\n" and "\n```\n".
-
+- wrap the json object with "```json\n" and "\n```\n"

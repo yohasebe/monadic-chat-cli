@@ -6,14 +6,13 @@ module MonadicGpt
   class Novel < App
     DESC = "Interactive Story Plot Generator"
 
-    attr_accessor :template, :config, :params
+    attr_accessor :template, :config, :params, :completion
 
-    def initialize
-      @num_tokens_kept = 1000
+    def initialize(openai_completion)
       params = {
         "model" => "text-davinci-003",
         "max_tokens" => 2000,
-        "temperature" => 0.5,
+        "temperature" => 0.4,
         "top_p" => 1.0,
         "stream" => false,
         "logprobs" => nil,
@@ -24,17 +23,16 @@ module MonadicGpt
       }
       super(params,
             TEMPLATES["novel"],
+            {},
             "novel",
             "text",
             proc do |res|
-              if res["num_tokens"].to_i > @num_tokens_kept
-                conv = res["plot"].split(/\n\n+/).map(&:strip)
-                conv.shift(2)
-                res["plot"] = conv.join("\n\n")
-              end
+              res["novel"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
               res
             end
            )
+      @num_tokens_kept = 1000
+      @completion = openai_completion
     end
   end
 end
