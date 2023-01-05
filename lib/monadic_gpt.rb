@@ -91,8 +91,9 @@ module MonadicGpt
       params
     end
 
-    def ask_retrial(input)
-      retrial = PROMPT.select("Something went wrong. Do you want to try again?") do |menu|
+    def ask_retrial(input, message)
+      MonadicGpt.prompt_monadic(" Error: #{message.capitalize}")
+      retrial = PROMPT.select(" Do you want to try again?") do |menu|
         menu.choice "Yes", "yes"
         menu.choice "No", "no"
         menu.choice "Show current contextual data", "show"
@@ -123,7 +124,7 @@ module MonadicGpt
       end
 
       if File.exist? filepath
-        overwrite = PROMPT.select("#{filepath} already exists.\nOverwrite?") do |menu|
+        overwrite = PROMPT.select(" #{filepath} already exists.\nOverwrite?") do |menu|
           menu.choice "Yes", "yes"
           menu.choice "No", "no"
         end
@@ -169,7 +170,7 @@ module MonadicGpt
 
     def change_parameter
       MonadicGpt.prompt_monadic
-      parameter = PROMPT.select("Select the parmeter to be set:", per_page: 7, cycle: true, default: 1) do |menu|
+      parameter = PROMPT.select(" Select the parmeter to be set:", per_page: 7, cycle: true, default: 1) do |menu|
         menu.choice "#{BULLET} Cancel", "cancel"
         menu.choice "#{BULLET} model: #{@params["model"]}", "model"
         menu.choice "#{BULLET} max_tokens: #{@params["max_tokens"]}", "max_tokens"
@@ -234,7 +235,7 @@ module MonadicGpt
     end
 
     def change_model
-      model = PROMPT.select("Select a model:", per_page: 10, cycle: false, default: 1) do |menu|
+      model = PROMPT.select(" Select a model:", per_page: 10, cycle: false, default: 1) do |menu|
         menu.choice "#{BULLET} Cancel", "cancel"
         @completion.models.sort_by { |m| -m["created"] }.each do |m|
           menu.choice "#{BULLET} #{m["id"]}", m["id"]
@@ -261,13 +262,13 @@ module MonadicGpt
     def show_help
       help_md = <<~HELP
         # List of Commands\n\n
-        - **help**, **menu**, or **commands**: show this help
-        - **params**, **settings**, or **config**: show and change values of parameters
-        - **data** or **context**: show current contextual info
-        - **clear** or **clean**: clear screen
+        - **help**, **menu**, **commands**: show this help
+        - **params**, **settings**, **config**: show and change values of parameters
+        - **data**, **context**: show current contextual info
+        - **clear**, **clean**: clear screen
         - **save**: save current contextual info to file
         - **load**: load contextual info from file
-        - **bye**, **exit**, or **quit**: quit the app
+        - **bye**, **exit**, **quit**, **reset**: go back to main menu
       HELP
       print "#{TTY::Markdown.parse(help_md, indent: 0).strip}\n"
     end
@@ -284,7 +285,7 @@ module MonadicGpt
         case input
         when /\A\s*(?:help|menu|commands?|\?|h)\s*\z/i
           show_help
-        when /\A\s*(?:bye|exit|quit)\s*\z/i
+        when /\A\s*(?:bye|exit|quit|reset)\s*\z/i
           break
         when /\A\s*(?:data|context)\s*\z/i
           show_data
@@ -306,11 +307,12 @@ module MonadicGpt
               SPINNER.stop("")
               print "#{TTY::Markdown.parse(res[@prop_newdata]).strip}\n"
             rescue StandardError => e
-              pp res
-              pp e
-              pp e.backtrace
+
+              # pp res
+              # pp e
+              # pp e.backtrace
               SPINNER.stop("")
-              input = ask_retrial(input)
+              input = ask_retrial(input, e.message)
               next
             end
           end
@@ -357,6 +359,10 @@ module MonadicGpt
       end
     end
 
+    def reset
+      @template
+    end
+
     def run
       MonadicGpt.banner(self.class.name, self.class::DESC, "cyan", "blue")
       show_help
@@ -364,7 +370,7 @@ module MonadicGpt
         parse
       else
         MonadicGpt.prompt_monadic
-        loadfile = PROMPT.select("Load saved file?", default: 2) do |menu|
+        loadfile = PROMPT.select(" Load saved file?", default: 2) do |menu|
           menu.choice "Yes", "yes"
           menu.choice "No", "no"
         end

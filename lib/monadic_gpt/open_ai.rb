@@ -68,7 +68,6 @@ module OpenAI
         json = Regexp.last_match(1)
         parsed = JSON.parse(json)
       else
-        print res
         raise "valid json object not found"
       end
       parsed

@@ -21,7 +21,8 @@ Make sure the following requirements are all fulfilled:
 - if your response contains program code, it must be retained in the value of "response"
 - update the "conversation" property by inserting the prompt and response to the value of "conversation" after the preexisting items
 - avoid giving a response that is the same or similar to one of the previous responses in "conversation"
-- program code in the response must be embedded in a code block in the markdown text
+- if the response contains program code, the language name must be mentioned in the response
+- program code in the response must be embedded in a code block in a markdown text
 - program code must be preceded with a blank line and followed by another blank line
 - the value of "response" must be included in the value of "conversation"
 - the "response" contains  your response, not the prompt 
