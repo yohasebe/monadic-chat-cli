@@ -13,11 +13,14 @@ version = "Version: #{MonadicGpt::VERSION}".center(60, " ")
 padding = "".center(60, " ")
 
 banner = <<~BANNER
-  #{MonadicGpt::PASTEL.on_magenta.bold(padding)}
-  #{MonadicGpt::PASTEL.on_magenta.bold(title)}
-  #{MonadicGpt::PASTEL.on_magenta.bold(padding)}
-  #{MonadicGpt::PASTEL.on_magenta(version)}
-  #{MonadicGpt::PASTEL.on_magenta.bold(padding)}
+  #{MonadicGpt::PASTEL.on_green(padding)}
+  #{MonadicGpt::PASTEL.on_green(padding)}
+  #{MonadicGpt::PASTEL.on_green.bold(title)}
+  #{MonadicGpt::PASTEL.on_green(padding)}
+  #{MonadicGpt::PASTEL.on_green(padding)}
+  #{MonadicGpt::PASTEL.on_green(version)}
+  #{MonadicGpt::PASTEL.on_green(padding)}
+  #{MonadicGpt::PASTEL.on_green(padding)}
 BANNER
 
 openai_completion = nil
@@ -31,6 +34,7 @@ loop do
 
   MonadicGpt.prompt_monadic
   parameter = MonadicGpt::PROMPT.select("Select app:", per_page: 5, cycle: false, default: 1) do |menu|
+    menu.enum "."
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Chat")}      - #{MonadicGpt::Chat::DESC}", "chat"
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Code")}      - #{MonadicGpt::Code::DESC}", "code"
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Novel")}     - #{MonadicGpt::Novel::DESC}", "novel"

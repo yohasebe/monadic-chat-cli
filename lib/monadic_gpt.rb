@@ -13,6 +13,7 @@ require "json"
 
 module MonadicGpt
   CONFIG = File.join(Dir.home, "monadic_gpt.conf")
+  NUM_RETRY = 1
 
   template_dir = File.join(__dir__, "..", "templates")
   templates = Dir["#{template_dir}/*.md"]
@@ -22,14 +23,17 @@ module MonadicGpt
   end
 
   TEMPLATES = template_map
-
   PASTEL = Pastel.new
 
-  PROMPT = TTY::Prompt.new(active_color: :blue, prefix: "❯")
+  interrupt = proc do
+    MonadicGpt.clear_screen
+    res = TTY::Prompt.new.yes?("Quit the app?")
+    exit if res
+  end
+  PROMPT = TTY::Prompt.new(active_color: :blue, prefix: "❯", interrupt: interrupt)
 
   spinner_opts = { clear: true, format: :pulse_2 }
   SPINNER = TTY::Spinner.new(PASTEL.cyan("[:spinner] Thinking ..."), spinner_opts)
-
   BULLET = "\e[33m●\e[0m"
 
   class App
@@ -107,7 +111,7 @@ module MonadicGpt
 
     def save_data
       MonadicGpt.prompt_monadic
-      input = PROMPT.ask("Enter the path and file name of the saved data:\n")
+      input = PROMPT.ask(" Enter the path and file name of the saved data:\n")
       return if input.to_s == ""
 
       filepath = File.expand_path(input)
@@ -139,7 +143,7 @@ module MonadicGpt
     end
 
     def load_data
-      input = PROMPT.ask("Enter the path and file name of the saved data:\n")
+      input = PROMPT.ask(" Enter the path and file name of the saved data:\n")
       return false if input.to_s == ""
 
       filepath = File.expand_path(input)
@@ -195,35 +199,35 @@ module MonadicGpt
     end
 
     def change_max_tokens
-      PROMPT.ask("Set value of max tokens [16 to 2048]", convert: :int) do |q|
+      PROMPT.ask(" Set value of max tokens [16 to 2048]", convert: :int) do |q|
         q.in "16-2048"
         q.messages[:range?] = "Value out of expected range [16 to 2048]"
       end
     end
 
     def change_temperature
-      PROMPT.ask("Set value of temperature [0.0 to 1.0]", convert: :float) do |q|
+      PROMPT.ask(" Set value of temperature [0.0 to 1.0]", convert: :float) do |q|
         q.in "0.0-1.0"
         q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
       end
     end
 
     def change_top_p
-      PROMPT.ask("Set value of top_p [0.0 to 1.0]", convert: :float) do |q|
+      PROMPT.ask(" Set value of top_p [0.0 to 1.0]", convert: :float) do |q|
         q.in "0.0-1.0"
         q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
       end
     end
 
     def change_frequency_penalty
-      PROMPT.ask("Set value of frequency penalty [-2.0 to 2.0]", convert: :float) do |q|
+      PROMPT.ask(" Set value of frequency penalty [-2.0 to 2.0]", convert: :float) do |q|
         q.in "-2.0-2.0"
         q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
       end
     end
 
     def change_presence_penalty
-      PROMPT.ask("Set value of presence penalty [-2.0 to 2.0]", convert: :float) do |q|
+      PROMPT.ask(" Set value of presence penalty [-2.0 to 2.0]", convert: :float) do |q|
         q.in "-2.0-2.0"
         q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
       end
@@ -268,43 +272,43 @@ module MonadicGpt
       print "#{TTY::Markdown.parse(help_md, indent: 0).strip}\n"
     end
 
-    def bind_and_unwrap(input, enable_retry: false)
+    def bind_and_unwrap(input, num_retry: 0)
       params = prepare_params(input)
-      res = @completion.run_expecting_json(params, enable_retry: enable_retry)
+      res = @completion.run_expecting_json(params, num_retry: num_retry)
       update_template(res)
       res
     end
 
-    def parse(input)
+    def parse(input = nil)
       loop do
         case input
-        when /\A(?:help|menu|commands?|\?|h)\z/i
+        when /\A\s*(?:help|menu|commands?|\?|h)\s*\z/i
           show_help
-        when /\A(?:bye|exit|quit)\z/i
+        when /\A\s*(?:bye|exit|quit)\s*\z/i
           break
-        when /\A(?:data|context)\z/i
+        when /\A\s*(?:data|context)\s*\z/i
           show_data
-        when /\A(?:save)\z/i
+        when /\A\s*(?:save)\s*\z/i
           save_data
-        when /\A(?:load)\z/i
+        when /\A\s*(?:load)\s*\z/i
           load_data
-        when /\A(?:clear|clean)\z/i
+        when /\A\s*(?:clear|clean)\s*\z/i
           MonadicGpt.clear_screen
-        when /\A(?:params?|parameters?|config|configuration)\z/i
+        when /\A\s*(?:params?|parameters?|config|configuration)\s*\z/i
           change_parameter
         else
           unless input.to_s.strip.empty?
             begin
               MonadicGpt.prompt_gpt3
               SPINNER.auto_spin
-              res = bind_and_unwrap(input, enable_retry: false)
+              res = bind_and_unwrap(input, num_retry: NUM_RETRY)
               @started = true
               SPINNER.stop("")
               print "#{TTY::Markdown.parse(res[@prop_newdata]).strip}\n"
-            rescue StandardError
-              # pp res
-              # pp e
-              # pp e.backtrace
+            rescue StandardError => e
+              pp res
+              pp e
+              pp e.backtrace
               SPINNER.stop("")
               input = ask_retrial(input)
               next
@@ -334,7 +338,7 @@ module MonadicGpt
         input = if mode == :replace
                   val
                 else
-                  PROMPT.ask("#{val}:")
+                  PROMPT.ask(" #{val}:")
                 end
 
         unless input
@@ -354,12 +358,10 @@ module MonadicGpt
     end
 
     def run
-      MonadicGpt.banner(self.class.name, self.class::DESC, "cyan")
+      MonadicGpt.banner(self.class.name, self.class::DESC, "cyan", "blue")
       show_help
       if @placeholders.empty?
-        MonadicGpt.prompt_user
-        input = PROMPT.ask
-        parse input
+        parse
       else
         MonadicGpt.prompt_monadic
         loadfile = PROMPT.select("Load saved file?", default: 2) do |menu|
@@ -367,11 +369,7 @@ module MonadicGpt
           menu.choice "No", "no"
         end
         if loadfile == "yes"
-          if load_data
-            MonadicGpt.prompt_user
-            input = PROMPT.ask
-            parse input
-          end
+          parse if load_data
         else
           input = fulfill_placeholders
           parse input if input

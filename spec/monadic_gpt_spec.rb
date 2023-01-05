@@ -45,7 +45,7 @@ RSpec.describe OpenAI do
         Wrap the json object with "<JSON>\n" and "\n</JSON>"
       PROMPT
 
-      res = completion.run_expecting_json(params)
+      res = completion.run_expecting_json(params, num_retry: 1)
       expect(res.keys).to include "answer"
     end
 

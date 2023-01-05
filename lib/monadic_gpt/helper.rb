@@ -42,13 +42,13 @@ module MonadicGpt
   def self.prompt_monadic
     box_width = 10
     name = "Monadic".center(box_width, " ")
-    color = "magenta"
+    color = "yellow"
     print "\n#{PASTEL.send(:"on_#{color}", name)}\n"
   end
 
   def self.prompt_user
     box_width = 10
-    color = "green"
+    color = "blue"
     name = "User".center(box_width, " ")
     print "\n#{PASTEL.send(:"on_#{color}", name)}\n"
   end
@@ -60,20 +60,20 @@ module MonadicGpt
     print "\n#{PASTEL.send(:"on_#{color}", name)}\n"
   end
 
-  def self.banner(title, desc, color)
+  def self.banner(title, desc, color1, color2)
     title = title.center(60, " ")
     desc = desc.center(60, " ")
-    help1 = "Type \"help\" for menu".center(60, " ")
-    help2 = "Type \"exit\" to quit".center(60, " ")
+    help = "Type \"help\" for menu".center(60, " ")
     padding = "".center(60, " ")
     banner = <<~BANNER
-      #{PASTEL.send(:"on_#{color}", padding)}
-      #{PASTEL.send(:"on_#{color}").bold(title)}
-      #{PASTEL.send(:"on_#{color}", desc)}
-      #{PASTEL.send(:"on_#{color}", padding)}
-      #{PASTEL.send(:"on_#{color}", help1)}
-      #{PASTEL.send(:"on_#{color}", help2)}
-      #{PASTEL.send(:"on_#{color}", padding)}
+      #{PASTEL.send(:"on_#{color2}", padding)}
+      #{PASTEL.send(:"on_#{color1}", padding)}
+      #{PASTEL.send(:"on_#{color1}").bold(title)}
+      #{PASTEL.send(:"on_#{color1}", desc)}
+      #{PASTEL.send(:"on_#{color1}", padding)}
+      #{PASTEL.send(:"on_#{color1}", help)}
+      #{PASTEL.send(:"on_#{color1}", padding)}
+      #{PASTEL.send(:"on_#{color2}", padding)}
     BANNER
     print TTY::Box.frame banner.strip
   end
