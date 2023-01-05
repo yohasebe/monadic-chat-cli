@@ -42,7 +42,7 @@ module MonadicGpt
   def self.prompt_monadic
     box_width = 10
     name = "Monadic".center(box_width, " ")
-    color = "yellow"
+    color = "green"
     print "\n#{PASTEL.send(:"on_#{color}", name)}\n"
   end
 
@@ -63,15 +63,12 @@ module MonadicGpt
   def self.banner(title, desc, color1, color2)
     title = title.center(60, " ")
     desc = desc.center(60, " ")
-    help = "Type \"help\" for menu".center(60, " ")
     padding = "".center(60, " ")
     banner = <<~BANNER
       #{PASTEL.send(:"on_#{color2}", padding)}
       #{PASTEL.send(:"on_#{color1}", padding)}
       #{PASTEL.send(:"on_#{color1}").bold(title)}
       #{PASTEL.send(:"on_#{color1}", desc)}
-      #{PASTEL.send(:"on_#{color1}", padding)}
-      #{PASTEL.send(:"on_#{color1}", help)}
       #{PASTEL.send(:"on_#{color1}", padding)}
       #{PASTEL.send(:"on_#{color2}", padding)}
     BANNER

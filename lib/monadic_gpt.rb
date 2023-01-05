@@ -61,6 +61,14 @@ module MonadicGpt
       }.merge(params)
     end
 
+    def textbox(text = "")
+      # if @placeholders.empty?
+      PROMPT.ask(text)
+      # else
+      #   PROMPT.multiline(text).join("\n")
+      # end
+    end
+
     def update_template(res)
       updated = @update_proc.call(res)
       json = updated.to_json.strip
@@ -106,7 +114,7 @@ module MonadicGpt
         input
       when "no"
         MonadicGpt.prompt_user
-        PROMPT.ask
+        textbox
       when "show"
         show_data
         ask_retrial(input)
@@ -203,8 +211,8 @@ module MonadicGpt
     end
 
     def change_max_tokens
-      PROMPT.ask(" Set value of max tokens [16 to 2048]", convert: :int) do |q|
-        q.in "16-2048"
+      PROMPT.ask(" Set value of max tokens [16 to 8000]", convert: :int) do |q|
+        q.in "16-8000"
         q.messages[:range?] = "Value out of expected range [16 to 2048]"
       end
     end
@@ -306,13 +314,11 @@ module MonadicGpt
               MonadicGpt.prompt_gpt3
               SPINNER.auto_spin
               res = bind_and_unwrap(input, num_retry: NUM_RETRY)
+              text = res[@prop_newdata]
               @started = true
               SPINNER.stop("")
-              print "#{TTY::Markdown.parse(res[@prop_newdata]).strip}\n"
+              print "#{TTY::Markdown.parse(text).strip}\n"
             rescue StandardError => e
-              # pp res
-              # pp e
-              # pp e.backtrace
               SPINNER.stop("")
               input = ask_retrial(input, e.message)
               next
@@ -320,7 +326,7 @@ module MonadicGpt
           end
         end
         MonadicGpt.prompt_user
-        input = PROMPT.ask
+        input = textbox
       end
     end
 
@@ -330,19 +336,15 @@ module MonadicGpt
       mode = :replace
 
       @placeholders.each do |key, val|
-        case key
-        when "mode"
+        if key == "mode"
           mode = val
-          next
-        when "{{PROMPT}}"
-          input = val
           next
         end
 
         input = if mode == :replace
                   val
                 else
-                  PROMPT.ask(" #{val}:")
+                  textbox(" #{val}:")
                 end
 
         unless input
@@ -357,7 +359,7 @@ module MonadicGpt
         replacements.each do |key, value|
           @template.gsub!(key, value)
         end
-        input
+        true
       end
     end
 
@@ -376,12 +378,7 @@ module MonadicGpt
           menu.choice "Yes", "yes"
           menu.choice "No", "no"
         end
-        if loadfile == "yes"
-          parse if load_data
-        else
-          input = fulfill_placeholders
-          parse input if input
-        end
+        parse if (loadfile == "yes" && load_data) || fulfill_placeholders
       end
     end
   end

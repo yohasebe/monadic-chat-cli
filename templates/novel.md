@@ -17,6 +17,7 @@ Your response must be returned in the form of a JSON object having the structure
 Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "novel"
+- remove unnecessary "\n" from your response 
 - set the event presented above to the "event" property
 - write a paragraph in the novel of about 100 words describing the event given as the prompt and set the new paragraph to the "paragraph" property
 - insert the newly created "paragraph" value at the end of the "novel" list

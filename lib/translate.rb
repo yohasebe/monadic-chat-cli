@@ -24,8 +24,7 @@ module MonadicGpt
       replacements ||= {
         "mode" => :interactive,
         "{{ORIGINAL}}" => "Input text to translate",
-        "{{TARGET_LANG}}" => "Input target language",
-        "{{PROMPT}}" => "translate the original text"
+        "{{TARGET_LANG}}" => "Input target language"
       }
       super(params,
             TEMPLATES["translate"],

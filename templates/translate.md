@@ -9,7 +9,7 @@ Your response must be returned in the form of a JSON object having the structure
   "mode": "translate",
   "original": "{{ORIGINAL}}",
   "target_lang": "{{TARGET_LANG}}",
-  "num_sentences: "",
+  "num_sentences": 0,
   "translation": "",
   "translations": [],
   "num_tokens": 0
@@ -19,6 +19,7 @@ Your response must be returned in the form of a JSON object having the structure
 Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "translate"
+- remove unnecessary "\n" from your response 
 - set the number of sentences of the original text to "num_sentences"
 - if the "tnraslation" value is empty, translate the "original" text to the language specified in the "target_lang" property in accordance with the prompt
 - if the "translation" property already has a value, modify the translation in accordance with the prompt and update the value of the "translate" property with the modified translation

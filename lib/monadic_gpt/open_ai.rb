@@ -10,6 +10,7 @@ Oj.mimic_JSON
 
 module OpenAI
   def self.query(access_token, mode, method, timeout_sec = 60, query = {})
+    sleep 0.5
     target_uri = "https://api.openai.com/v1/#{method}"
     uri = URI.parse(target_uri)
 
@@ -82,7 +83,7 @@ module OpenAI
       when 0
         raise e
       else
-        sleep 2
+        sleep 1
         run_expecting_json(params, num_retry: num_retry - 1)
       end
     end

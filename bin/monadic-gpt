@@ -8,19 +8,26 @@ require_relative "../lib/code"
 require_relative "../lib/novel"
 require_relative "../lib/translate"
 
-title = "/M/O/N/A/D/I/C/ /G/P/T/".center(60, " ")
-version = "Version: #{MonadicGpt::VERSION}".center(60, " ")
-padding = "".center(60, " ")
+num = 60
+mon = " /M/O/N/A/D/I/C/ "
+gpt = " /G/P/T/ "
+hpad = " " * ((num - (mon.size + gpt.size) - 1) / 2).to_i
+cpad = MonadicGpt::PASTEL.on_cyan(" ")
+montitle = MonadicGpt::PASTEL.on_green.bold(mon)
+gpttitle = MonadicGpt::PASTEL.on_red.bold(gpt)
+title = "#{hpad}#{montitle}#{cpad}#{gpttitle}#{hpad}"
+title += ((num - (mon.size + gpt.size) - 1) % 2).zero? ? "" : " "
+version = "Version: #{MonadicGpt::VERSION}".center(num, " ")
+vpad = " " * num
 
 banner = <<~BANNER
-  #{MonadicGpt::PASTEL.on_blue(padding)}
-  #{MonadicGpt::PASTEL.on_green(padding)}
-  #{MonadicGpt::PASTEL.on_green.bold(title)}
-  #{MonadicGpt::PASTEL.on_green(padding)}
-  #{MonadicGpt::PASTEL.on_green(padding)}
-  #{MonadicGpt::PASTEL.on_green(version)}
-  #{MonadicGpt::PASTEL.on_green(padding)}
-  #{MonadicGpt::PASTEL.on_blue(padding)}
+  #{MonadicGpt::PASTEL.on_blue(vpad)}
+  #{MonadicGpt::PASTEL.on_cyan(vpad)}
+  #{MonadicGpt::PASTEL.on_cyan(title)}
+  #{MonadicGpt::PASTEL.on_cyan(vpad)}
+  #{MonadicGpt::PASTEL.on_cyan(version)}
+  #{MonadicGpt::PASTEL.on_cyan(vpad)}
+  #{MonadicGpt::PASTEL.on_blue(vpad)}
 BANNER
 
 openai_completion = nil
@@ -33,7 +40,7 @@ loop do
   openai_completion ||= MonadicGpt.authenticate
 
   MonadicGpt.prompt_monadic
-  parameter = MonadicGpt::PROMPT.select(" Select app:", per_page: 5, cycle: false, default: 1) do |menu|
+  parameter = MonadicGpt::PROMPT.select(" Select app:", per_page: 6, cycle: false, default: 1) do |menu|
     menu.enum "."
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Chat")}      - #{MonadicGpt::Chat::DESC}", "chat"
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Code")}      - #{MonadicGpt::Code::DESC}", "code"
