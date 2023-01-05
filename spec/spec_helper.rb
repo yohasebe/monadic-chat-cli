@@ -5,6 +5,8 @@ require "chat"
 require "novel"
 require "code"
 require "translate"
+require "oj"
+Oj.mimic_JSON
 
 CONFIG_FILE = File.join(Dir.home, "monadic_gpt.conf")
 CONFIG = JSON.parse(File.read(CONFIG_FILE))

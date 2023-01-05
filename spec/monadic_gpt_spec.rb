@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require "json"
+require "oj"
+Oj.mimic_JSON
 
 PARAMS = {
   model: "text-davinci-003",

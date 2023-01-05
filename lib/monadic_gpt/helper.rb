@@ -7,7 +7,7 @@ module MonadicGpt
     if overwrite
       prompt_monadic
       access_token = nil
-      access_token ||= PROMPT.mask("Input Input your API key:") until access_token
+      access_token ||= PROMPT.mask(" Input your OpenAI access token:") until access_token
 
       File.open(CONFIG, "w") do |f|
         config = { "access_token" => access_token }
@@ -19,7 +19,7 @@ module MonadicGpt
       config = JSON.parse(json)
       access_token = config["access_token"]
     else
-      access_token ||= PROMPT.mask("Input Input your API key:") until access_token
+      access_token ||= PROMPT.mask(" Input your OpenAI access token:") until access_token
       File.open(CONFIG, "w") do |f|
         config = { "access_token" => access_token }
         f.write(JSON.pretty_generate(config))

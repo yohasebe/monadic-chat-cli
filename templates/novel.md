@@ -20,10 +20,9 @@ Make sure the following requirements are all fulfilled:
 - set the event presented above to the "event" property
 - write a paragraph in the novel of about 100 words describing the event given as the prompt and set the new paragraph to the "paragraph" property
 - insert the newly created "paragraph" value at the end of the "novel" list
-- double quotes in the text values of "event" must be escaped
-- double quotes in the text values of "paragraph" must be escaped
-- double quotes in the text values of "novel" must be escaped
 - update the value of "num_tokens" with the number of tokens contained in the new value of "novel"
 - the resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
+- avoid useing invalid characters in the JSON object
+- all the newline characters must be "\n"
 
 Wrap the json object with "<JSON>\n" and "\n</JSON>"

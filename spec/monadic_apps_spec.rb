@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "json"
-require "tty-markdown"
-
 completion = OpenAI::Completion.new(ACCESS_TOKEN)
 
 RSpec.describe "MonadicGpt::Chat" do

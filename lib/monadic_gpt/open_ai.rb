@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
-require "json"
+require "oj"
 require "net/http"
 require "uri"
 require "parallel"
 require "tty-progressbar"
+
+Oj.mimic_JSON
 
 module OpenAI
   def self.query(access_token, mode, method, timeout_sec = 60, query = {})
@@ -65,7 +67,7 @@ module OpenAI
       text = res["choices"][0]["text"]
       case text
       when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
-        json = Regexp.last_match(1)
+        json = Regexp.last_match(1).gsub(/\r\n?/, "\n")
         parsed = JSON.parse(json)
       else
         raise "valid json object not found"

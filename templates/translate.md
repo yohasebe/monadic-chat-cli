@@ -25,11 +25,10 @@ Make sure the following requirements are all fulfilled:
 - make the new translation different from previous translations stored in the "translations" property
 - the number of sentences of the translated text must be the same as the value of "num_sentences"
 - set the new translation to both the "translation" and insert the same text at the end of the "translations" list
-- double quotes in the text values of "original" must be escaped
-- double quotes in the text values of "translation" must be escaped
-- double quotes in the text items of "translations" must be escaped
 - update the value of "num_tokens" with the number of tokens contained in the new value of "translations"
 - the resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
+- avoid useing invalid characters in the JSON object
+- all the newline characters must be "\n"
 
 Wrap the json object with "<JSON>\n" and "\n</JSON>"
 

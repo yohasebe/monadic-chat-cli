@@ -36,6 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec"
   spec.add_development_dependency "solargraph"
 
+  spec.add_dependency "oj"
   spec.add_dependency "parallel"
   spec.add_dependency "pastel"
   spec.add_dependency "tty-box"

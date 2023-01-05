@@ -13,14 +13,14 @@ version = "Version: #{MonadicGpt::VERSION}".center(60, " ")
 padding = "".center(60, " ")
 
 banner = <<~BANNER
+  #{MonadicGpt::PASTEL.on_blue(padding)}
   #{MonadicGpt::PASTEL.on_green(padding)}
-  #{MonadicGpt::PASTEL.on_yellow(padding)}
-  #{MonadicGpt::PASTEL.on_yellow.bold(title)}
-  #{MonadicGpt::PASTEL.on_yellow(padding)}
-  #{MonadicGpt::PASTEL.on_yellow(padding)}
-  #{MonadicGpt::PASTEL.on_yellow(version)}
-  #{MonadicGpt::PASTEL.on_yellow(padding)}
+  #{MonadicGpt::PASTEL.on_green.bold(title)}
   #{MonadicGpt::PASTEL.on_green(padding)}
+  #{MonadicGpt::PASTEL.on_green(padding)}
+  #{MonadicGpt::PASTEL.on_green(version)}
+  #{MonadicGpt::PASTEL.on_green(padding)}
+  #{MonadicGpt::PASTEL.on_blue(padding)}
 BANNER
 
 openai_completion = nil

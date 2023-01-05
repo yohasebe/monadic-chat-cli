@@ -9,7 +9,9 @@ require "tty-prompt"
 require "tty-spinner"
 require "tty-box"
 require "pastel"
-require "json"
+require "oj"
+
+Oj.mimic_JSON
 
 module MonadicGpt
   CONFIG = File.join(Dir.home, "monadic_gpt.conf")
@@ -91,8 +93,9 @@ module MonadicGpt
       params
     end
 
-    def ask_retrial(input, message)
-      MonadicGpt.prompt_monadic(" Error: #{message.capitalize}")
+    def ask_retrial(input, message = nil)
+      MonadicGpt.prompt_monadic
+      print " Error: #{message.capitalize}\n" if message
       retrial = PROMPT.select(" Do you want to try again?") do |menu|
         menu.choice "Yes", "yes"
         menu.choice "No", "no"
@@ -307,7 +310,6 @@ module MonadicGpt
               SPINNER.stop("")
               print "#{TTY::Markdown.parse(res[@prop_newdata]).strip}\n"
             rescue StandardError => e
-
               # pp res
               # pp e
               # pp e.backtrace
