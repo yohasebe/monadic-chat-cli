@@ -64,14 +64,11 @@ module OpenAI
       res = run(params)
       text = res["choices"][0]["text"]
       case text
-      # when /```json\n\{(.+)\}\n`+(?:\n|\z)/m,
-      #   /```.*?\{(.+)\}`+(?:\n|\z)/m,
-      #   /\{(.+)\}/m,
-      #   /\{(.+)/m
       when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
         json = Regexp.last_match(1)
         parsed = JSON.parse(json)
       else
+        print res
         raise "valid json object not found"
       end
       parsed

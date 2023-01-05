@@ -41,7 +41,8 @@ RSpec.describe OpenAI do
         What is the Japanese translation for Ruby? Give your response as a JSON object of the structure below\n
         ```json
         {"answer": ""}
-        ```
+        ```\n
+        Wrap the json object with "<JSON>\n" and "\n</JSON>"
       PROMPT
 
       res = completion.run_expecting_json(params)
@@ -65,6 +66,7 @@ RSpec.describe OpenAI do
           "responses": ["Tokyo"]
         }
         ```\n
+        Wrap the json object with "<JSON>\n" and "\n</JSON>"
       TEMPLATE
 
       replace_key = "{{PROMPT}}"
