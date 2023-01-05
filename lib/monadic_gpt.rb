@@ -25,7 +25,7 @@ module MonadicGpt
 
   PASTEL = Pastel.new
 
-  PROMPT = TTY::Prompt.new(active_color: :blue)
+  PROMPT = TTY::Prompt.new(active_color: :blue, prefix: "❯")
 
   spinner_opts = { clear: true, format: :pulse_2 }
   SPINNER = TTY::Spinner.new(PASTEL.cyan("[:spinner] Thinking ..."), spinner_opts)
@@ -58,11 +58,11 @@ module MonadicGpt
     def update_template(res)
       updated = @update_proc.call(res)
       json = updated.to_json.strip
-      @template.sub!(/```json.+?```/m, "```json\n#{json}\n```")
+      @template.sub!(/\n\n```json.+```\n\n/m, "\n\n```json\n#{json}\n```\n\n")
     end
 
     def show_data
-      m = /```json\n(.+?)\n```/m.match(@template)
+      m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
       data = JSON.parse(m[1])
 
       accumulated = +"##{@prop_accumulated.capitalize}\n"
@@ -132,7 +132,7 @@ module MonadicGpt
         save_data
       end
       File.open(filepath, "w") do |f|
-        m = /\n\n```json\n(.+)\n```\n\n/m.match(template)
+        m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
         f.write JSON.pretty_generate(JSON.parse(m[1]))
         print "Data has been saved successfully\n"
       end
@@ -149,15 +149,15 @@ module MonadicGpt
       end
 
       begin
-        data = File.read(filepath)
-        json = JSON.parse(data)
-        raise if json["mode"] != self.class.name.downcase.split("::")[-1]
+        json = File.read(filepath)
+        data = JSON.parse(json)
+        raise if data["mode"] != self.class.name.downcase.split("::")[-1]
       rescue StandardError
         print "The data structure is not valid for this app\n"
         return false
       end
 
-      new_template = template.sub(/```json.+?```/m, "```json\n#{data.strip}\n```")
+      new_template = @template.sub(/\n\n```json\s*\{.+\}\s*```\n\n/m, "\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
       print "Data has been loaded successfully\n"
       @template = new_template
       true
@@ -195,35 +195,35 @@ module MonadicGpt
     end
 
     def change_max_tokens
-      PROMPT.ask("Set value of max tokens [16 to 2048]") do |q|
+      PROMPT.ask("Set value of max tokens [16 to 2048]", convert: :int) do |q|
         q.in "16-2048"
-        q.messages[:range?] = "Value out of expected range [16 to 2048]>"
+        q.messages[:range?] = "Value out of expected range [16 to 2048]"
       end
     end
 
     def change_temperature
-      PROMPT.ask("Set value of temperature [0.0 to 1.0]") do |q|
+      PROMPT.ask("Set value of temperature [0.0 to 1.0]", convert: :float) do |q|
         q.in "0.0-1.0"
-        q.messages[:range?] = "Value out of expected range [0.0 to 1.0"
+        q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
       end
     end
 
     def change_top_p
-      PROMPT.ask("Set value of top_p [0.0 to 1.0]") do |q|
+      PROMPT.ask("Set value of top_p [0.0 to 1.0]", convert: :float) do |q|
         q.in "0.0-1.0"
         q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
       end
     end
 
     def change_frequency_penalty
-      PROMPT.ask("Set value of frequency penalty [-2.0 to 2.0]") do |q|
+      PROMPT.ask("Set value of frequency penalty [-2.0 to 2.0]", convert: :float) do |q|
         q.in "-2.0-2.0"
         q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
       end
     end
 
     def change_presence_penalty
-      PROMPT.ask("Set value of presence penalty [-2.0 to 2.0]") do |q|
+      PROMPT.ask("Set value of presence penalty [-2.0 to 2.0]", convert: :float) do |q|
         q.in "-2.0-2.0"
         q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
       end
@@ -260,9 +260,9 @@ module MonadicGpt
         - **help**, **menu**, or **commands**: show this help
         - **params**, **settings**, or **config**: show and change values of parameters
         - **data** or **context**: show current contextual info
+        - **clear** or **clean**: clear screen
         - **save**: save current contextual info to file
         - **load**: load contextual info from file
-        - **clear**: clear screen
         - **bye**, **exit**, or **quit**: quit the app
       HELP
       print "#{TTY::Markdown.parse(help_md, indent: 0).strip}\n"
@@ -288,18 +288,18 @@ module MonadicGpt
           save_data
         when /\A(?:load)\z/i
           load_data
-        when /\A(?:clear)\z/i
+        when /\A(?:clear|clean)\z/i
           MonadicGpt.clear_screen
         when /\A(?:params?|parameters?|config|configuration)\z/i
           change_parameter
         else
           unless input.to_s.strip.empty?
             begin
+              MonadicGpt.prompt_gpt3
               SPINNER.auto_spin
               res = bind_and_unwrap(input, enable_retry: false)
               @started = true
               SPINNER.stop("")
-              MonadicGpt.prompt_gpt3
               print "#{TTY::Markdown.parse(res[@prop_newdata]).strip}\n"
             rescue StandardError
               # pp res
@@ -349,7 +349,7 @@ module MonadicGpt
         replacements.each do |key, value|
           @template.gsub!(key, value)
         end
-        true
+        input
       end
     end
 
@@ -372,10 +372,9 @@ module MonadicGpt
             input = PROMPT.ask
             parse input
           end
-        elsif fulfill_placeholders
-          MonadicGpt.prompt_user
-          input = PROMPT.ask
-          parse input
+        else
+          input = fulfill_placeholders
+          parse input if input
         end
       end
     end

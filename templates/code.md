@@ -7,8 +7,8 @@ PROMPT: {{PROMPT}}
   "mode": "code",
   "prompt": "I have a request for you.",
   "response":"Sure!",
-  "conversation": ["Write code in Ruby to print 'hello'.", "Sure! Here it is:\n\n```ruby\nprint 'hello'\n```\n\n"],
-  "num_tokens": 39
+  "conversation": ["I have a request for you.", "Sure!"],
+  "num_tokens": 12
 }
 ```
 
@@ -30,6 +30,7 @@ Make sure the following requirements are all fulfilled:
 - double quotes in the text values of "response"
 - double quotes in the text items of "conversation"
 - update the value of "num_tokens" with the number of tokens contained in the new value of "conversation"
-- wrap the json object with "```json\n" and "\n```\n"
+- the resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
 
-The resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
+Wrap the json object with "<JSON>\n" and "\n</JSON>"
+

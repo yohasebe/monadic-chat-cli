@@ -24,6 +24,6 @@ Make sure the following requirements are all fulfilled:
 - double quotes in the text values of "paragraph" must be escaped
 - double quotes in the text values of "novel" must be escaped
 - update the value of "num_tokens" with the number of tokens contained in the new value of "novel"
-- wrap the json object with "```json\n" and "\n```\n"
+- the resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
 
-The resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
+Wrap the json object with "<JSON>\n" and "\n</JSON>"

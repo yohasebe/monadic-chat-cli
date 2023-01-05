@@ -33,7 +33,7 @@ Metrics/PerceivedComplexity:
   Max: 10
 
 Metrics/ClassLength:
-  Max: 300
+  Max: 400
 
 Metrics/CyclomaticComplexity:
   Max: 20

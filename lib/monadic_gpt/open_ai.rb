@@ -62,24 +62,24 @@ module OpenAI
 
     def run_expecting_json(params, enable_retry: false)
       res = run(params)
-      text = res["choices"][0].fetch("text", "").to_s
+      text = res["choices"][0]["text"]
       case text
-      when /```json\n\{(.+)\}\n`+(?:\n|\z)/m,
-        /```.*?\{(.+)\}`+(?:\n|\z)/m,
-        /\{(.+)\}/m,
-        /\{(.+)/m
-        json = "{\n#{Regexp.last_match(1).strip}\n}"
+      # when /```json\n\{(.+)\}\n`+(?:\n|\z)/m,
+      #   /```.*?\{(.+)\}`+(?:\n|\z)/m,
+      #   /\{(.+)\}/m,
+      #   /\{(.+)/m
+      when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
+        json = Regexp.last_match(1)
         parsed = JSON.parse(json)
       else
-        print text
         raise "valid json object not found"
       end
       parsed
     rescue StandardError => e
-      pp res
-      pp e
-      pp e.backtrace
-      print text
+      # pp res
+      # pp e
+      # pp e.backtrace
+      # print text
       raise e unless enable_retry
 
       sleep 2
@@ -94,7 +94,7 @@ module OpenAI
       json = ""
       prompts.each do |prompt|
         params["prompt"] = template.sub(replace_key, prompt)
-        res = run_expecting_json(params, enable_retry: true)
+        res = run_expecting_json(params, enable_retry: false)
         json = JSON.pretty_generate(res)
         bar.advance(1)
         template = template.sub(/\n\n```json.+?```\n\n/m, "\n\n```json\n#{json}\n```\n\n")

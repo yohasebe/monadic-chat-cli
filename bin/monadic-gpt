@@ -30,7 +30,7 @@ loop do
   openai_completion ||= MonadicGpt.authenticate
 
   MonadicGpt.prompt_monadic
-  parameter = MonadicGpt::PROMPT.select("Select app:", per_page: 5, cycle: true, default: 1) do |menu|
+  parameter = MonadicGpt::PROMPT.select("Select app:", per_page: 5, cycle: false, default: 1) do |menu|
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Chat")}      - #{MonadicGpt::Chat::DESC}", "chat"
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Code")}      - #{MonadicGpt::Code::DESC}", "code"
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Novel")}     - #{MonadicGpt::Novel::DESC}", "novel"
