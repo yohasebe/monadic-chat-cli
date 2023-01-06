@@ -64,7 +64,13 @@ module MonadicGpt
     end
 
     def reset
-      @template = @template_original.dup
+      if @placeholders.empty?
+        @template = @template_original.dup
+        MonadicGpt.prompt_monadic
+        print "❯ Context has been reset.\n"
+      else
+        fulfill_placeholders
+      end
     end
 
     def textbox(text = "")
@@ -317,8 +323,6 @@ module MonadicGpt
           break
         when /\A\s*(?:reset)\s*\z/i
           reset
-          MonadicGpt.prompt_monadic
-          print "❯ Context has been reset.\n"
         when /\A\s*(?:data|context)\s*\z/i
           show_data
         when /\A\s*(?:save)\s*\z/i
@@ -395,7 +399,13 @@ module MonadicGpt
           menu.choice "Yes", "yes"
           menu.choice "No", "no"
         end
-        parse if (loadfile == "yes" && load_data) || fulfill_placeholders
+        if loadfile == "yes" && load_data
+          parse
+        elsif fulfill_placeholders
+          MonadicGpt.prompt_monadic
+          print "❯ Context has been reset.\n"
+          parse
+        end
       end
     end
   end
