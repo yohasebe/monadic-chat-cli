@@ -69,7 +69,7 @@ module OpenAI
       case text
       when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
         json = Regexp.last_match(1).gsub(/\r\n?/, "\n")
-        parsed = JSON.parse(json)
+        parsed = JSON.parse(json.gsub(/\r\n/) { "\n" })
       else
         raise "valid json object not found"
       end

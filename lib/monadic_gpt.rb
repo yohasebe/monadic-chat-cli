@@ -16,6 +16,7 @@ Oj.mimic_JSON
 module MonadicGpt
   CONFIG = File.join(Dir.home, "monadic_gpt.conf")
   NUM_RETRY = 1
+  MIN_LENGTH = 10
 
   template_dir = File.join(__dir__, "..", "templates")
   templates = Dir["#{template_dir}/*.md"]
@@ -40,7 +41,8 @@ module MonadicGpt
 
   class App
     def initialize(params, template, placeholders, prop_accumulated, prop_newdata, update_proc)
-      @template = File.read(template)
+      @template_original = File.read(template)
+      @template = @template_original.dup
       @placeholders = placeholders
       @prop_accumulated = prop_accumulated
       @prop_newdata = prop_newdata
@@ -59,6 +61,10 @@ module MonadicGpt
         "presence_penalty" => 0.0,
         "frequency_penalty" => 0.0
       }.merge(params)
+    end
+
+    def reset
+      @template = @template_original.dup
     end
 
     def textbox(text = "")
@@ -91,7 +97,7 @@ module MonadicGpt
 
       MonadicGpt.prompt_monadic
       res = "#{others}\n#{accumulated}"
-      print "#{TTY::Markdown.parse(res, indent: 0).strip}\n\n"
+      print "\n#{TTY::Markdown.parse(res, indent: 0).strip}\n"
     end
 
     def prepare_params(input)
@@ -103,7 +109,7 @@ module MonadicGpt
 
     def ask_retrial(input, message = nil)
       MonadicGpt.prompt_monadic
-      print " Error: #{message.capitalize}\n" if message
+      print "❯ Error: #{message.capitalize}\n" if message
       retrial = PROMPT.select(" Do you want to try again?") do |menu|
         menu.choice "Yes", "yes"
         menu.choice "No", "no"
@@ -272,16 +278,18 @@ module MonadicGpt
 
     def show_help
       help_md = <<~HELP
-        # List of Commands\n\n
+        # List of Commands
         - **help**, **menu**, **commands**: show this help
         - **params**, **settings**, **config**: show and change values of parameters
         - **data**, **context**: show current contextual info
-        - **clear**, **clean**: clear screen
+        - **reset**: reset context to original state
         - **save**: save current contextual info to file
         - **load**: load contextual info from file
-        - **bye**, **exit**, **quit**, **reset**: go back to main menu
+        - **clear**, **clean**: clear screen
+        - **bye**, **exit**, **quit**: go back to main menu
       HELP
-      print "#{TTY::Markdown.parse(help_md, indent: 0).strip}\n"
+      MonadicGpt.prompt_monadic
+      print "\n#{TTY::Markdown.parse(help_md, indent: 0).strip}\n"
     end
 
     def bind_and_unwrap(input, num_retry: 0)
@@ -291,13 +299,26 @@ module MonadicGpt
       res
     end
 
+    def confirm_query(input)
+      if input.size < MIN_LENGTH
+        MonadicGpt.prompt_monadic
+        PROMPT.yes?(" Would you like to proceed with this (very short) prompt?")
+      else
+        true
+      end
+    end
+
     def parse(input = nil)
       loop do
         case input
         when /\A\s*(?:help|menu|commands?|\?|h)\s*\z/i
           show_help
-        when /\A\s*(?:bye|exit|quit|reset)\s*\z/i
+        when /\A\s*(?:bye|exit|quit)\s*\z/i
           break
+        when /\A\s*(?:reset)\s*\z/i
+          reset
+          MonadicGpt.prompt_monadic
+          print "❯ Context has been reset.\n"
         when /\A\s*(?:data|context)\s*\z/i
           show_data
         when /\A\s*(?:save)\s*\z/i
@@ -309,7 +330,7 @@ module MonadicGpt
         when /\A\s*(?:params?|parameters?|config|configuration)\s*\z/i
           change_parameter
         else
-          unless input.to_s.strip.empty?
+          if input && confirm_query(input)
             begin
               MonadicGpt.prompt_gpt3
               SPINNER.auto_spin
@@ -317,7 +338,7 @@ module MonadicGpt
               text = res[@prop_newdata]
               @started = true
               SPINNER.stop("")
-              print "#{TTY::Markdown.parse(text).strip}\n"
+              print "❯ #{TTY::Markdown.parse(text).strip}\n"
             rescue StandardError => e
               SPINNER.stop("")
               input = ask_retrial(input, e.message)
@@ -361,10 +382,6 @@ module MonadicGpt
         end
         true
       end
-    end
-
-    def reset
-      @template
     end
 
     def run
