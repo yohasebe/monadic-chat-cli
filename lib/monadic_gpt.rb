@@ -5,6 +5,7 @@ require_relative "monadic_gpt/open_ai"
 require_relative "monadic_gpt/helper"
 
 require "tty-markdown"
+require_relative "monadic_gpt/tty_markdown_no_br"
 require "tty-prompt"
 require "tty-spinner"
 require "tty-box"
@@ -193,7 +194,12 @@ module MonadicGpt
 
     def change_parameter
       MonadicGpt.prompt_monadic
-      parameter = PROMPT.select(" Select the parmeter to be set:", per_page: 7, cycle: true, default: 1) do |menu|
+      parameter = PROMPT.select(" Select the parmeter to be set:",
+                                per_page: 7,
+                                cycle: true,
+                                show_help: :always,
+                                filter: true,
+                                default: 1) do |menu|
         menu.choice "#{BULLET} Cancel", "cancel"
         menu.choice "#{BULLET} model: #{@params["model"]}", "model"
         menu.choice "#{BULLET} max_tokens: #{@params["max_tokens"]}", "max_tokens"
@@ -258,7 +264,12 @@ module MonadicGpt
     end
 
     def change_model
-      model = PROMPT.select(" Select a model:", per_page: 10, cycle: false, default: 1) do |menu|
+      model = PROMPT.select(" Select a model:",
+                            per_page: 10,
+                            cycle: false,
+                            show_help: :always,
+                            filter: true,
+                            default: 1) do |menu|
         menu.choice "#{BULLET} Cancel", "cancel"
         @completion.models.sort_by { |m| -m["created"] }.each do |m|
           menu.choice "#{BULLET} #{m["id"]}", m["id"]

@@ -18,7 +18,6 @@ Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "chat"
 - set the prompt to the "prompt" property
-- remove unnecessary "\n" from your response 
 - your response to the prompt is included both in the property "response" and "conversation" of the JSON object
 - update "conversation" by inserting the "prompt" value and the "response" value to the "conversation" list after the existing items
 - the value of "response" must be one that naturally follows the past conversation contained in "conversation" 
@@ -34,6 +33,5 @@ Make sure the following requirements are all fulfilled:
 - update the value of "num_tokens" with the number of tokens contained in the new value of "conversation"
 - the resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
 - avoid useing invalid characters in the JSON object
-- all the newline characters must be "\n"
 
 Wrap the json object with "<JSON>\n" and "\n</JSON>"

@@ -8,17 +8,17 @@ require_relative "../lib/code"
 require_relative "../lib/novel"
 require_relative "../lib/translate"
 
-num = 60
+wid = 60
 mon = " /M/O/N/A/D/I/C/ "
 gpt = " /G/P/T/ "
-hpad = " " * ((num - (mon.size + gpt.size) - 1) / 2).to_i
+hpad = " " * ((wid - (mon.size + gpt.size) - 1) / 2).to_i
 cpad = MonadicGpt::PASTEL.on_cyan(" ")
 montitle = MonadicGpt::PASTEL.on_green.bold(mon)
 gpttitle = MonadicGpt::PASTEL.on_red.bold(gpt)
 title = "#{hpad}#{montitle}#{cpad}#{gpttitle}#{hpad}"
-title += ((num - (mon.size + gpt.size) - 1) % 2).zero? ? "" : " "
-version = "Version: #{MonadicGpt::VERSION}".center(num, " ")
-vpad = " " * num
+title += ((wid - (mon.size + gpt.size) - 1) % 2).zero? ? "" : " "
+version = "Version: #{MonadicGpt::VERSION}".center(wid, " ")
+vpad = " " * wid
 
 banner = <<~BANNER
   #{MonadicGpt::PASTEL.on_blue(vpad)}
@@ -40,8 +40,12 @@ loop do
   openai_completion ||= MonadicGpt.authenticate
 
   MonadicGpt.prompt_monadic
-  parameter = MonadicGpt::PROMPT.select(" Select app:", per_page: 6, cycle: false, default: 1) do |menu|
-    menu.enum "."
+  parameter = MonadicGpt::PROMPT.select(" Select app:",
+                                        per_page: 6,
+                                        cycle: false,
+                                        filter: true,
+                                        show_help: :always,
+                                        default: 1) do |menu|
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Chat")}      - #{MonadicGpt::Chat::DESC}", "chat"
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Code")}      - #{MonadicGpt::Code::DESC}", "code"
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Novel")}     - #{MonadicGpt::Novel::DESC}", "novel"

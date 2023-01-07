@@ -24,6 +24,5 @@ Make sure the following requirements are all fulfilled:
 - update the value of "num_tokens" with the number of tokens contained in the new value of "novel"
 - the resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
 - avoid useing invalid characters in the JSON object
-- all the newline characters must be "\n"
 
 Wrap the json object with "<JSON>\n" and "\n</JSON>"
