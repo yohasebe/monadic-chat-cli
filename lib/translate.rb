@@ -23,16 +23,15 @@ module MonadicGpt
       }
       replacements ||= {
         "mode" => :interactive,
-        "{{ORIGINAL}}" => "Input text to translate",
         "{{TARGET_LANG}}" => "Input target language"
       }
       super(params,
             TEMPLATES["translate"],
             replacements,
-            "translations",
+            "context",
             "translation",
             proc do |res|
-              res["directions"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
+              res["context"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
               res
             end
            )

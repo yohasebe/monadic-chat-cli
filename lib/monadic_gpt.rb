@@ -36,11 +36,13 @@ module MonadicGpt
   end
   PROMPT = TTY::Prompt.new(active_color: :blue, prefix: "❯", interrupt: interrupt)
 
-  spinner_opts = { clear: true, format: :pulse_2 }
-  SPINNER = TTY::Spinner.new(PASTEL.cyan("[:spinner] Thinking ..."), spinner_opts)
+  spinner_opts = { clear: true, format: :arrow_pulse }
+  SPINNER = TTY::Spinner.new(PASTEL.cyan("❯ Thinking :spinner"), spinner_opts)
   BULLET = "\e[33m●\e[0m"
 
   class App
+    attr_reader :template
+
     def initialize(params, template, placeholders, prop_accumulated, prop_newdata, update_proc)
       @template_original = File.read(template)
       @template = @template_original.dup
@@ -410,13 +412,7 @@ module MonadicGpt
           menu.choice "Yes", "yes"
           menu.choice "No", "no"
         end
-        if loadfile == "yes" && load_data
-          parse
-        elsif fulfill_placeholders
-          MonadicGpt.prompt_monadic
-          print "❯ Context has been reset.\n"
-          parse
-        end
+        parse if loadfile == "yes" && load_data || fulfill_placeholders
       end
     end
   end

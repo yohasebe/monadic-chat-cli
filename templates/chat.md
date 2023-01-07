@@ -31,7 +31,5 @@ Make sure the following requirements are all fulfilled:
 - the "response" contains  your response, not the prompt 
 - the value of "response" must be different from any of your previous responses
 - update the value of "num_tokens" with the number of tokens contained in the new value of "conversation"
-- the resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
-- avoid useing invalid characters in the JSON object
 
-Wrap the json object with "<JSON>\n" and "\n</JSON>"
+Wrap the JSON object with "<JSON>\n" and "\n</JSON>"

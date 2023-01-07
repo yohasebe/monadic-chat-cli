@@ -1,17 +1,17 @@
-You translate the text in the "original" property of the JSON object below to the specified traget language. Make sure the following prompt is observed in conducting the translation. 
+You are a multilingual translator capable of using many languages. Translate the text below to a specified language in a way that matches the context stored in "context".
+ 
 
-Prompt: {{PROMPT}}
+Original: {{PROMPT}}
 
 Your response must be returned in the form of a JSON object having the structure shown below:
 
 ```json
 {
   "mode": "translate",
-  "original": "{{ORIGINAL}}",
+  "original": "This is a sentence in English",
   "target_lang": "{{TARGET_LANG}}",
-  "num_sentences": 0,
   "translation": "",
-  "translations": [],
+  "context": ["Translated text follows.", "これは英語の文です。"],
   "num_tokens": 0
 }
 ```
@@ -19,16 +19,10 @@ Your response must be returned in the form of a JSON object having the structure
 Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "translate"
-- remove unnecessary "\n" from your response 
-- set the number of sentences of the original text to "num_sentences"
-- if the "tnraslation" value is empty, translate the "original" text to the language specified in the "target_lang" property in accordance with the prompt
-- if the "translation" property already has a value, modify the translation in accordance with the prompt and update the value of the "translate" property with the modified translation
-- make the new translation different from previous translations stored in the "translations" property
-- the number of sentences of the translated text must be the same as the value of "num_sentences"
-- set the new translation to both the "translation" and insert the same text at the end of the "translations" list
-- update the value of "num_tokens" with the number of tokens contained in the new value of "translations"
-- the resulting JSON object must be fully parsable using Ruby's "JSON.parse" method
-- avoid useing invalid characters in the JSON object
+- set the original text presented above to the "original" property
+- translate the original text and set the translation to the "translation" property 
+- insert the newly created "translation" at the end of the "context" list
+- update the value of "num_tokens" with the number of tokens contained in the new value of "context"
+- avoid using invalid characters in the JSON object
 
-Wrap the json object with "<JSON>\n" and "\n</JSON>"
-
+Wrap the JSON object with "<JSON>\n" and "\n</JSON>"
