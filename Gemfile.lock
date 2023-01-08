@@ -2,9 +2,12 @@ PATH
   remote: .
   specs:
     monadic-gpt (0.1.0)
+      kramdown
+      launchy
       oj
       parallel
       pastel
+      rouge
       tty-box
       tty-markdown
       tty-progressbar
@@ -14,6 +17,8 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    addressable (2.8.1)
+      public_suffix (>= 2.0.2, < 6.0)
     ast (2.4.2)
     backport (1.2.0)
     benchmark (0.2.1)
@@ -25,6 +30,8 @@ GEM
       rexml
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
+    launchy (2.5.2)
+      addressable (~> 2.8)
     mini_portile2 (2.8.1)
     nokogiri (1.13.10)
       mini_portile2 (~> 2.8.0)
@@ -35,6 +42,7 @@ GEM
       ast (~> 2.4.1)
     pastel (0.8.0)
       tty-color (~> 0.5)
+    public_suffix (5.0.1)
     racc (1.6.2)
     rainbow (3.1.1)
     rake (13.0.6)

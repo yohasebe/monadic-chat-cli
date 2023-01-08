@@ -1,8 +1,72 @@
 # frozen_string_literal: true
 
-require_relative "../monadic_gpt"
+require "tty-markdown"
+require "tty-prompt"
+require "tty-spinner"
+require "tty-box"
+require "pastel"
+require "oj"
+require "kramdown"
+require "rouge"
+require "launchy"
+
+require_relative "./version"
+require_relative "./tty_markdown_no_br"
+require_relative "./open_ai"
+
+Oj.mimic_JSON
 
 module MonadicGpt
+  CONFIG = File.join(Dir.home, "monadic_gpt.conf")
+  NUM_RETRY = 1
+  MIN_LENGTH = 10
+
+  template_dir = File.join(__dir__, "..", "..", "templates")
+  templates = Dir["#{template_dir}/*.md"]
+  template_map = {}
+  templates.each do |template|
+    template_map[File.basename(template, ".md")] = template
+  end
+
+  TEMPLATES = template_map
+  PASTEL = Pastel.new
+
+  interrupt = proc do
+    MonadicGpt.clear_screen
+    res = TTY::Prompt.new.yes?("Quit the app?")
+    exit if res
+  end
+  PROMPT = TTY::Prompt.new(active_color: :blue, prefix: "❯", interrupt: interrupt)
+
+  spinner_opts = { clear: true, format: :arrow_pulse }
+  SPINNER = TTY::Spinner.new(PASTEL.cyan("❯ Thinking :spinner"), spinner_opts)
+  BULLET = "\e[33m●\e[0m"
+
+  TEMP_HTML = File.join(Dir.home, "monadic_gpt.html")
+  style = +File.read(File.join(__dir__, "..", "..", "assets", "github.css")).gsub(".markdown-") { "" }
+  style << File.read(File.join(__dir__, "..", "..", "assets", "pigments-default.css"))
+  style << <<~CSS
+    body {
+      margin: 50px;
+    }
+    .monadic_user{
+      font-family: monospace;
+      font-weight: bold;
+      background-color: #c8e5ff;
+    }
+    .monadic_gpt {
+      font-family: monospace;
+      font-weight: bold;
+      background-color: #ffcaca;
+    }
+    .monadic_system {
+      font-family: monospace;
+      font-weight: bold;
+      background-color: #c4ffcb;
+    }
+  CSS
+  GITHUB_STYLE = style
+
   def self.authenticate(overwrite: false)
     if overwrite
       prompt_monadic
@@ -77,5 +141,33 @@ module MonadicGpt
 
   def self.clear_screen
     print "\e[2J\e[f"
+  end
+
+  def self.add_to_html(text, filepath)
+    `touch #{filepath}` unless File.exist?(filepath)
+    File.open(filepath, "w") do |f|
+      html = <<~HTML
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style type="text/css">
+              #{GITHUB_STYLE}
+            </style>
+          </head>
+          <body>
+          #{Kramdown::Document.new(text, syntax_highlighter: :rouge, syntax_highlighter_ops: {}).to_html}
+          </body>
+          <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+          <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+          <script>
+            $(window).on("load", function() {
+              $("html, body").animate({ scrollTop: $(document).height() }, 1000);
+            });
+          </script>
+        </html>
+      HTML
+      f.write html
+    end
+    Launchy.open(filepath)
   end
 end

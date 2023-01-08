@@ -9,7 +9,7 @@ PROMPT: {{PROMPT}}
   "response":"Sure!",
   "language": "English",
   "topics": [],
-  "conversation": ["Can I ask something?", "Sure."],
+  "conversation": ["User: Can I ask something?", "GPT: Sure."],
   "num_tokens": 10
 }
 ```
@@ -18,7 +18,7 @@ Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "chat"
 - set the prompt to the "prompt" property
-- your response to the prompt is included both in the property "response" and "conversation" of the JSON object
+- your response to the prompt is included both in the "response" and "conversation" properties of the JSON object
 - update "conversation" by inserting the "prompt" value and the "response" value to the "conversation" list after the existing items
 - the value of "response" must be one that naturally follows the past conversation contained in "conversation" 
 - if necessary, use the information in "conversation" to identify the referents of pronouns used in the prompt
@@ -28,8 +28,9 @@ Make sure the following requirements are all fulfilled:
 - avoid giving a response that is the same or similar to one of the previous responses in "conversation"
 - program code in the response must be embedded in a code block in the markdown text
 - the value of "response" must be included in the value of "conversation"
-- the "response" contains  your response, not the prompt 
+- the "response" contains your response, not the prompt 
 - the value of "response" must be different from any of your previous responses
 - update the value of "num_tokens" with the number of tokens contained in the new value of "conversation"
+- escape all double quotes in the JSON object
 
 Wrap the JSON object with "<JSON>\n" and "\n</JSON>"

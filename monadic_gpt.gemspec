@@ -36,9 +36,12 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec"
   spec.add_development_dependency "solargraph"
 
+  spec.add_dependency "kramdown"
+  spec.add_dependency "launchy"
   spec.add_dependency "oj"
   spec.add_dependency "parallel"
   spec.add_dependency "pastel"
+  spec.add_dependency "rouge"
   spec.add_dependency "tty-box"
   spec.add_dependency "tty-markdown"
   spec.add_dependency "tty-progressbar"

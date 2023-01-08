@@ -11,8 +11,10 @@ Your response must be returned in the form of a JSON object having the structure
   "original": "This is a sentence in English",
   "target_lang": "{{TARGET_LANG}}",
   "translation": "",
-  "context": ["Translated text follows.", "これは英語の文です。"],
-  "num_tokens": 0
+  "context": [ ["Translated text follows.", "翻訳テキストが続きます],
+               ["This is a sentence in English.", "これは英語の文です。"]
+             ]
+  "num_tokens": 49
 }
 ```
 
@@ -21,8 +23,10 @@ Make sure the following requirements are all fulfilled:
 - keep the value of the "mode" property at "translate"
 - set the original text presented above to the "original" property
 - translate the original text and set the translation to the "translation" property 
-- insert the newly created "translation" at the end of the "context" list
+- the translated text is included both in the "translation" and "context" properties of the JSON object
+- insert a pair of the original text and the newly created "translation" at the end of the "context" list
 - update the value of "num_tokens" with the number of tokens contained in the new value of "context"
 - avoid using invalid characters in the JSON object
+- escape all double quotes in the JSON object
 
 Wrap the JSON object with "<JSON>\n" and "\n</JSON>"

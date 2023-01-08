@@ -50,7 +50,7 @@ loop do
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Code")}      - #{MonadicGpt::Code::DESC}", "code"
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Novel")}     - #{MonadicGpt::Novel::DESC}", "novel"
     menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Translate")} - #{MonadicGpt::Translate::DESC}", "translate"
-    menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Quit")}      - Quit the app", "exit"
+    menu.choice "#{MonadicGpt::BULLET} #{MonadicGpt::PASTEL.bold("Quit")}      - Quit/Exit the app", "exit"
   end
 
   MonadicGpt.clear_screen

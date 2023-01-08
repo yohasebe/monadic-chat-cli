@@ -1,45 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "monadic_gpt/version"
-require_relative "monadic_gpt/open_ai"
 require_relative "monadic_gpt/helper"
 
-require "tty-markdown"
-require_relative "monadic_gpt/tty_markdown_no_br"
-require "tty-prompt"
-require "tty-spinner"
-require "tty-box"
-require "pastel"
-require "oj"
-
-Oj.mimic_JSON
-
 module MonadicGpt
-  CONFIG = File.join(Dir.home, "monadic_gpt.conf")
-  NUM_RETRY = 1
-  MIN_LENGTH = 10
-
-  template_dir = File.join(__dir__, "..", "templates")
-  templates = Dir["#{template_dir}/*.md"]
-  template_map = {}
-  templates.each do |template|
-    template_map[File.basename(template, ".md")] = template
-  end
-
-  TEMPLATES = template_map
-  PASTEL = Pastel.new
-
-  interrupt = proc do
-    MonadicGpt.clear_screen
-    res = TTY::Prompt.new.yes?("Quit the app?")
-    exit if res
-  end
-  PROMPT = TTY::Prompt.new(active_color: :blue, prefix: "❯", interrupt: interrupt)
-
-  spinner_opts = { clear: true, format: :arrow_pulse }
-  SPINNER = TTY::Spinner.new(PASTEL.cyan("❯ Thinking :spinner"), spinner_opts)
-  BULLET = "\e[33m●\e[0m"
-
   class App
     attr_reader :template
 
@@ -52,7 +15,8 @@ module MonadicGpt
       @completion = nil
       @started = false
       @update_proc = update_proc
-      @params = {
+      @show_html = false
+      @params_original = {
         "model" => "text-davinci-003",
         "max_tokens" => 2000,
         "temperature" => 0.0,
@@ -64,13 +28,16 @@ module MonadicGpt
         "presence_penalty" => 0.0,
         "frequency_penalty" => 0.0
       }.merge(params)
+      @params = @params_original.dup
     end
 
     def reset
+      @show_html = false
+      @params = @params_original.dup
+      @template = @template_original.dup
       if @placeholders.empty?
-        @template = @template_original.dup
         MonadicGpt.prompt_monadic
-        print "❯ Context has been reset.\n"
+        print "❯ Context and parameters has been reset.\n"
       else
         fulfill_placeholders
       end
@@ -90,23 +57,44 @@ module MonadicGpt
       @template.sub!(/\n\n```json.+```\n\n/m, "\n\n```json\n#{json}\n```\n\n")
     end
 
-    def show_data
+    def format_data
       m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
       data = JSON.parse(m[1])
 
-      accumulated = +"##{@prop_accumulated.capitalize}\n"
-      others = +"#Contextual Data\n"
+      accumulated = +"## #{@prop_accumulated.capitalize}\n"
+      others = +"## Contextual Data\n"
+      newdata = ""
       data.each do |key, val|
         if key == @prop_accumulated
-          accumulated << val.map { |v| "- #{v}" }.join("\n")
+          accumulated << val.join("\n\n")
+        elsif key == @prop_newdata
+          newdata = "- **#{key.capitalize}**: #{val}\n"
         else
           others << "- **#{key.capitalize}**: #{val}\n"
         end
       end
+      others << newdata
+      "# #{self.class.name}\n\n#{others}\n#{accumulated}"
+    end
 
+    def show_data
+      res = format_data
       MonadicGpt.prompt_monadic
-      res = "#{others}\n#{accumulated}"
       print "\n#{TTY::Markdown.parse(res, indent: 0).strip}\n"
+    end
+
+    def set_html
+      MonadicGpt.prompt_monadic
+      print " HTML rendering is enabled\n"
+      @show_html = true
+      show_html
+    end
+
+    def show_html
+      res = format_data.gsub("```") { "~~~" }
+                       .gsub("User:") { "<span class='monadic_user'> User </span><br />" }
+                       .gsub("GPT:") { "<span class='monadic_gpt'> GPT </span><br />" }
+      MonadicGpt.add_to_html(res, TEMP_HTML)
     end
 
     def prepare_params(input)
@@ -301,6 +289,7 @@ module MonadicGpt
         - **help**, **menu**, **commands**: show this help
         - **params**, **settings**, **config**: show and change values of parameters
         - **data**, **context**: show current contextual info
+        - **html** : view contextual info on the default web browser
         - **reset**: reset context to original state
         - **save**: save current contextual info to file
         - **load**: load contextual info from file
@@ -338,6 +327,8 @@ module MonadicGpt
           reset
         when /\A\s*(?:data|context)\s*\z/i
           show_data
+        when /\A\s*(?:html)\s*\z/i
+          set_html
         when /\A\s*(?:save)\s*\z/i
           save_data
         when /\A\s*(?:load)\s*\z/i
@@ -356,6 +347,7 @@ module MonadicGpt
               @started = true
               SPINNER.stop("")
               print "❯ #{TTY::Markdown.parse(text).strip}\n"
+              show_html if @show_html
             rescue StandardError => e
               SPINNER.stop("")
               input = ask_retrial(input, e.message)

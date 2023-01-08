@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "oj"
-Oj.mimic_JSON
-
 PARAMS = {
   model: "text-davinci-003",
   max_tokens: 300,

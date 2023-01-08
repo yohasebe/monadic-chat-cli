@@ -22,5 +22,6 @@ Make sure the following requirements are all fulfilled:
 - insert the newly created "paragraph" value at the end of the "novel" list
 - update the value of "num_tokens" with the number of tokens contained in the new value of "novel"
 - avoid using invalid characters in the JSON object
+- escape all double quotes in the JSON object
 
 Wrap the json object with "<JSON>\n" and "\n</JSON>"
