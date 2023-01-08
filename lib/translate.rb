@@ -12,7 +12,7 @@ module MonadicGpt
       params = {
         "model" => "text-davinci-003",
         "max_tokens" => 2000,
-        "temperature" => 0.1,
+        "temperature" => 0.3,
         "top_p" => 1.0,
         "stream" => false,
         "logprobs" => nil,
@@ -35,7 +35,7 @@ module MonadicGpt
               res
             end
            )
-      @num_tokens_kept = 1000
+      @num_tokens_kept = 2000
       @completion = openai_completion
     end
   end

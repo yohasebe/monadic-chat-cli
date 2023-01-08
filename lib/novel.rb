@@ -24,14 +24,14 @@ module MonadicGpt
       super(params,
             TEMPLATES["novel"],
             {},
-            "novel",
-            "paragraph",
+            "paragraphs",
+            "new_paragraph",
             proc do |res|
               res["novel"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
               res
             end
            )
-      @num_tokens_kept = 1000
+      @num_tokens_kept = 2000
       @completion = openai_completion
     end
   end

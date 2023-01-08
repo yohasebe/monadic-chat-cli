@@ -6,9 +6,9 @@ PROMPT: {{PROMPT}}
 {
   "mode": "code",
   "prompt": "I have a request for you.",
-  "response":"Sure!",
-  "conversation": ["User: I have a request for you.", "GPT: Sure!"],
-  "num_tokens": 12
+  "response":"Sure. What is that?",
+  "conversation": ["User: I have a request for you.", "GPT: Sure. What is that?"],
+  "num_tokens": 21
 }
 ```
 
@@ -16,10 +16,10 @@ Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "code"
 - set the prompt to the "prompt" property
-- your response to the prompt is included both in the property "response" and "conversation" of the JSON object
-- the value of "response" must be one that naturally follows the past conversation contained in "conversation" 
+- the value of "response" must be one that naturally follows from the past conversation contained in "conversation" 
 - if your response contains program code, it must be retained in the value of "response"
 - insert both the new prompt and the new response after the last element of the "conversation" list
+- your response to the prompt is both in the property "response" and at the end of "conversation" list 
 - make sure not only the prompt but also the new response is added to "conversation"
 - if the response contains program code, the language name must be mentioned in the response
 - program code in the response must be embedded in a code block in a markdown text

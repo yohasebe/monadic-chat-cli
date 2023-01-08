@@ -31,7 +31,7 @@ module MonadicGpt
               res
             end
            )
-      @num_tokens_kept = 1000
+      @num_tokens_kept = 2000
       @completion = openai_completion
     end
   end
