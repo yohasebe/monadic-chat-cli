@@ -19,13 +19,18 @@ RSpec.describe "MonadicGpt::Translate" do
   res = translate.bind_and_unwrap(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(res.keys).to include "mode", "original", "translation", "num_tokens", "context", "target_lang"
+    expect(res.keys).to include "mode", "num_turns", "original", "translation", "num_tokens", "translation_history", "current_target_lang"
+  end
+
+  it "gives as many responses as the number of prompts given" do
+    expect(res["translation_history"].size).to be res["num_turns"]
   end
 
   print TTY::Markdown.parse("***")
   print "MonadicGpt::Translation", "\n"
+  print "Num Turns: #{res["num_turns"]}", "\n"
   print TTY::Markdown.parse("***")
-  print TTY::Markdown.parse(res["context"].map { |r| "- #{r}" }.join("\n"), indent: 0).strip, "\n"
+  print TTY::Markdown.parse(res["translation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
   print TTY::Markdown.parse("***")
 end
 
@@ -39,13 +44,18 @@ RSpec.describe "MonadicGpt::Chat" do
   res = chat.bind_and_unwrap(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(res.keys).to include "mode", "response", "conversation", "num_tokens", "language", "topics"
+    expect(res.keys).to include "mode", "num_turns", "response", "conversation_history", "num_tokens", "language", "topics"
+  end
+
+  it "gives as many responses as the number of prompts given" do
+    expect(res["conversation_history"].size).to be res["num_turns"]
   end
 
   print TTY::Markdown.parse("***")
   print "MonadicGpt::Chat", "\n"
+  print "Num Turns: #{res["num_turns"]}", "\n"
   print TTY::Markdown.parse("***")
-  print TTY::Markdown.parse(res["conversation"].map { |r| "- #{r}" }.join("\n"), indent: 0).strip, "\n"
+  print TTY::Markdown.parse(res["conversation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
   print TTY::Markdown.parse("***")
 end
 
@@ -59,11 +69,16 @@ RSpec.describe "MonadicGpt::Novel" do
   res = novel.bind_and_unwrap(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(res.keys).to include "mode", "new_paragraph", "paragraphs", "event", "num_tokens"
+    expect(res.keys).to include "mode", "num_turns", "new_paragraph", "paragraphs", "event", "num_tokens"
+  end
+
+  it "gives as many responses as the number of prompts given" do
+    expect(res["paragraphs"].size).to be res["num_turns"]
   end
 
   print TTY::Markdown.parse("***")
   print "MonadicGpt::Novel", "\n"
+  print "Num Turns: #{res["num_turns"]}", "\n"
   print TTY::Markdown.parse("***")
   print TTY::Markdown.parse(res["paragraphs"].map { |r| "- #{r}" }.join("\n"), indent: 0).strip, "\n"
   print TTY::Markdown.parse("***")
@@ -73,18 +88,23 @@ RSpec.describe "MonadicGpt::Code" do
   code = MonadicGpt::Code.new(completion)
   input1 = "Write a command line app that shows the current global IP in Ruby."
   code.bind_and_unwrap(input1, num_retry: num_retry)
-  input2 = "Also make the code capable of showing the approximate geographical locatioin."
+  input2 = "Make the code capable of showing the approximate geographical locatioin."
   code.bind_and_unwrap(input2, num_retry: num_retry)
   input3 = "Add a usage example and a sample output to this code."
   res = code.bind_and_unwrap(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(res.keys).to include "mode", "prompt", "response", "num_tokens", "conversation"
+    expect(res.keys).to include "mode", "num_turns", "prompt", "response", "num_tokens", "conversation_history"
+  end
+
+  it "gives as many responses as the number of prompts given" do
+    expect(res["conversation_history"].size).to be res["num_turns"]
   end
 
   print TTY::Markdown.parse("***")
   print "MonadicGpt::Code", "\n"
+  print "Num Turns: #{res["num_turns"]}", "\n"
   print TTY::Markdown.parse("***")
-  print TTY::Markdown.parse(res["conversation"].map { |r| "- #{r}" }.join("\n"), indent: 0).strip, "\n"
+  print TTY::Markdown.parse(res["conversation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
   print TTY::Markdown.parse("***")
 end

@@ -8,12 +8,13 @@ Your response must be returned in the form of a JSON object having the structure
 ```json
 {
   "mode": "translate",
+  "num_turns": 2,
   "original": "This is a sentence in English",
-  "target_lang": "{{TARGET_LANG}}",
+  "current_target_lang": "{{TARGET_LANG}}",
   "translation": "",
-  "context": [ ["Original and translated text follow.", "原文と翻訳文が続きます"],
-               ["This is a sentence in English.", "これは英語の文です。"]
-             ]
+  "translation_history": [ ["Original and translated text follow.", "原文と翻訳文が続きます", "Japanese"],
+               ["これは日本語の文です。", "This is a sentence in Japanese.", "English"]
+             ],
   "num_tokens": 49
 }
 ```
@@ -22,10 +23,12 @@ Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "translate"
 - set the original text presented above to the "original" property
-- translate the original text and set the translation to the "translation" property 
-- insert a pair of the original text and the newly created "translation" at the end of the "context" list
+- increment the value of "num_turns" by 1 and update the property
+- translate the original text to the language specified in the "current_target_lang" and set the translation to the "translation" property 
+- create a new list containing 1) the original text, 2) the newly created "translation", and 3) the "current_target_lang" and insert it after all the existing items in the "translation_history"
 - update the value of "num_tokens" with the number of tokens contained in the new value of "context"
 - avoid using invalid characters in the JSON object
 - escape all double quotes in the JSON object
+- the value of "num_turns" must equal the number of items in the "translation_history" of the resulting JSON object
 
 Wrap the JSON object with "<JSON>\n" and "\n</JSON>"

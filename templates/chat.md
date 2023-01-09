@@ -5,11 +5,12 @@ PROMPT: {{PROMPT}}
 ```json
 {
   "mode": "chat",
+  "num_turns": 1,
   "prompt": "Can I ask something?",
   "response":"Sure!",
   "language": "English",
   "topics": [],
-  "conversation": ["User: Can I ask something?", "GPT: Sure."],
+  "conversation_history": [["User: Can I ask something?", "GPT: Sure."]],
   "num_tokens": 10
 }
 ```
@@ -18,19 +19,16 @@ Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "chat"
 - set the prompt to the "prompt" property
-- your response to the prompt is included BOTH in the "response" and "conversation" properties of the JSON object
-- update "conversation" by inserting the "prompt" value and the "response" value to the "conversation" list after the existing items
-- the value of "response" must be one that is based on the past conversation contained in "conversation" 
-- if necessary, use the information in "conversation" to identify the referents of pronouns used in the prompt
-- if the prompt is in a language other than the current value of "language", set the name of the language to "language" and make sure that "response" is made in that language
+- increment the value of "num_turns" by 1 and update the property
+- create your response to the prompt in accordance with the "conversation_history" and set it to "response"
+- create a new pair consisting of the prompt and the newly created response and insert the pair after all the existing pairs in the "conversation_history"
+- if the prompt is in a language other than the current value of "language", set the name of the prompt language to "language" and make sure that "response" is in that language
 - make your response in the same language as the prompt
 - analyze the topic of the prompt and insert it at the end of the value list of the "topics" property
-- avoid giving a response that is the same or similar to one of the previous responses in "conversation"
+- avoid giving a response that is the same or similar to one of the previous responses in "conversation_history"
 - program code in the response must be embedded in a code block in the markdown text
-- the value of "response" must be included in the value of "conversation"
-- the "response" contains your response, not the prompt 
-- the value of "response" must be different from any of your previous responses
 - update the value of "num_tokens" with the number of tokens contained in the new value of "conversation"
 - escape all double quotes in the JSON object
+- the value of "num_turns" must equal the number of items in the "conversation_history" of the resulting JSON object
 
 Wrap the JSON object with "<JSON>\n" and "\n</JSON>"

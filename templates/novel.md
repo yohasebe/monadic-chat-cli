@@ -7,6 +7,7 @@ Your response must be returned in the form of a JSON object having the structure
 ```json
 {
   "mode": "novel",
+  "num_turns": 1,
   "event": "The prefice to the novel is presented",
   "new_paragraph": "What follows is the story that GPT-3 tells. It is guaranteed that this will be an incredibly realistic and interesting novel.",
   "paragraphs": ["What follows is the story that GPT-3 tells. It is guaranteed that this will be an incredibly realistic and interesting novel."],
@@ -17,11 +18,13 @@ Your response must be returned in the form of a JSON object having the structure
 Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "novel"
+- increment the value of "num_turns" by 1 and update the property
 - set the event presented above to the "event" property
-- write a paragraph in the novel of about 100 words describing the event given as the prompt and set the new paragraph to the "new_paragraph" property
-- insert the newly created text in "new_paragraph" at the end of the "paragraphs" list
+- write a new paragraph in the novel of about 100 words describing the event given above and set the new paragraph to the "new_paragraph" property
+- copy the newly created paragraph and insert it right after the preexisting items of the "paragraphs"
 - update the value of "num_tokens" with the number of tokens contained in the new value of "paragraphs"
 - avoid using invalid characters in the JSON object
 - escape all double quotes in the JSON object
+- the value of "num_turns" must equal the number of items in the "paragraphs" of the resulting JSON object
 
 Wrap the json object with "<JSON>\n" and "\n</JSON>"

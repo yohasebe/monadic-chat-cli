@@ -24,7 +24,7 @@ module MonadicGpt
       super(params,
             TEMPLATES["code"],
             {},
-            "conversation",
+            "conversation_history",
             "response",
             proc do |res|
               conv.shift(2) if res["num_tokens"].to_i > @num_tokens_kept

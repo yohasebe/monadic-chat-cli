@@ -28,7 +28,7 @@ module MonadicGpt
       super(params,
             TEMPLATES["translate"],
             replacements,
-            "context",
+            "translation_history",
             "translation",
             proc do |res|
               res["context"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
