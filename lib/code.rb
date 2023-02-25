@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "monadic_gpt"
+require_relative "monadic_chat"
 
-module MonadicGpt
+module MonadicChat
   class Code < App
     DESC = "Interactive Program Code Generator"
 
@@ -27,7 +27,7 @@ module MonadicGpt
             "conversation_history",
             "response",
             proc do |res|
-              conv.shift(2) if res["num_tokens"].to_i > @num_tokens_kept
+              res["conversation_history"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
               res
             end
            )

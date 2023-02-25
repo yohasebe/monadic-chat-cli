@@ -1,24 +1,24 @@
 # frozen_string_literal: true
 
-require_relative "lib/monadic_gpt/version"
+require_relative "lib/monadic_chat/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "monadic-gpt"
-  spec.version = MonadicGpt::VERSION
+  spec.name = "monadic-chat"
+  spec.version = MonadicChat::VERSION
   spec.authors = ["yohasebe"]
   spec.email = ["yohasebe@gmail.com"]
 
   spec.summary = "A ChatGPT-like AI chat app using OpenAI API"
   spec.description = "AI chat app of a monadic architecture using OpenAI API"
-  spec.homepage = "https://github.com/yohasebe/monadic-gpt"
+  spec.homepage = "https://github.com/yohasebe/monadic-chat"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/yohasebe/monadic-gpt"
-  spec.metadata["changelog_uri"] = "https://github.com/yohasebe/monadic-gpt/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/yohasebe/monadic-chat"
+  spec.metadata["changelog_uri"] = "https://github.com/yohasebe/monadic-chat/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.

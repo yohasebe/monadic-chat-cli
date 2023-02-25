@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "monadic_gpt/helper"
+require_relative "monadic_chat/helper"
 
-module MonadicGpt
+module MonadicChat
   class App
     attr_reader :template
 
@@ -36,7 +36,7 @@ module MonadicGpt
       @params = @params_original.dup
       @template = @template_original.dup
       if @placeholders.empty?
-        MonadicGpt.prompt_monadic
+        MonadicChat.prompt_monadic
         print "❯ Context and parameters has been reset.\n"
       else
         fulfill_placeholders
@@ -79,12 +79,12 @@ module MonadicGpt
 
     def show_data
       res = format_data
-      MonadicGpt.prompt_monadic
+      MonadicChat.prompt_monadic
       print "\n#{TTY::Markdown.parse(res, indent: 0).strip}\n"
     end
 
     def set_html
-      MonadicGpt.prompt_monadic
+      MonadicChat.prompt_monadic
       print " HTML rendering is enabled\n"
       @show_html = true
       show_html
@@ -93,8 +93,8 @@ module MonadicGpt
     def show_html
       res = format_data.gsub("```") { "~~~" }
                        .gsub("User:") { "<span class='monadic_user'> User </span><br />" }
-                       .gsub("GPT:") { "<span class='monadic_gpt'> GPT </span><br />" }
-      MonadicGpt.add_to_html(res, TEMP_HTML)
+                       .gsub("GPT:") { "<span class='monadic_chat'> GPT </span><br />" }
+      MonadicChat.add_to_html(res, TEMP_HTML)
     end
 
     def prepare_params(input)
@@ -105,7 +105,7 @@ module MonadicGpt
     end
 
     def ask_retrial(input, message = nil)
-      MonadicGpt.prompt_monadic
+      MonadicChat.prompt_monadic
       print "❯ Error: #{message.capitalize}\n" if message
       retrial = PROMPT.select(" Do you want to try again?") do |menu|
         menu.choice "Yes", "yes"
@@ -116,7 +116,7 @@ module MonadicGpt
       when "yes"
         input
       when "no"
-        MonadicGpt.prompt_user
+        MonadicChat.prompt_user
         textbox
       when "show"
         show_data
@@ -125,7 +125,7 @@ module MonadicGpt
     end
 
     def save_data
-      MonadicGpt.prompt_monadic
+      MonadicChat.prompt_monadic
       input = PROMPT.ask(" Enter the path and file name of the saved data:\n")
       return if input.to_s == ""
 
@@ -183,7 +183,7 @@ module MonadicGpt
     end
 
     def change_parameter
-      MonadicGpt.prompt_monadic
+      MonadicChat.prompt_monadic
       parameter = PROMPT.select(" Select the parmeter to be set:",
                                 per_page: 7,
                                 cycle: true,
@@ -279,7 +279,7 @@ module MonadicGpt
 
         params_md += "- #{key}: #{val}\n"
       end
-      MonadicGpt.prompt_monadic
+      MonadicChat.prompt_monadic
       puts "#{TTY::Markdown.parse(params_md, indent: 0).strip}\n\n"
     end
 
@@ -296,7 +296,7 @@ module MonadicGpt
         - **clear**, **clean**: clear screen
         - **bye**, **exit**, **quit**: go back to main menu
       HELP
-      MonadicGpt.prompt_monadic
+      MonadicChat.prompt_monadic
       print "\n#{TTY::Markdown.parse(help_md, indent: 0).strip}\n"
     end
 
@@ -309,7 +309,7 @@ module MonadicGpt
 
     def confirm_query(input)
       if input.size < MIN_LENGTH
-        MonadicGpt.prompt_monadic
+        MonadicChat.prompt_monadic
         PROMPT.yes?(" Would you like to proceed with this (very short) prompt?")
       else
         true
@@ -334,13 +334,13 @@ module MonadicGpt
         when /\A\s*(?:load)\s*\z/i
           load_data
         when /\A\s*(?:clear|clean)\s*\z/i
-          MonadicGpt.clear_screen
+          MonadicChat.clear_screen
         when /\A\s*(?:params?|parameters?|config|configuration)\s*\z/i
           change_parameter
         else
           if input && confirm_query(input)
             begin
-              MonadicGpt.prompt_gpt3
+              MonadicChat.prompt_gpt3
               SPINNER.auto_spin
               res = bind_and_unwrap(input, num_retry: NUM_RETRY)
               text = res[@prop_newdata]
@@ -355,7 +355,7 @@ module MonadicGpt
             end
           end
         end
-        MonadicGpt.prompt_user
+        MonadicChat.prompt_user
         input = textbox
       end
     end
@@ -394,12 +394,12 @@ module MonadicGpt
     end
 
     def run
-      MonadicGpt.banner(self.class.name, self.class::DESC, "cyan", "blue")
+      MonadicChat.banner(self.class.name, self.class::DESC, "cyan", "blue")
       show_help
       if @placeholders.empty?
         parse
       else
-        MonadicGpt.prompt_monadic
+        MonadicChat.prompt_monadic
         loadfile = PROMPT.select(" Load saved file?", default: 2) do |menu|
           menu.choice "Yes", "yes"
           menu.choice "No", "no"

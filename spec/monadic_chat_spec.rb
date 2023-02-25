@@ -13,9 +13,9 @@ PARAMS = {
   frequency_penalty: 0.0
 }.freeze
 
-RSpec.describe MonadicGpt do
+RSpec.describe MonadicChat do
   it "has a version number" do
-    expect(MonadicGpt::VERSION).not_to be nil
+    expect(MonadicChat::VERSION).not_to be nil
   end
 end
 

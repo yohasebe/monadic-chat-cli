@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "monadic_gpt"
+require_relative "monadic_chat"
 
-module MonadicGpt
+module MonadicChat
   class Novel < App
     DESC = "Interactive Story Plot Generator"
 
@@ -27,7 +27,7 @@ module MonadicGpt
             "paragraphs",
             "new_paragraph",
             proc do |res|
-              res["novel"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
+              res["paragraphs"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
               res
             end
            )

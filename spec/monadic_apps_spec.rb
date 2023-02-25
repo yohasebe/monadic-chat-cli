@@ -3,19 +3,19 @@
 completion = OpenAI::Completion.new(ACCESS_TOKEN)
 num_retry = 2
 
-RSpec.describe "MonadicGpt::Translate" do
+RSpec.describe "MonadicChat::Translate" do
   replacements = {
     "mode" => :replace,
     "{{TARGET_LANG}}" => "English"
   }
 
-  translate = MonadicGpt::Translate.new(completion, replacements)
+  translate = MonadicChat::Translate.new(completion, replacements)
   translate.fulfill_placeholders
-  input1 = "吾輩は猫である。"
+  input1 = "ワタシは猫なんですけどね。"
   translate.bind_and_unwrap(input1, num_retry: num_retry)
-  input2 = "名前はまだない。"
+  input2 = "名前はまだないんですよ。"
   translate.bind_and_unwrap(input2, num_retry: num_retry)
-  input3 = "良い名前が欲しいものだ。"
+  input3 = "誰か良い名前を付けてくれませんかね。"
   res = translate.bind_and_unwrap(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
@@ -27,15 +27,15 @@ RSpec.describe "MonadicGpt::Translate" do
   end
 
   print TTY::Markdown.parse("***")
-  print "MonadicGpt::Translation", "\n"
+  print "MonadicChat::Translation", "\n"
   print "Num Turns: #{res["num_turns"]}", "\n"
   print TTY::Markdown.parse("***")
   print TTY::Markdown.parse(res["translation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
   print TTY::Markdown.parse("***")
 end
 
-RSpec.describe "MonadicGpt::Chat" do
-  chat = MonadicGpt::Chat.new(completion)
+RSpec.describe "MonadicChat::Chat" do
+  chat = MonadicChat::Chat.new(completion)
   input1 = "What is the best place to visit in Texas?"
   chat.bind_and_unwrap(input1, num_retry: num_retry)
   input2 = "What do people say about the place?"
@@ -52,15 +52,15 @@ RSpec.describe "MonadicGpt::Chat" do
   end
 
   print TTY::Markdown.parse("***")
-  print "MonadicGpt::Chat", "\n"
+  print "MonadicChat::Chat", "\n"
   print "Num Turns: #{res["num_turns"]}", "\n"
   print TTY::Markdown.parse("***")
   print TTY::Markdown.parse(res["conversation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
   print TTY::Markdown.parse("***")
 end
 
-RSpec.describe "MonadicGpt::Novel" do
-  novel = MonadicGpt::Novel.new(completion)
+RSpec.describe "MonadicChat:Novel" do
+  novel = MonadicChat::Novel.new(completion)
   input1 = "Tom woke up to the sound of pouring rain."
   novel.bind_and_unwrap(input1, num_retry: num_retry)
   input2 = "He decided to call his old friend first time in many years."
@@ -77,15 +77,15 @@ RSpec.describe "MonadicGpt::Novel" do
   end
 
   print TTY::Markdown.parse("***")
-  print "MonadicGpt::Novel", "\n"
+  print "MonadicChat::Novel", "\n"
   print "Num Turns: #{res["num_turns"]}", "\n"
   print TTY::Markdown.parse("***")
   print TTY::Markdown.parse(res["paragraphs"].map { |r| "- #{r}" }.join("\n"), indent: 0).strip, "\n"
   print TTY::Markdown.parse("***")
 end
 
-RSpec.describe "MonadicGpt::Code" do
-  code = MonadicGpt::Code.new(completion)
+RSpec.describe "MonadicChat::Code" do
+  code = MonadicChat::Code.new(completion)
   input1 = "Write a command line app that shows the current global IP in Ruby."
   code.bind_and_unwrap(input1, num_retry: num_retry)
   input2 = "Make the code capable of showing the approximate geographical locatioin."
@@ -102,7 +102,7 @@ RSpec.describe "MonadicGpt::Code" do
   end
 
   print TTY::Markdown.parse("***")
-  print "MonadicGpt::Code", "\n"
+  print "MonadicChat::Code", "\n"
   print "Num Turns: #{res["num_turns"]}", "\n"
   print TTY::Markdown.parse("***")
   print TTY::Markdown.parse(res["conversation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"

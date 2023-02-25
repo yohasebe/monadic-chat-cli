@@ -16,8 +16,8 @@ require_relative "./open_ai"
 
 Oj.mimic_JSON
 
-module MonadicGpt
-  CONFIG = File.join(Dir.home, "monadic_gpt.conf")
+module MonadicChat
+  CONFIG = File.join(Dir.home, "monadic_chat.conf")
   NUM_RETRY = 1
   MIN_LENGTH = 10
 
@@ -32,7 +32,7 @@ module MonadicGpt
   PASTEL = Pastel.new
 
   interrupt = proc do
-    MonadicGpt.clear_screen
+    MonadicChat.clear_screen
     res = TTY::Prompt.new.yes?("Quit the app?")
     exit if res
   end
@@ -42,7 +42,7 @@ module MonadicGpt
   SPINNER = TTY::Spinner.new(PASTEL.cyan("❯ Thinking :spinner"), spinner_opts)
   BULLET = "\e[33m●\e[0m"
 
-  TEMP_HTML = File.join(Dir.home, "monadic_gpt.html")
+  TEMP_HTML = File.join(Dir.home, "monadic_chat.html")
   style = +File.read(File.join(__dir__, "..", "..", "assets", "github.css")).gsub(".markdown-") { "" }
   style << File.read(File.join(__dir__, "..", "..", "assets", "pigments-default.css"))
   style << <<~CSS
@@ -54,7 +54,7 @@ module MonadicGpt
       font-weight: bold;
       background-color: #c8e5ff;
     }
-    .monadic_gpt {
+    .monadic_chat {
       font-family: monospace;
       font-weight: bold;
       background-color: #ffcaca;

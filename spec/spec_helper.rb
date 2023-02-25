@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "monadic_gpt"
+require "monadic_chat"
 require "chat"
 require "novel"
 require "code"
 require "translate"
 
-CONFIG_FILE = File.join(Dir.home, "monadic_gpt.conf")
+CONFIG_FILE = File.join(Dir.home, "monadic_chat.conf")
 CONFIG = JSON.parse(File.read(CONFIG_FILE))
 ACCESS_TOKEN = CONFIG["access_token"]
 

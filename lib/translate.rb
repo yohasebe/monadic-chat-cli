@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "monadic_gpt"
+require_relative "monadic_chat"
 
-module MonadicGpt
+module MonadicChat
   class Translate < App
     DESC = "Interactive Multilingual Translator"
 
@@ -31,7 +31,7 @@ module MonadicGpt
             "translation_history",
             "translation",
             proc do |res|
-              res["context"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
+              res["translation_history"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
               res
             end
            )

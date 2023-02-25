@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+
+# frozen_string_literal: true
+
+require_relative "../lib/monadic_chat"
+require_relative "../lib/chat"
+require_relative "../lib/code"
+require_relative "../lib/novel"
+require_relative "../lib/translate"
+
+wid = 60
+mon = " /M/O/N/A/D/I/C/"
+chat = " /C/H/A/T/ "
+hpad = " " * ((wid - (mon.size + chat.size) - 1) / 2).to_i
+# cpad = MonadicChat::PASTEL.on_cyan(" ")
+cpad = ""
+montitle = MonadicChat::PASTEL.on_green.bold(mon)
+chattitle = MonadicChat::PASTEL.on_green.bold(chat)
+title = "#{hpad}#{montitle}#{cpad}#{chattitle}#{hpad}"
+title += ((wid - (mon.size + chat.size)) % 2).zero? ? "" : " "
+subtitle = MonadicChat::PASTEL.bold("Command Line Interface for NLP Completion API".center(wid, " "))
+version = "Version: #{MonadicChat::VERSION}".center(wid, " ")
+vpad = " " * wid
+
+banner = <<~BANNER
+  #{MonadicChat::PASTEL.on_blue(vpad)}
+  #{MonadicChat::PASTEL.on_cyan(vpad)}
+  #{MonadicChat::PASTEL.on_cyan(title)}
+  #{MonadicChat::PASTEL.on_cyan(vpad)}
+  #{MonadicChat::PASTEL.on_cyan(subtitle)}
+  #{MonadicChat::PASTEL.on_cyan(vpad)}
+  #{MonadicChat::PASTEL.on_cyan(version)}
+  #{MonadicChat::PASTEL.on_cyan(vpad)}
+  #{MonadicChat::PASTEL.on_blue(vpad)}
+BANNER
+
+openai_completion = nil
+parameter = ""
+
+loop do
+  MonadicChat.clear_screen
+  print TTY::Box.frame banner.strip
+
+  openai_completion ||= MonadicChat.authenticate
+
+  MonadicChat.prompt_monadic
+  parameter = MonadicChat::PROMPT.select(" Select app:", per_page: 6, cycle: false, filter: true, default: 1) do |menu|
+    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Chat")}      - #{MonadicChat::Chat::DESC}", "chat"
+    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Code")}      - #{MonadicChat::Code::DESC}", "code"
+    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Novel")}     - #{MonadicChat::Novel::DESC}", "novel"
+    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Translate")} - #{MonadicChat::Translate::DESC}", "translate"
+    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Quit")}      - Quit/Exit/Bye", "exit"
+  end
+
+  MonadicChat.clear_screen
+
+  case parameter
+  when "chat"
+    MonadicChat::Chat.new(openai_completion).run
+  when "code"
+    MonadicChat::Code.new(openai_completion).run
+  when "novel"
+    MonadicChat::Novel.new(openai_completion).run
+  when "translate"
+    MonadicChat::Translate.new(openai_completion).run
+  when "exit"
+    print "#{MonadicChat::PASTEL.bold("Bye!")}\n"
+    exit
+  end
+end
+
