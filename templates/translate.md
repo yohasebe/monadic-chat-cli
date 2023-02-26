@@ -9,11 +9,13 @@ Your response must be returned in the form of a JSON object having the structure
   "mode": "translate",
   "num_turns": 2,
   "original": "これは日本語の文です。",
-  "translation": "This is a sentence in Japanese. #",
+  "translation": "This is a sentence in Japanese. _",
   "current_target_lang": "English",
-  "translation_history": [ ["Original and translated text follow.", "原文と翻訳文が続きます", "Japanese"],
-               ["これは日本語の文です。", "This is a sentence in Japanese.", "English"]
-             ],
+  "translation_history": [["User: Original and translated text follow.",
+                           "GPT: 原文と翻訳文が続きます。 _", "Japanese"],
+                          ["User: これは日本語の文です。",
+                           "GPT: This is a sentence in Japanese. _", "English"]
+                         ],
   "num_tokens": 49
 }
 ```
@@ -29,6 +31,7 @@ Make sure the following requirements are all fulfilled:
 - avoid using invalid characters in the JSON object
 - escape all double quotes in the JSON object
 - the value of "num_turns" must equal the number of items in the "translation_history" of the resulting JSON object
-- the "translation" value must be suffixed by " #", which is removed from the data in the "translation_history" property 
+
+The "translation" value must be suffixed by " _"
 
 Wrap the JSON object with "<JSON>\n" and "\n</JSON>"

@@ -65,6 +65,13 @@ module MonadicChat
         next if %w[prompt response].include? key
 
         if key == @prop_accumulated
+          val = val.map do |v|
+            if v.instance_of?(String)
+              v.sub(/ _$/, "")
+            else
+              v.map { |w| w.sub(/ _$/, "") }[0..1]
+            end
+          end
           accumulated << val.join("\n\n")
         elsif key == @prop_newdata
           newdata = "- **#{key.capitalize}**: #{val}\n"
@@ -306,7 +313,7 @@ module MonadicChat
       params = prepare_params(input)
       response = +""
       key_start = /"#{@prop_newdata}":\s*"/
-      key_finish = / #"/
+      key_finish = / _"/
       started = false
       screen_height = TTY::Screen.height
       quater_height = screen_height / 4
@@ -344,9 +351,9 @@ module MonadicChat
 
           if started && !finished
             if key_finish =~ response
-              last_chunk = (last_chunk + chunk).sub(/ #".*/, "")
+              last_chunk = (last_chunk + chunk).sub(/ _".*/, "")
               finished = true
-            elsif /\A[ #]\z/ =~ chunk
+            elsif /\A[ _]\z/ =~ chunk
               last_chunk += chunk
             else
               print MonadicChat::PASTEL.magenta(last_chunk)
@@ -402,7 +409,7 @@ module MonadicChat
             begin
               MonadicChat.prompt_gpt3
               res = bind_and_unwrap(input, num_retry: NUM_RETRY)
-              text = res[@prop_newdata].sub(/ #\z/, "")
+              text = res[@prop_newdata].sub(/ _\z/, "")
               print "❯ #{TTY::Markdown.parse(text).strip}\n"
               show_html if @show_html
             rescue StandardError => e

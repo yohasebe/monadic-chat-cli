@@ -124,21 +124,21 @@ module MonadicChat
   end
 
   def self.prompt_monadic
-    box_width = 10
-    name = "Monadic".center(box_width, " ")
+    box_width = 8
+    name = "System".center(box_width, " ")
     color = "green"
     print "\n#{PASTEL.send(:"on_#{color}", name)}\n"
   end
 
   def self.prompt_user
-    box_width = 10
+    box_width = 8
     color = "blue"
     name = "User".center(box_width, " ")
     print "\n#{PASTEL.send(:"on_#{color}", name)}\n"
   end
 
   def self.prompt_gpt3
-    box_width = 10
+    box_width = 8
     color = "red"
     name = "GPT".center(box_width, " ")
     print "\n#{PASTEL.send(:"on_#{color}", name)}\n"

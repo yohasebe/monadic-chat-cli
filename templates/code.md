@@ -4,11 +4,11 @@ PROMPT: {{PROMPT}}
 
 ```json
 {
-  "response": "Sure. What is that? #",
+  "response": "Sure. What is that? _",
   "mode": "code",
   "num_turns": 1,
   "prompt": "I have a request for you.",
-  "conversation_history": [["User: I have a request for you.", "GPT: Sure. What is that?"]],
+  "conversation_history": [["User: I have a request for you. _", "GPT: Sure. What is that? _"]],
   "num_tokens": 21
 }
 ```
@@ -24,10 +24,11 @@ Make sure the following requirements are all fulfilled:
 - program code in the response must be embedded in a code block in a markdown text
 - program code must be preceded with a blank line and followed by another blank line
 - the "response" contains  your response, not the prompt 
-- the "response" value is suffixed by " #", which must be removed from the "conversation_history" data
 - update the value of "num_tokens" with the number of tokens contained in the new value of "conversation_history"
 - do not using invalid characters in the JSON object
 - make sure that all double quotes and (curly) brackets are properly escaped in the JSON object
 - the value of "num_turns" must equal the number of pairs stored the "conversation_history" of the resulting JSON object
+
+The "response" value is suffixed by " _"
 
 Wrap the JSON object with "<JSON>\n" and "\n</JSON>"

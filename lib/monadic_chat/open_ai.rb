@@ -24,7 +24,7 @@ module OpenAI
     when "post"
       res = http.timeout(timeout_sec).post(target_uri, json: query)
     when "get"
-      res = http.timeout(timeout_sec).get(target_uri, json: query)
+      res = http.timeout(timeout_sec).get(target_uri)
     end
 
     if query["stream"]
@@ -51,8 +51,8 @@ module OpenAI
   end
 
   def self.models(access_token)
-    query(access_token, "get", "models")
-    # res.fetch("data", [])
+    res = query(access_token, "get", "models")
+    res.fetch("data", [])
   end
 
   class Completion

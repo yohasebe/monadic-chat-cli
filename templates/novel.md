@@ -6,11 +6,11 @@ Your response must be returned in the form of a JSON object having the structure
 
 ```json
 {
-  "new_paragraph": "What follows is the story that GPT-3 tells. It is guaranteed that this will be an incredibly realistic and interesting novel. #",
+  "new_paragraph": "What follows is the story that GPT-3 tells. It is guaranteed that this will be an incredibly realistic and interesting novel. _",
   "mode": "novel",
   "num_turns": 1,
   "event": "The prefice to the novel is presented",
-  "paragraphs": ["What follows is the story that GPT-3 tells. It is guaranteed that this will be an incredibly realistic and interesting novel."],
+  "paragraphs": ["What follows is the story that GPT-3 tells. It is guaranteed that this will be an incredibly realistic and interesting novel. _"],
   "num_tokens": 28
 }
 ```
@@ -23,9 +23,10 @@ Make sure the following requirements are all fulfilled:
 - write a new paragraph in the novel of about 100 words describing the event given above and set the new paragraph to the "new_paragraph" property
 - copy the newly created paragraph and insert it right after the preexisting items of the "paragraphs"
 - update the value of "num_tokens" with the number of tokens contained in the new value of "paragraphs"
-- the "new_paragraph" value is suffixed by " #", which must be removed from the "paragraphs" data
 - avoid using invalid characters in the JSON object
 - escape all double quotes in the JSON object
 - the value of "num_turns" must equal the number of items in the "paragraphs" of the resulting JSON object
+
+The "new_paragraph" value is suffixed by " _"
 
 Wrap the JSON object with "<JSON>\n" and "\n</JSON>"
