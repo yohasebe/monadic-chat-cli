@@ -4,13 +4,13 @@ PROMPT: {{PROMPT}}
 
 ```json
 {
+  "response": "Sure! #",
   "mode": "chat",
   "num_turns": 1,
   "prompt": "Can I ask something?",
-  "response":"Sure!",
   "language": "English",
   "topics": [],
-  "conversation_history": [["User: Can I ask something?", "GPT: Sure."]],
+  "conversation_history": [["User: Can I ask something?", "GPT: Sure!"]],
   "num_tokens": 10
 }
 ```
@@ -21,6 +21,7 @@ Make sure the following requirements are all fulfilled:
 - set the prompt to the "prompt" property
 - increment the value of "num_turns" by 1 and update the property
 - create your response to the prompt in accordance with the "conversation_history" and set it to "response"
+- the "response" value is suffixed by " #", which must be removed from the "conversation_history" data
 - create a new pair consisting of the prompt and the newly created response and insert the pair after all the existing pairs in the "conversation_history"
 - if the prompt is in a language other than the current value of "language", set the name of the prompt language to "language" and make sure that "response" is in that language
 - make your response in the same language as the prompt

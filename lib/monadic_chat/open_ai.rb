@@ -1,46 +1,58 @@
 # frozen_string_literal: true
 
+require "http"
 require "oj"
 require "net/http"
 require "uri"
+require "strscan"
 require "parallel"
 require "tty-progressbar"
 
 Oj.mimic_JSON
 
 module OpenAI
-  def self.query(access_token, mode, method, timeout_sec = 60, query = {})
-    sleep 0.5
+  def self.query(access_token, mode, method, timeout_sec = 60, query = {}, &block)
     target_uri = "https://api.openai.com/v1/#{method}"
-    uri = URI.parse(target_uri)
-
     headers = {
       "Content-Type" => "application/json",
       "Authorization" => "Bearer #{access_token}"
     }
+    headers["Accept"] = "text/event-stream" if query["stream"]
+    http = HTTP.headers(headers)
 
     case mode
     when "post"
-      req = Net::HTTP::Post.new(uri, headers)
-      req.body = query.to_json
+      res = http.timeout(timeout_sec).post(target_uri, json: query)
+    when "get"
+      res = http.timeout(timeout_sec).get(target_uri, json: query)
+    end
+
+    if query["stream"]
+      json = nil
+      res.body.each do |chunk|
+        chunk.split("\n\n").each do |data|
+          content = data.strip[6..]
+          break if content == "[DONE]"
+
+          stream = JSON.parse(content)
+          text = stream["choices"][0]["text"]
+          block&.call text
+          if !json
+            json = stream
+          else
+            json["choices"][0]["text"] << text
+          end
+        end
+      end
+      json
     else
-      req = Net::HTTP::Get.new(uri, headers)
+      JSON.parse res.body
     end
-
-    req_options = {
-      use_ssl: uri.scheme == "https",
-      read_timeout: timeout_sec
-    }
-
-    response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
-      http.request(req)
-    end
-    JSON.parse response.body
   end
 
   def self.models(access_token)
-    res = query(access_token, "get", "models")
-    res.fetch("data", [])
+    query(access_token, "get", "models")
+    # res.fetch("data", [])
   end
 
   class Completion
@@ -52,8 +64,8 @@ module OpenAI
       OpenAI.models(@access_token)
     end
 
-    def run(params)
-      response = OpenAI.query(@access_token, "post", "completions", 60, params)
+    def run(params, &block)
+      response = OpenAI.query(@access_token, "post", "completions", 60, params, &block)
       if response["error"]
         raise response["error"]["message"]
       elsif response["choices"][0]["finish_reason"] == "length"
@@ -63,28 +75,27 @@ module OpenAI
       response
     end
 
-    def run_expecting_json(params, num_retry: 0)
-      res = run(params)
-      text = res["choices"][0]["text"]
-      case text
+    def get_json(data)
+      case data
       when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
         json = Regexp.last_match(1).gsub(/\r\n?/, "\n")
-        parsed = JSON.parse(json.gsub(/\r\n/) { "\n" })
+        JSON.parse(json.gsub(/\r\n/) { "\n" })
       else
         raise "valid json object not found"
       end
-      parsed
+    end
+
+    def run_expecting_json(params, num_retry: 0, &block)
+      res = run(params, &block)
+      text = res["choices"][0]["text"]
+      get_json text
     rescue StandardError => e
-      # pp res
-      # pp e
-      # pp e.backtrace
-      # print text
       case num_retry
       when 0
         raise e
       else
-        sleep 1
-        run_expecting_json(params, num_retry: num_retry - 1)
+        # sleep 1
+        run_expecting_json(params, num_retry: num_retry - 1, &block)
       end
     end
 

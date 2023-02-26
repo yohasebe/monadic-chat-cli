@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "tty-cursor"
+require "tty-screen"
 require "tty-markdown"
 require "tty-prompt"
 require "tty-spinner"
@@ -39,7 +41,7 @@ module MonadicChat
   PROMPT = TTY::Prompt.new(active_color: :blue, prefix: "❯", interrupt: interrupt)
 
   spinner_opts = { clear: true, format: :arrow_pulse }
-  SPINNER = TTY::Spinner.new(PASTEL.cyan("❯ Thinking :spinner"), spinner_opts)
+  SPINNER = TTY::Spinner.new(PASTEL.cyan(":spinner"), spinner_opts)
   BULLET = "\e[33m●\e[0m"
 
   TEMP_HTML = File.join(Dir.home, "monadic_chat.html")
@@ -48,21 +50,39 @@ module MonadicChat
   style << <<~CSS
     body {
       margin: 50px;
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      color: #333
     }
     .monadic_user{
-      font-family: monospace;
+      display:inline-block;
+      padding-left: 0.5em;
+      padding-right: 0.5em;
       font-weight: bold;
       background-color: #c8e5ff;
     }
     .monadic_chat {
-      font-family: monospace;
+      display:inline-block;
+      padding-left: 0.5em;
+      padding-right: 0.5em;
       font-weight: bold;
       background-color: #ffcaca;
     }
     .monadic_system {
-      font-family: monospace;
+      display:inline-block;
+      padding-left: 0.5em;
+      padding-right: 0.5em;
       font-weight: bold;
       background-color: #c4ffcb;
+    }
+    .monadic_gray {
+      display:inline-block;
+      font-weight: bold;
+      color: #999;
+    }
+    .monadic_app {
+      display:inline-block;
+      font-weight: bold;
+      color: #EB742B;
     }
   CSS
   GITHUB_STYLE = style
@@ -147,21 +167,24 @@ module MonadicChat
     `touch #{filepath}` unless File.exist?(filepath)
     File.open(filepath, "w") do |f|
       html = <<~HTML
-        <!DOCTYPE html>
-        <html>
+        <!doctype html>
+        <html lang="en">
           <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
             <style type="text/css">
               #{GITHUB_STYLE}
             </style>
+            <title>Monadic Chat</title>
           </head>
           <body>
-          #{Kramdown::Document.new(text, syntax_highlighter: :rouge, syntax_highlighter_ops: {}).to_html}
+              #{Kramdown::Document.new(text, syntax_highlighter: :rouge, syntax_highlighter_ops: {}).to_html}
           </body>
           <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
           <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
           <script>
             $(window).on("load", function() {
-              $("html, body").animate({ scrollTop: $(document).height() }, 1000);
+              $("html, body").animate({ scrollTop: $(document).height() }, 500);
             });
           </script>
         </html>

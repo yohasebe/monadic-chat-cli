@@ -26,12 +26,12 @@ RSpec.describe "MonadicChat::Translate" do
     expect(res["translation_history"].size).to be res["num_turns"]
   end
 
-  print TTY::Markdown.parse("***")
-  print "MonadicChat::Translation", "\n"
-  print "Num Turns: #{res["num_turns"]}", "\n"
-  print TTY::Markdown.parse("***")
-  print TTY::Markdown.parse(res["translation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
-  print TTY::Markdown.parse("***")
+  # print TTY::Markdown.parse("***")
+  # print "MonadicChat::Translation", "\n"
+  # print "Num Turns: #{res["num_turns"]}", "\n"
+  # print TTY::Markdown.parse("***")
+  # print TTY::Markdown.parse(res["translation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
+  # print TTY::Markdown.parse("***")
 end
 
 RSpec.describe "MonadicChat::Chat" do
@@ -51,12 +51,12 @@ RSpec.describe "MonadicChat::Chat" do
     expect(res["conversation_history"].size).to be res["num_turns"]
   end
 
-  print TTY::Markdown.parse("***")
-  print "MonadicChat::Chat", "\n"
-  print "Num Turns: #{res["num_turns"]}", "\n"
-  print TTY::Markdown.parse("***")
-  print TTY::Markdown.parse(res["conversation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
-  print TTY::Markdown.parse("***")
+  # print TTY::Markdown.parse("***")
+  # print "MonadicChat::Chat", "\n"
+  # print "Num Turns: #{res["num_turns"]}", "\n"
+  # print TTY::Markdown.parse("***")
+  # print TTY::Markdown.parse(res["conversation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
+  # print TTY::Markdown.parse("***")
 end
 
 RSpec.describe "MonadicChat:Novel" do
@@ -76,12 +76,12 @@ RSpec.describe "MonadicChat:Novel" do
     expect(res["paragraphs"].size).to be res["num_turns"]
   end
 
-  print TTY::Markdown.parse("***")
-  print "MonadicChat::Novel", "\n"
-  print "Num Turns: #{res["num_turns"]}", "\n"
-  print TTY::Markdown.parse("***")
-  print TTY::Markdown.parse(res["paragraphs"].map { |r| "- #{r}" }.join("\n"), indent: 0).strip, "\n"
-  print TTY::Markdown.parse("***")
+  # print TTY::Markdown.parse("***")
+  # print "MonadicChat::Novel", "\n"
+  # print "Num Turns: #{res["num_turns"]}", "\n"
+  # print TTY::Markdown.parse("***")
+  # print TTY::Markdown.parse(res["paragraphs"].map { |r| "- #{r}" }.join("\n"), indent: 0).strip, "\n"
+  # print TTY::Markdown.parse("***")
 end
 
 RSpec.describe "MonadicChat::Code" do
@@ -101,10 +101,10 @@ RSpec.describe "MonadicChat::Code" do
     expect(res["conversation_history"].size).to be res["num_turns"]
   end
 
-  print TTY::Markdown.parse("***")
-  print "MonadicChat::Code", "\n"
-  print "Num Turns: #{res["num_turns"]}", "\n"
-  print TTY::Markdown.parse("***")
-  print TTY::Markdown.parse(res["conversation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
-  print TTY::Markdown.parse("***")
+  # print TTY::Markdown.parse("***")
+  # print "MonadicChat::Code", "\n"
+  # print "Num Turns: #{res["num_turns"]}", "\n"
+  # print TTY::Markdown.parse("***")
+  # print TTY::Markdown.parse(res["conversation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
+  # print TTY::Markdown.parse("***")
 end

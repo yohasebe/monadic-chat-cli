@@ -14,10 +14,8 @@ module MonadicChat
         "max_tokens" => 2000,
         "temperature" => 0.3,
         "top_p" => 1.0,
-        "stream" => false,
         "logprobs" => nil,
         "echo" => false,
-        "stop" => nil,
         "presence_penalty" => 0.1,
         "frequency_penalty" => 0.1
       }
