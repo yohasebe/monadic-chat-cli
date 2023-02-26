@@ -8,7 +8,7 @@ PROMPT: {{PROMPT}}
   "mode": "code",
   "num_turns": 1,
   "prompt": "I have a request for you.",
-  "conversation_history": [["User: I have a request for you. _", "GPT: Sure. What is that? _"]],
+  "conversation_history": [["User: I have a request for you.", "GPT: Sure. What is that? _"]],
   "num_tokens": 21
 }
 ```
@@ -19,6 +19,7 @@ Make sure the following requirements are all fulfilled:
 - set the prompt to the "prompt" property
 - increment the value of "num_turns" by 1 and update the property
 - the value of "response" must be one that naturally follows from the past conversation contained in "conversation_history" 
+- the "response" value must be suffixed by " _"
 - create a new pair consisting of the prompt and the newly created "response" and insert the pair after all the existing pairs in the "conversation_history"
 - if the response contains program code, the language name must be mentioned in the response
 - program code in the response must be embedded in a code block in a markdown text
@@ -28,7 +29,5 @@ Make sure the following requirements are all fulfilled:
 - do not using invalid characters in the JSON object
 - make sure that all double quotes and (curly) brackets are properly escaped in the JSON object
 - the value of "num_turns" must equal the number of pairs stored the "conversation_history" of the resulting JSON object
-
-The "response" value is suffixed by " _"
 
 Wrap the JSON object with "<JSON>\n" and "\n</JSON>"

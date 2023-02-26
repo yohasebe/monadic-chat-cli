@@ -353,8 +353,6 @@ module MonadicChat
             if key_finish =~ response
               last_chunk = (last_chunk + chunk).sub(/ _".*/, "")
               finished = true
-            elsif /\A[ _]\z/ =~ chunk
-              last_chunk += chunk
             else
               print MonadicChat::PASTEL.magenta(last_chunk)
               last_chunk = chunk
