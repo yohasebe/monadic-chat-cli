@@ -63,7 +63,7 @@ module MonadicChat
       return input if %w[exit].include? input
 
       print @cursor.save
-      SPINNER.auto_spin
+      SPINNER1.auto_spin
 
       MonadicChat::TIMEOUT_SEC.times do |i|
         raise "Error: something went wrong" if i + 1 == MonadicChat::TIMEOUT_SEC
@@ -74,7 +74,7 @@ module MonadicChat
 
         sleep 1
       end
-      SPINNER.stop("")
+      SPINNER1.stop("")
       input
     end
 
@@ -359,7 +359,7 @@ module MonadicChat
       params = prepare_params(input)
       print @cursor.save
       print "❯ "
-
+      start_vpos = Cursor.pos[:row]
       begin
         th = Thread.new do
           response_all_shown = false
@@ -371,11 +371,14 @@ module MonadicChat
           finished = false
           @threads << true
           response = +""
+          past_five_lines = false
+          spinning = false
           res = @completion.run_expecting_json(params, num_retry: num_retry) do |chunk|
             if finished && !response_all_shown
               response_all_shown = true
               print "\n"
               @responses << response.sub(/\s+###\s+".*/m, "")
+              SPINNER2.stop("")
             end
 
             unless finished
@@ -396,7 +399,12 @@ module MonadicChat
                 if key_finish =~ response
                   finished = true
                 else
-                  print MonadicChat::PASTEL.magenta(last_chunk)
+                  past_five_lines = (Cursor.pos[:row] - start_vpos) > 4
+                  if past_five_lines && !spinning
+                    SPINNER2.auto_spin
+                  else
+                    print MonadicChat::PASTEL.magenta(last_chunk)
+                  end
                   last_chunk = chunk
                 end
               elsif !started && !finished && key_start =~ response
@@ -462,10 +470,11 @@ module MonadicChat
         else
           if input && confirm_query(input)
             begin
-              MonadicChat.prompt_gpt3
+              MonadicChat.prompt_gpt
               bind_and_unwrap(input, num_retry: NUM_RETRY)
             rescue StandardError => e
-              SPINNER.stop("")
+              SPINNER1.stop("")
+              SPINNER2.stop("")
               input = ask_retrial(input, e.message)
               next
             end
