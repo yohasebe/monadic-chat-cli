@@ -12,26 +12,19 @@ RSpec.describe "MonadicChat::Translate" do
   translate = MonadicChat::Translate.new(completion, replacements)
   translate.fulfill_placeholders
   input1 = "ワタシは猫なんですけどね。"
-  translate.bind_and_unwrap(input1, num_retry: num_retry)
+  translate.wait.bind_and_unwrap(input1, num_retry: num_retry)
   input2 = "名前はまだないんですよ。"
-  translate.bind_and_unwrap(input2, num_retry: num_retry)
+  translate.wait.bind_and_unwrap(input2, num_retry: num_retry)
   input3 = "誰か良い名前を付けてくれませんかね。"
-  res = translate.bind_and_unwrap(input3, num_retry: num_retry)
+  translate.wait.bind_and_unwrap(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(res.keys).to include "mode", "num_turns", "original", "translation", "num_tokens", "translation_history", "current_target_lang"
+    expect(translate.wait.objectify.keys).to include "mode", "num_turns", "original", "translation", "translation_history", "current_target_lang"
   end
 
   it "gives as many responses as the number of prompts given" do
-    expect(res["translation_history"].size).to be res["num_turns"]
+    expect(translate.wait.objectify["translation_history"].size).to be translate.wait.objectify["num_turns"]
   end
-
-  # print TTY::Markdown.parse("***")
-  # print "MonadicChat::Translation", "\n"
-  # print "Num Turns: #{res["num_turns"]}", "\n"
-  # print TTY::Markdown.parse("***")
-  # print TTY::Markdown.parse(res["translation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
-  # print TTY::Markdown.parse("***")
 end
 
 RSpec.describe "MonadicChat::Chat" do
@@ -39,24 +32,17 @@ RSpec.describe "MonadicChat::Chat" do
   input1 = "What is the best place to visit in Texas?"
   chat.bind_and_unwrap(input1, num_retry: num_retry)
   input2 = "What do people say about the place?"
-  chat.bind_and_unwrap(input2, num_retry: num_retry)
+  chat.wait.bind_and_unwrap(input2, num_retry: num_retry)
   input3 = "How can I go there from Kansai, Japan?"
-  res = chat.bind_and_unwrap(input3, num_retry: num_retry)
+  chat.wait.bind_and_unwrap(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(res.keys).to include "mode", "num_turns", "response", "conversation_history", "num_tokens", "language", "topics"
+    expect(chat.wait.objectify.keys).to include "mode", "num_turns", "response", "conversation_history", "language", "topics"
   end
 
   it "gives as many responses as the number of prompts given" do
-    expect(res["conversation_history"].size).to be res["num_turns"]
+    expect(chat.wait.objectify["conversation_history"].size).to be chat.wait.objectify["num_turns"]
   end
-
-  # print TTY::Markdown.parse("***")
-  # print "MonadicChat::Chat", "\n"
-  # print "Num Turns: #{res["num_turns"]}", "\n"
-  # print TTY::Markdown.parse("***")
-  # print TTY::Markdown.parse(res["conversation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
-  # print TTY::Markdown.parse("***")
 end
 
 RSpec.describe "MonadicChat:Novel" do
@@ -64,24 +50,17 @@ RSpec.describe "MonadicChat:Novel" do
   input1 = "Tom woke up to the sound of pouring rain."
   novel.bind_and_unwrap(input1, num_retry: num_retry)
   input2 = "He decided to call his old friend first time in many years."
-  novel.bind_and_unwrap(input2, num_retry: num_retry)
+  novel.wait.bind_and_unwrap(input2, num_retry: num_retry)
   input3 = "The voice of the person who spoke back from the other end was an unfamilier one."
-  res = novel.bind_and_unwrap(input3, num_retry: num_retry)
+  novel.wait.bind_and_unwrap(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(res.keys).to include "mode", "num_turns", "new_paragraph", "paragraphs", "event", "num_tokens"
+    expect(novel.wait.objectify.keys).to include "mode", "num_turns", "new_paragraph", "paragraphs", "event"
   end
 
   it "gives as many responses as the number of prompts given" do
-    expect(res["paragraphs"].size).to be res["num_turns"]
+    expect(novel.wait.objectify["paragraphs"].size).to be novel.wait.objectify["num_turns"]
   end
-
-  # print TTY::Markdown.parse("***")
-  # print "MonadicChat::Novel", "\n"
-  # print "Num Turns: #{res["num_turns"]}", "\n"
-  # print TTY::Markdown.parse("***")
-  # print TTY::Markdown.parse(res["paragraphs"].map { |r| "- #{r}" }.join("\n"), indent: 0).strip, "\n"
-  # print TTY::Markdown.parse("***")
 end
 
 RSpec.describe "MonadicChat::Code" do
@@ -89,22 +68,15 @@ RSpec.describe "MonadicChat::Code" do
   input1 = "Write a command line app that shows the current global IP in Ruby."
   code.bind_and_unwrap(input1, num_retry: num_retry)
   input2 = "Make the code capable of showing the approximate geographical locatioin."
-  code.bind_and_unwrap(input2, num_retry: num_retry)
+  code.wait.bind_and_unwrap(input2, num_retry: num_retry)
   input3 = "Add a usage example and a sample output to this code."
-  res = code.bind_and_unwrap(input3, num_retry: num_retry)
+  code.wait.bind_and_unwrap(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(res.keys).to include "mode", "num_turns", "prompt", "response", "num_tokens", "conversation_history"
+    expect(code.wait.objectify.keys).to include "mode", "num_turns", "prompt", "response", "conversation_history"
   end
 
   it "gives as many responses as the number of prompts given" do
-    expect(res["conversation_history"].size).to be res["num_turns"]
+    expect(code.wait.objectify["conversation_history"].size).to be code.wait.objectify["num_turns"]
   end
-
-  # print TTY::Markdown.parse("***")
-  # print "MonadicChat::Code", "\n"
-  # print "Num Turns: #{res["num_turns"]}", "\n"
-  # print TTY::Markdown.parse("***")
-  # print TTY::Markdown.parse(res["conversation_history"].map { |r| "- #{r.join(" / ")}" }.join("\n"), indent: 0).strip, "\n"
-  # print TTY::Markdown.parse("***")
 end

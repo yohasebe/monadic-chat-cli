@@ -11,6 +11,7 @@ require "oj"
 require "kramdown"
 require "rouge"
 require "launchy"
+require "io/console"
 
 require_relative "./version"
 require_relative "./tty_markdown_no_br"
@@ -18,10 +19,28 @@ require_relative "./open_ai"
 
 Oj.mimic_JSON
 
+class Cursor
+  class << self
+    def pos
+      res = +""
+      $stdin.raw do |stdin|
+        $stdout << "\e[6n"
+        $stdout.flush
+        while (c = stdin.getc) != "R"
+          res << c if c
+        end
+      end
+      m = res.match(/(?<row>\d+);(?<column>\d+)/)
+      { row: Integer(m[:row]), column: Integer(m[:column]) }
+    end
+  end
+end
+
 module MonadicChat
   CONFIG = File.join(Dir.home, "monadic_chat.conf")
   NUM_RETRY = 1
   MIN_LENGTH = 10
+  TIMEOUT_SEC = 120
 
   template_dir = File.join(__dir__, "..", "..", "templates")
   templates = Dir["#{template_dir}/*.md"]
@@ -41,7 +60,7 @@ module MonadicChat
   PROMPT = TTY::Prompt.new(active_color: :blue, prefix: "❯", interrupt: interrupt)
 
   spinner_opts = { clear: true, format: :arrow_pulse }
-  SPINNER = TTY::Spinner.new(PASTEL.cyan(":spinner"), spinner_opts)
+  SPINNER = TTY::Spinner.new(PASTEL.cyan("Building the contextual data. Please wait. :spinner"), spinner_opts)
   BULLET = "\e[33m●\e[0m"
 
   TEMP_HTML = File.join(Dir.home, "monadic_chat.html")

@@ -79,7 +79,8 @@ module OpenAI
       case data
       when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
         json = Regexp.last_match(1).gsub(/\r\n?/, "\n")
-        JSON.parse(json.gsub(/\r\n/) { "\n" })
+        # JSON.parse(json.gsub(/\r\n/) { "\n" })
+        JSON.parse(json)
       else
         raise "valid json object not found"
       end
@@ -94,7 +95,6 @@ module OpenAI
       when 0
         raise e
       else
-        # sleep 1
         run_expecting_json(params, num_retry: num_retry - 1, &block)
       end
     end

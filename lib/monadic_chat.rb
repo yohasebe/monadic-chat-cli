@@ -2,11 +2,15 @@
 
 require_relative "monadic_chat/helper"
 
+Thread.abort_on_exception = true
+
 module MonadicChat
   class App
     attr_reader :template
 
     def initialize(params, template, placeholders, prop_accumulated, prop_newdata, update_proc)
+      @responses = Thread::Queue.new
+      @threads = Thread::Queue.new
       @cursor = TTY::Cursor
       @template_original = File.read(template)
       @template = @template_original.dup
@@ -31,6 +35,16 @@ module MonadicChat
       @params = @params_original.dup
     end
 
+    def wait
+      MonadicChat::TIMEOUT_SEC.times do |i|
+        raise "Error: something went wrong" if i + 1 == MonadicChat::TIMEOUT_SEC
+        break if @threads.empty?
+
+        sleep 1
+      end
+      self
+    end
+
     def reset
       @show_html = false
       @params = @params_original.dup
@@ -44,7 +58,24 @@ module MonadicChat
     end
 
     def textbox(text = "")
-      PROMPT.ask(text)
+      set_cursor
+      input = PROMPT.ask(text)
+      return input if %w[exit].include? input
+
+      print @cursor.save
+      SPINNER.auto_spin
+
+      MonadicChat::TIMEOUT_SEC.times do |i|
+        raise "Error: something went wrong" if i + 1 == MonadicChat::TIMEOUT_SEC
+
+        print @cursor.restore
+        print @cursor.clear_screen_down
+        break if @threads.empty?
+
+        sleep 1
+      end
+      SPINNER.stop("")
+      input
     end
 
     def update_template(res)
@@ -53,23 +84,25 @@ module MonadicChat
       @template.sub!(/\n\n```json.+```\n\n/m, "\n\n```json\n#{json}\n```\n\n")
     end
 
-    def format_data
+    def objectify
       m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
-      data = JSON.parse(m[1])
+      JSON.parse(m[1])
+    end
 
+    def format_data
       accumulated = +"## #{@prop_accumulated.split("_").map(&:capitalize).join(" ")}\n"
       contextual = +"## Contextual Data\n"
 
       newdata = ""
-      data.each do |key, val|
+      objectify.each do |key, val|
         next if %w[prompt response].include? key
 
         if key == @prop_accumulated
           val = val.map do |v|
             if v.instance_of?(String)
-              v.sub(/ _$/, "")
+              v.sub(/\s+###\s*$/m, "")
             else
-              v.map { |w| w.sub(/ _$/, "") }[0..1]
+              v.map { |w| w.sub(/\s+###\s*$/m, "") }[0..1]
             end
           end
           accumulated << val.join("\n\n")
@@ -99,15 +132,15 @@ module MonadicChat
     end
 
     def show_html
-      res = format_data.gsub("```") { "~~~" }
+      res = format_data.sub(/::(.+)?\b/) { " <span class='monadic_gray'>::</span> <span class='monadic_app'>#{Regexp.last_match(1)}</span>" }
+                       .gsub("```") { "~~~" }
                        .gsub("User:") { "<span class='monadic_user'> User </span><br />" }
                        .gsub("GPT:") { "<span class='monadic_chat'> GPT </span><br />" }
-                       .gsub(/::(.+)?\b/) { " <span class='monadic_gray'>::</span> <span class='monadic_app'>#{Regexp.last_match(1)}</span>" }
       MonadicChat.add_to_html(res, TEMP_HTML)
     end
 
     def prepare_params(input)
-      template = @template.dup.sub("{{PROMPT}}", input)
+      template = @template.dup.sub("{{PROMPT}}", input).sub("{{MAX_TOKENS}}", @params["max_tokens"].to_s)
       params = @params.dup
       params[:prompt] = template
       params
@@ -309,67 +342,91 @@ module MonadicChat
       print "\n#{TTY::Markdown.parse(help_md, indent: 0).strip}\n"
     end
 
-    def bind_and_unwrap(input, num_retry: 0)
-      params = prepare_params(input)
-      response = +""
-      key_start = /"#{@prop_newdata}":\s*"/
-      key_finish = / _"/
-      started = false
+    def set_cursor
+      vpos = Cursor.pos[:row]
       screen_height = TTY::Screen.height
-      quater_height = screen_height / 4
-      (quater_height * 3).times do
+      quarter_height = screen_height / 4
+      return if (screen_height - vpos) > quarter_height
+
+      quarter_height.times do
         print @cursor.scroll_down
       end
-      print @cursor.move_to(0, quater_height)
+      print @cursor.move_to(0, quarter_height * 3)
       print @cursor.clear_screen_down
+    end
+
+    def bind_and_unwrap(input, num_retry: 0)
+      params = prepare_params(input)
       print @cursor.save
       print "❯ "
-      spinning = false
-      escaping = +""
-      last_chunk = +""
-      finished = false
 
-      res = @completion.run_expecting_json(params, num_retry: num_retry) do |chunk|
-        if finished && !spinning
-          print MonadicChat::PASTEL.magenta(last_chunk)
-          print "\n"
-          SPINNER.auto_spin
-          spinning = true
-        else
-          if escaping
-            chunk = escaping + chunk
-            escaping = ""
-          end
-
-          if /(?:\\\z)/ =~ chunk
-            escaping += chunk
-            next
-          else
-            chunk = chunk.gsub('\\n', "\n")
-            response << chunk
-          end
-
-          if started && !finished
-            if key_finish =~ response
-              last_chunk = (last_chunk + chunk).sub(/ _".*/, "")
-              finished = true
-            else
-              print MonadicChat::PASTEL.magenta(last_chunk)
-              last_chunk = chunk
+      begin
+        th = Thread.new do
+          response_all_shown = false
+          key_start = /"#{@prop_newdata}":\s*"/
+          key_finish = /\s+###\s+"/m
+          started = false
+          escaping = +""
+          last_chunk = +""
+          finished = false
+          @threads << true
+          response = +""
+          res = @completion.run_expecting_json(params, num_retry: num_retry) do |chunk|
+            if finished && !response_all_shown
+              response_all_shown = true
+              print "\n"
+              @responses << response.sub(/\s+###\s+".*/m, "")
             end
-          elsif !started && !finished && key_start =~ response
-            started = true
-            response = +""
+
+            unless finished
+              if escaping
+                chunk = escaping + chunk
+                escaping = ""
+              end
+
+              if /(?:\\\z)/ =~ chunk
+                escaping += chunk
+                next
+              else
+                chunk = chunk.gsub('\\n', "\n")
+                response << chunk
+              end
+
+              if started && !finished
+                if key_finish =~ response
+                  finished = true
+                else
+                  print MonadicChat::PASTEL.magenta(last_chunk)
+                  last_chunk = chunk
+                end
+              elsif !started && !finished && key_start =~ response
+                started = true
+                response = +""
+              end
+            end
           end
+
+          update_template(res)
+          show_html if @show_html
+          @threads.clear
         end
+      rescue StandardError
+        th.join
+        raise "Error: something went wrong in a thread"
       end
 
-      update_template(res)
-
-      SPINNER.stop("") if spinning
-      print @cursor.restore
-      print @cursor.clear_screen_down
-      res
+      loop do
+        if @responses.empty?
+          sleep 1
+        else
+          print @cursor.restore
+          print @cursor.clear_screen_down
+          text = @responses.pop.sub(/\s+###\s+".*/m, "")
+          text = text.gsub(/\\"/) { '"' }
+          print "❯ #{TTY::Markdown.parse(text).strip}\n"
+          break
+        end
+      end
     end
 
     def confirm_query(input)
@@ -406,10 +463,7 @@ module MonadicChat
           if input && confirm_query(input)
             begin
               MonadicChat.prompt_gpt3
-              res = bind_and_unwrap(input, num_retry: NUM_RETRY)
-              text = res[@prop_newdata].sub(/ _\z/, "")
-              print "❯ #{TTY::Markdown.parse(text).strip}\n"
-              show_html if @show_html
+              bind_and_unwrap(input, num_retry: NUM_RETRY)
             rescue StandardError => e
               SPINNER.stop("")
               input = ask_retrial(input, e.message)

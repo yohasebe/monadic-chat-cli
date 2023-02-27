@@ -4,14 +4,13 @@ PROMPT: {{PROMPT}}
 
 ```json
 {
-  "response": "Sure! _",
+  "response": "Sure!\n\n###\n\n",
   "mode": "chat",
   "num_turns": 1,
   "prompt": "Can I ask something?",
   "language": "English",
   "topics": [],
-  "conversation_history": [["User: Can I ask something?", "GPT: Sure! _"]],
-  "num_tokens": 10
+  "conversation_history": [["User: Can I ask something?", "GPT: Sure!"]]
 }
 ```
 
@@ -19,17 +18,17 @@ Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "chat"
 - set the prompt to the "prompt" property
-- increment the value of "num_turns" by 1 and update the property
 - create your response to the prompt in accordance with the "conversation_history" and set it to "response"
-- the "response" value is suffixed by " _"
 - create a new pair consisting of the prompt and the newly created response and insert the pair after all the existing pairs in the "conversation_history"
 - if the prompt is in a language other than the current value of "language", set the name of the prompt language to "language" and make sure that "response" is in that language
 - make your response in the same language as the prompt
 - analyze the topic of the prompt and insert it at the end of the value list of the "topics" property
 - avoid giving a response that is the same or similar to one of the previous responses in "conversation_history"
 - program code in the response must be embedded in a code block in the markdown text
-- update the value of "num_tokens" with the number of tokens contained in the new value of "conversation"
-- escape all double quotes in the JSON object
+- escape double quotes and other characters in the values in the JSON object
+- increment the value of "num_turns" by 1 and update the property
 - the value of "num_turns" must equal the number of items in the "conversation_history" of the resulting JSON object
 
-Wrap the JSON object with "<JSON>\n" and "\n</JSON>"
+The total number of tokens of the whole response must not exceed {{MAX_TOKENS}}
+
+Add "\n\n###\n\n" at the end of the "response" value and wrap the JSON object with "<JSON>\n" and "\n</JSON>"
