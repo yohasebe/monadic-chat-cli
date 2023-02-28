@@ -2,7 +2,7 @@
 
 require_relative "monadic_chat/helper"
 
-Thread.abort_on_exception = true
+Thread.abort_on_exception = false
 
 module MonadicChat
   class App
@@ -20,18 +20,7 @@ module MonadicChat
       @completion = nil
       @update_proc = update_proc
       @show_html = false
-      @params_original = {
-        "model" => "text-davinci-003",
-        "max_tokens" => 2000,
-        "temperature" => 0.0,
-        "top_p" => 1.0,
-        "logprobs" => nil,
-        "echo" => false,
-        "presence_penalty" => 0.0,
-        "frequency_penalty" => 0.0,
-        "stream" => true,
-        "stop" => nil
-      }.merge(params)
+      @params_original = params
       @params = @params_original.dup
     end
 
@@ -50,7 +39,7 @@ module MonadicChat
       @params = @params_original.dup
       @template = @template_original.dup
       if @placeholders.empty?
-        MonadicChat.prompt_monadic
+        # MonadicChat.prompt_monadic
         print "❯ Context and parameters has been reset.\n"
       else
         fulfill_placeholders
@@ -58,9 +47,9 @@ module MonadicChat
     end
 
     def textbox(text = "")
-      # set_cursor
+      set_cursor
       input = PROMPT.ask(text)
-      return input if %w[exit clear config].include? input
+      return input if input == "" || %w[exit clear config].include?(input)
 
       print @cursor.save
       SPINNER1.auto_spin
@@ -120,12 +109,12 @@ module MonadicChat
 
     def show_data
       res = format_data
-      MonadicChat.prompt_monadic
+      # MonadicChat.prompt_monadic
       print "\n#{TTY::Markdown.parse(res, indent: 0).strip}\n"
     end
 
     def set_html
-      MonadicChat.prompt_monadic
+      # MonadicChat.prompt_monadic
       print " HTML rendering is enabled\n"
       @show_html = true
       show_html
@@ -147,7 +136,7 @@ module MonadicChat
     end
 
     def ask_retrial(input, message = nil)
-      MonadicChat.prompt_monadic
+      # MonadicChat.prompt_monadic
       print "❯ Error: #{message.capitalize}\n" if message
       retrial = PROMPT.select(" Do you want to try again?") do |menu|
         menu.choice "Yes", "yes"
@@ -158,7 +147,7 @@ module MonadicChat
       when "yes"
         input
       when "no"
-        MonadicChat.prompt_user
+        # MonadicChat.prompt_user
         textbox
       when "show"
         show_data
@@ -167,7 +156,7 @@ module MonadicChat
     end
 
     def save_data
-      MonadicChat.prompt_monadic
+      # MonadicChat.prompt_monadic
       input = PROMPT.ask(" Enter the path and file name of the saved data:\n")
       return if input.to_s == ""
 
@@ -225,7 +214,7 @@ module MonadicChat
     end
 
     def change_parameter
-      MonadicChat.prompt_monadic
+      # MonadicChat.prompt_monadic
       parameter = PROMPT.select(" Select the parmeter to be set:",
                                 per_page: 7,
                                 cycle: true,
@@ -321,7 +310,7 @@ module MonadicChat
 
         params_md += "- #{key}: #{val}\n"
       end
-      MonadicChat.prompt_monadic
+      # MonadicChat.prompt_monadic
       puts "#{TTY::Markdown.parse(params_md, indent: 0).strip}\n\n"
     end
 
@@ -338,24 +327,25 @@ module MonadicChat
         - **clear**, **clean**: clear screen
         - **bye**, **exit**, **quit**: go back to main menu
       HELP
-      MonadicChat.prompt_monadic
-      print "\n#{TTY::Markdown.parse(help_md, indent: 0).strip}\n"
+      # MonadicChat.prompt_monadic
+      print "\n#{TTY::Markdown.parse(help_md, indent: 0).strip}\n\n"
     end
 
     def set_cursor
-      # vpos = Cursor.pos[:row]
-      # screen_height = TTY::Screen.height
-      # gap = screen_height / 2 - vpos
-      # if gap.negative?
-      #   gap.abs.times do
-      #     print @cursor.up
-      #   end
-      # end
-      # print @cursor.clear_screen_down
+      vpos = Cursor.pos[:row]
+      screen_height = TTY::Screen.height
+      gap = (screen_height / 4 * 3) - vpos
+      return unless gap.negative?
+
+      print @cursor.down((screen_height - vpos).abs)
+      ((screen_height - vpos)).times do
+        print @cursor.scroll_down
+      end
+      print @cursor.up((screen_height - vpos) * 2)
     end
 
     def bind_and_unwrap(input, num_retry: 0)
-      # set_cursor
+      set_cursor
       params = prepare_params(input)
       print @cursor.save
       print "❯ "
@@ -419,7 +409,7 @@ module MonadicChat
         show_html if @show_html
       rescue StandardError
         @threads.clear
-        raise "Error: something went wrong in a thread"
+        @responses << "Error: something went wrong in a thread"
       end
 
       loop do
@@ -435,11 +425,13 @@ module MonadicChat
           break
         end
       end
+      print "\n"
+      set_cursor
     end
 
     def confirm_query(input)
       if input.size < MIN_LENGTH
-        MonadicChat.prompt_monadic
+        # MonadicChat.prompt_monadic
         PROMPT.yes?(" Would you like to proceed with this (very short) prompt?")
       else
         true
@@ -470,7 +462,7 @@ module MonadicChat
         else
           if input && confirm_query(input)
             begin
-              MonadicChat.prompt_gpt
+              # MonadicChat.prompt_gpt
               bind_and_unwrap(input, num_retry: NUM_RETRY)
             rescue StandardError => e
               SPINNER1.stop("")
@@ -480,7 +472,7 @@ module MonadicChat
             end
           end
         end
-        MonadicChat.prompt_user
+        # MonadicChat.prompt_user
         input = textbox
       end
     end
@@ -524,7 +516,7 @@ module MonadicChat
       if @placeholders.empty?
         parse
       else
-        MonadicChat.prompt_monadic
+        # MonadicChat.prompt_monadic
         loadfile = PROMPT.select(" Load saved file?", default: 2) do |menu|
           menu.choice "Yes", "yes"
           menu.choice "No", "no"

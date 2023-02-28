@@ -22,7 +22,8 @@ Make sure the following requirements are all fulfilled:
 - write a new paragraph in the novel of about 100 words describing the event given above and set the new paragraph to the "new_paragraph" property
 - copy the newly created paragraph and insert it right after the preexisting items of the "paragraphs"
 - avoid using invalid characters in the JSON object
-- escape all double quotes in the JSON object
+- do not use invalid characters in the JSON object
+- escape double quotes and other characters in the values in the JSON object
 - increment the value of "num_turns" by 1 and update the property
 - the value of "num_turns" must equal the number of items in the "paragraphs" of the resulting JSON object
 - update the value of "num_tokens" with the number of tokens of the resulting JSON object"

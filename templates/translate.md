@@ -23,7 +23,8 @@ Make sure the following requirements are all fulfilled:
 - translate the original text to the language specified in the "current_target_lang" and set the translation to the "translation" property 
 - create a new list containing 1) the original text, 2) the newly created "translation", and 3) the "current_target_lang" and insert it after all the existing items in the "translation_history"
 - avoid using invalid characters in the JSON object
-- escape all double quotes in the JSON object
+- do not use invalid characters in the JSON object
+- escape double quotes and other characters in the values in the JSON object
 - increment the value of "num_turns" by 1 and update the property
 - the value of "num_turns" must equal the number of items in the "translation_history" of the resulting JSON object
 - update the value of "num_tokens" with the number of tokens of the resulting JSON object"

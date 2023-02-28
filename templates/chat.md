@@ -26,6 +26,7 @@ Make sure the following requirements are all fulfilled:
 - analyze the topic of the prompt and insert it at the end of the value list of the "topics" property
 - avoid giving a response that is the same or similar to one of the previous responses in "conversation_history"
 - program code in the response must be embedded in a code block in the markdown text
+- do not use invalid characters in the JSON object
 - escape double quotes and other characters in the values in the JSON object
 - increment the value of "num_turns" by 1 and update the property
 - the value of "num_turns" must equal the number of items in the "conversation_history" of the resulting JSON object
