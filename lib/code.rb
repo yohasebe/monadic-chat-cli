@@ -13,7 +13,8 @@ module MonadicChat
         "temperature" => 0.0,
         "top_p" => 1.0,
         "presence_penalty" => 0.0,
-        "frequency_penalty" => 0.0
+        "frequency_penalty" => 0.0,
+        "max_tokens" => 2000
       }
       super(params,
             TEMPLATES["code"],
@@ -21,11 +22,10 @@ module MonadicChat
             "conversation_history",
             "response",
             proc do |res|
-              res["conversation_history"].shift(2) if res["num_tokens"].to_i > @num_tokens_kept
+              res["conversation_history"].shift(1) if res["num_tokens"].to_i > params["max_tokens"] / 2
               res
             end
            )
-      @num_tokens_kept = 2000
       @completion = openai_completion
     end
   end

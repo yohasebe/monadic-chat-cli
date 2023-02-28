@@ -58,9 +58,9 @@ module MonadicChat
     end
 
     def textbox(text = "")
-      set_cursor
+      # set_cursor
       input = PROMPT.ask(text)
-      return input if %w[exit].include? input
+      return input if %w[exit clear config].include? input
 
       print @cursor.save
       SPINNER1.auto_spin
@@ -98,13 +98,13 @@ module MonadicChat
         next if %w[prompt response].include? key
 
         if key == @prop_accumulated
-          val = val.map do |v|
-            if v.instance_of?(String)
-              v.sub(/\s+###\s*$/m, "")
-            else
-              v.map { |w| w.sub(/\s+###\s*$/m, "") }[0..1]
-            end
-          end
+          # val = val.map do |v|
+          #   if v.instance_of?(String)
+          #     v.sub(/\s+###\s*$/m, "")
+          #   else
+          #     v.map { |w| w.sub(/\s+###\s*$/m, "") }[0..1]
+          #   end
+          # end
           accumulated << val.join("\n\n")
         elsif key == @prop_newdata
           newdata = "- **#{key.capitalize}**: #{val}\n"
@@ -140,7 +140,7 @@ module MonadicChat
     end
 
     def prepare_params(input)
-      template = @template.dup.sub("{{PROMPT}}", input).sub("{{MAX_TOKENS}}", @params["max_tokens"].to_s)
+      template = @template.dup.sub("{{PROMPT}}", input).sub("{{MAX_TOKENS}}", (@params["max_tokens"] / 2).to_s)
       params = @params.dup
       params[:prompt] = template
       params
@@ -261,9 +261,9 @@ module MonadicChat
     end
 
     def change_max_tokens
-      PROMPT.ask(" Set value of max tokens [16 to 8000]", convert: :int) do |q|
-        q.in "16-8000"
-        q.messages[:range?] = "Value out of expected range [16 to 2048]"
+      PROMPT.ask(" Set value of max tokens [1000 to 8000]", convert: :int) do |q|
+        q.in "1000-8000"
+        q.messages[:range?] = "Value out of expected range [1000 to 2048]"
       end
     end
 
@@ -343,83 +343,82 @@ module MonadicChat
     end
 
     def set_cursor
-      vpos = Cursor.pos[:row]
-      screen_height = TTY::Screen.height
-      quarter_height = screen_height / 4
-      return if (screen_height - vpos) > quarter_height
-
-      quarter_height.times do
-        print @cursor.scroll_down
-      end
-      print @cursor.move_to(0, quarter_height * 3)
-      print @cursor.clear_screen_down
+      # vpos = Cursor.pos[:row]
+      # screen_height = TTY::Screen.height
+      # gap = screen_height / 2 - vpos
+      # if gap.negative?
+      #   gap.abs.times do
+      #     print @cursor.up
+      #   end
+      # end
+      # print @cursor.clear_screen_down
     end
 
     def bind_and_unwrap(input, num_retry: 0)
+      # set_cursor
       params = prepare_params(input)
       print @cursor.save
       print "❯ "
       start_vpos = Cursor.pos[:row]
-      begin
-        th = Thread.new do
-          response_all_shown = false
-          key_start = /"#{@prop_newdata}":\s*"/
-          key_finish = /\s+###\s+"/m
-          started = false
-          escaping = +""
-          last_chunk = +""
-          finished = false
-          @threads << true
-          response = +""
-          past_five_lines = false
-          spinning = false
-          res = @completion.run_expecting_json(params, num_retry: num_retry) do |chunk|
-            if finished && !response_all_shown
-              response_all_shown = true
-              print "\n"
-              @responses << response.sub(/\s+###\s+".*/m, "")
-              SPINNER2.stop("")
-            end
-
-            unless finished
-              if escaping
-                chunk = escaping + chunk
-                escaping = ""
-              end
-
-              if /(?:\\\z)/ =~ chunk
-                escaping += chunk
-                next
-              else
-                chunk = chunk.gsub('\\n', "\n")
-                response << chunk
-              end
-
-              if started && !finished
-                if key_finish =~ response
-                  finished = true
-                else
-                  past_five_lines = (Cursor.pos[:row] - start_vpos) > 4
-                  if past_five_lines && !spinning
-                    SPINNER2.auto_spin
-                  else
-                    print MonadicChat::PASTEL.magenta(last_chunk)
-                  end
-                  last_chunk = chunk
-                end
-              elsif !started && !finished && key_start =~ response
-                started = true
-                response = +""
-              end
-            end
+      Thread.new do
+        response_all_shown = false
+        key_start = /"#{@prop_newdata}":\s*"/
+        # key_finish = /\s+###\s+"/m
+        key_finish = /(?!\\)"/
+        started = false
+        escaping = +""
+        last_chunk = +""
+        finished = false
+        @threads << true
+        response = +""
+        past_five_lines = false
+        spinning = false
+        res = @completion.run_expecting_json(params, num_retry: num_retry) do |chunk|
+          if finished && !response_all_shown
+            response_all_shown = true
+            print "\n"
+            # @responses << response.sub(/\s+###\s+".*/m, "")
+            @responses << response.sub(/(?!\\)".*/m, "")
+            SPINNER2.stop("")
           end
 
-          update_template(res)
-          show_html if @show_html
-          @threads.clear
+          unless finished
+            if escaping
+              chunk = escaping + chunk
+              escaping = ""
+            end
+
+            if /(?:\\\z)/ =~ chunk
+              escaping += chunk
+              next
+            else
+              chunk = chunk.gsub('\\n', "\n")
+              response << chunk
+            end
+
+            if started && !finished
+              if key_finish =~ response
+                finished = true
+              else
+                past_five_lines = (Cursor.pos[:row] - start_vpos) >= 5
+                if past_five_lines && !spinning
+                  SPINNER2.auto_spin
+                else
+                  print MonadicChat::PASTEL.magenta(last_chunk)
+                end
+                last_chunk = chunk
+              end
+            elsif !started && !finished && key_start =~ response
+              started = true
+              response = +""
+            end
+          end
         end
+        update_template(res)
+        @threads.clear
+        show_html if @show_html
       rescue StandardError
-        th.join
+        @threads.clear
         raise "Error: something went wrong in a thread"
       end
 
@@ -429,8 +428,9 @@ module MonadicChat
         else
           print @cursor.restore
           print @cursor.clear_screen_down
-          text = @responses.pop.sub(/\s+###\s+".*/m, "")
-          text = text.gsub(/\\"/) { '"' }
+          # text = @responses.pop.sub(/\s+###\s+".*/m, "")
+          text = @responses.pop.sub(/(?!\\)".*/m, "")
+          text = text.gsub(/(?!\\\\)\\/) { "" }
           print "❯ #{TTY::Markdown.parse(text).strip}\n"
           break
         end

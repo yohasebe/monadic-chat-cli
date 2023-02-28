@@ -9,8 +9,9 @@ Your response must be returned in the form of a JSON object having the structure
   "mode": "translate",
   "num_turns": 2,
   "original": "これは日本語の文です。",
-  "translation": "This is a sentence in Japanese.\n\n###\n\n",
+  "translation": "This is a sentence in Japanese.",
   "current_target_lang": "English",
+  "num_tokens": 162,
   "translation_history": [["User: Original and translated text follow.", "GPT: 原文と翻訳文が続きます。", "Japanese"], ["User: これは日本語の文です。", "GPT: This is a sentence in Japanese.", "English"]]
 }
 ```
@@ -25,8 +26,8 @@ Make sure the following requirements are all fulfilled:
 - escape all double quotes in the JSON object
 - increment the value of "num_turns" by 1 and update the property
 - the value of "num_turns" must equal the number of items in the "translation_history" of the resulting JSON object
+- update the value of "num_tokens" with the number of tokens of the resulting JSON object"
 
-The total number of tokens of the whole response must not exceed {{MAX_TOKENS}}
+The total number of tokens of the resulting JSON object must not exceed {{MAX_TOKENS}}
 
-Add "\n\n###\n\n" at the end of the "translation" value and wrap the JSON object with "<JSON>\n" and "\n</JSON>"
-
+Wrap the JSON object with "<JSON>\n" and "\n</JSON>"

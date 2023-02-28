@@ -86,7 +86,7 @@ module OpenAI
       end
     end
 
-    def run_expecting_json(params, num_retry: 0, &block)
+    def run_expecting_json(params, num_retry: 1, &block)
       res = run(params, &block)
       text = res["choices"][0]["text"]
       get_json text

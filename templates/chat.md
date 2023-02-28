@@ -4,12 +4,13 @@ PROMPT: {{PROMPT}}
 
 ```json
 {
-  "response": "Sure!\n\n###\n\n",
+  "response": "Sure!",
   "mode": "chat",
   "num_turns": 1,
   "prompt": "Can I ask something?",
   "language": "English",
   "topics": [],
+  "num_tokens": 93,
   "conversation_history": [["User: Can I ask something?", "GPT: Sure!"]]
 }
 ```
@@ -28,7 +29,8 @@ Make sure the following requirements are all fulfilled:
 - escape double quotes and other characters in the values in the JSON object
 - increment the value of "num_turns" by 1 and update the property
 - the value of "num_turns" must equal the number of items in the "conversation_history" of the resulting JSON object
+- update the value of "num_tokens" with the number of tokens of the resulting JSON object"
 
-The total number of tokens of the whole response must not exceed {{MAX_TOKENS}}
+The total number of tokens of the resulting JSON object must not exceed {{MAX_TOKENS}}
 
-Add "\n\n###\n\n" at the end of the "response" value and wrap the JSON object with "<JSON>\n" and "\n</JSON>"
+Wrap the JSON object with "<JSON>\n" and "\n</JSON>"
