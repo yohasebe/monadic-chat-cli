@@ -7,12 +7,12 @@ Your response must be returned in the form of a JSON object having the structure
 ```json
 {
   "mode": "translate",
-  "num_turns": 2,
+  "num_turns": 4,
   "original": "これは日本語の文です。",
-  "translation": "This is a sentence in Japanese.",
+  "translation": "This is a sentence in Japanese.\n\n###\n\n",
   "current_target_lang": "English",
-  "num_tokens": 162,
-  "translation_history": [["User: Original and translated text follow.", "GPT: 原文と翻訳文が続きます。", "Japanese"], ["User: これは日本語の文です。", "GPT: This is a sentence in Japanese.", "English"]]
+  "num_tokens": 173,
+  "translation_history": ["User: Original and translated text follow.", "GPT: 原文と翻訳文が続きます。\n\n###\n\n", "User: これは日本語の文です。", "GPT: This is a sentence in Japanese.\n\n###\n\n"]
 }
 ```
 
@@ -21,14 +21,10 @@ Make sure the following requirements are all fulfilled:
 - keep the value of the "mode" property at "translate"
 - set the original text presented above to the "original" property
 - translate the original text to the language specified in the "current_target_lang" and set the translation to the "translation" property 
-- create a new list containing 1) the original text, 2) the newly created "translation", and 3) the "current_target_lang" and insert it after all the existing items in the "translation_history"
-- avoid using invalid characters in the JSON object
+- insert the original text and the newly created "translation" after all the existing items in the "translation_history"
 - do not use invalid characters in the JSON object
-- escape double quotes and other characters in the values in the JSON object
-- increment the value of "num_turns" by 1 and update the property
-- the value of "num_turns" must equal the number of items in the "translation_history" of the resulting JSON object
+- increment the value of "num_turns" by 2 and update the property so that the value of "num_turns" must equal the number of the items in the "translation_history" of the resulting JSON object
 - update the value of "num_tokens" with the number of tokens of the resulting JSON object"
-
-The total number of tokens of the resulting JSON object must not exceed {{MAX_TOKENS}}
-
-Wrap the JSON object with "<JSON>\n" and "\n</JSON>"
+- escape double quotes and other special characters in the text values in the resulting JSON object
+- add "\n\n###\n\n" at the end of the "translation" value
+- wrap the JSON object with "<JSON>\n" and "\n</JSON>"

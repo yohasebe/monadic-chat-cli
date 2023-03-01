@@ -2,7 +2,7 @@
 
 require_relative "monadic_chat/helper"
 
-Thread.abort_on_exception = false
+Thread.abort_on_exception = true
 
 module MonadicChat
   class App
@@ -39,31 +39,31 @@ module MonadicChat
       @params = @params_original.dup
       @template = @template_original.dup
       if @placeholders.empty?
-        # MonadicChat.prompt_monadic
-        print "❯ Context and parameters has been reset.\n"
+        print MonadicChat.prompt_system
+        print " Context and parameters has been reset.\n"
       else
         fulfill_placeholders
       end
     end
 
     def textbox(text = "")
-      set_cursor
-      input = PROMPT.ask(text)
+      input = PROMPT_USER.ask(text)
       return input if input == "" || %w[exit clear config].include?(input)
 
-      print @cursor.save
-      SPINNER1.auto_spin
+      unless @threads.empty?
+        print @cursor.save
+        message = "Processing contextual data . . ."
+        print message
+        MonadicChat::TIMEOUT_SEC.times do |i|
+          raise "Error: something went wrong" if i + 1 == MonadicChat::TIMEOUT_SEC
 
-      MonadicChat::TIMEOUT_SEC.times do |i|
-        raise "Error: something went wrong" if i + 1 == MonadicChat::TIMEOUT_SEC
+          print @cursor.restore
+          print @cursor.clear_char(message.size)
+          break if @threads.empty?
 
-        print @cursor.restore
-        print @cursor.clear_screen_down
-        break if @threads.empty?
-
-        sleep 1
+          sleep 1
+        end
       end
-      SPINNER1.stop("")
       input
     end
 
@@ -75,7 +75,8 @@ module MonadicChat
 
     def objectify
       m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
-      JSON.parse(m[1])
+      json = m[1].gsub(/(?!\\\\\\)\\\\"/) { '\\\"' }
+      JSON.parse(json)
     end
 
     def format_data
@@ -87,13 +88,13 @@ module MonadicChat
         next if %w[prompt response].include? key
 
         if key == @prop_accumulated
-          # val = val.map do |v|
-          #   if v.instance_of?(String)
-          #     v.sub(/\s+###\s*$/m, "")
-          #   else
-          #     v.map { |w| w.sub(/\s+###\s*$/m, "") }[0..1]
-          #   end
-          # end
+          val = val.map do |v|
+            if v.instance_of?(String)
+              v.sub(/\s+###\s*$/m, "")
+            else
+              v.map { |w| w.sub(/\s+###\s*$/m, "") }[0..1]
+            end
+          end
           accumulated << val.join("\n\n")
         elsif key == @prop_newdata
           newdata = "- **#{key.capitalize}**: #{val}\n"
@@ -109,12 +110,12 @@ module MonadicChat
 
     def show_data
       res = format_data
-      # MonadicChat.prompt_monadic
+      print MonadicChat.prompt_system, "\n"
       print "\n#{TTY::Markdown.parse(res, indent: 0).strip}\n"
     end
 
     def set_html
-      # MonadicChat.prompt_monadic
+      print MonadicChat.prompt_system
       print " HTML rendering is enabled\n"
       @show_html = true
       show_html
@@ -136,9 +137,9 @@ module MonadicChat
     end
 
     def ask_retrial(input, message = nil)
-      # MonadicChat.prompt_monadic
-      print "❯ Error: #{message.capitalize}\n" if message
-      retrial = PROMPT.select(" Do you want to try again?") do |menu|
+      print MonadicChat.prompt_system
+      print " Error: #{message.capitalize}\n" if message
+      retrial = PROMPT_USER.select(" Do you want to try again?") do |menu|
         menu.choice "Yes", "yes"
         menu.choice "No", "no"
         menu.choice "Show current contextual data", "show"
@@ -147,7 +148,6 @@ module MonadicChat
       when "yes"
         input
       when "no"
-        # MonadicChat.prompt_user
         textbox
       when "show"
         show_data
@@ -156,8 +156,7 @@ module MonadicChat
     end
 
     def save_data
-      # MonadicChat.prompt_monadic
-      input = PROMPT.ask(" Enter the path and file name of the saved data:\n")
+      input = PROMPT_SYSTEM.ask(" Enter the path and file name of the saved data:\n")
       return if input.to_s == ""
 
       filepath = File.expand_path(input)
@@ -169,7 +168,7 @@ module MonadicChat
       end
 
       if File.exist? filepath
-        overwrite = PROMPT.select(" #{filepath} already exists.\nOverwrite?") do |menu|
+        overwrite = PROMPT_SYSTEM.select(" #{filepath} already exists.\nOverwrite?") do |menu|
           menu.choice "Yes", "yes"
           menu.choice "No", "no"
         end
@@ -189,7 +188,7 @@ module MonadicChat
     end
 
     def load_data
-      input = PROMPT.ask(" Enter the path and file name of the saved data:\n")
+      input = PROMPT_USER.ask(" Enter the path and file name of the saved data:\n")
       return false if input.to_s == ""
 
       filepath = File.expand_path(input)
@@ -214,13 +213,12 @@ module MonadicChat
     end
 
     def change_parameter
-      # MonadicChat.prompt_monadic
-      parameter = PROMPT.select(" Select the parmeter to be set:",
-                                per_page: 7,
-                                cycle: true,
-                                show_help: :always,
-                                filter: true,
-                                default: 1) do |menu|
+      parameter = PROMPT_SYSTEM.select(" Select the parmeter to be set:",
+                                       per_page: 7,
+                                       cycle: true,
+                                       show_help: :always,
+                                       filter: true,
+                                       default: 1) do |menu|
         menu.choice "#{BULLET} Cancel", "cancel"
         menu.choice "#{BULLET} model: #{@params["model"]}", "model"
         menu.choice "#{BULLET} max_tokens: #{@params["max_tokens"]}", "max_tokens"
@@ -250,47 +248,47 @@ module MonadicChat
     end
 
     def change_max_tokens
-      PROMPT.ask(" Set value of max tokens [1000 to 8000]", convert: :int) do |q|
+      PROMPT_SYSTEM.ask(" Set value of max tokens [1000 to 8000]", convert: :int) do |q|
         q.in "1000-8000"
         q.messages[:range?] = "Value out of expected range [1000 to 2048]"
       end
     end
 
     def change_temperature
-      PROMPT.ask(" Set value of temperature [0.0 to 1.0]", convert: :float) do |q|
+      PROMPT_SYSTEM.ask(" Set value of temperature [0.0 to 1.0]", convert: :float) do |q|
         q.in "0.0-1.0"
         q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
       end
     end
 
     def change_top_p
-      PROMPT.ask(" Set value of top_p [0.0 to 1.0]", convert: :float) do |q|
+      PROMPT_SYSTEM.ask(" Set value of top_p [0.0 to 1.0]", convert: :float) do |q|
         q.in "0.0-1.0"
         q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
       end
     end
 
     def change_frequency_penalty
-      PROMPT.ask(" Set value of frequency penalty [-2.0 to 2.0]", convert: :float) do |q|
+      PROMPT_SYSTEM.ask(" Set value of frequency penalty [-2.0 to 2.0]", convert: :float) do |q|
         q.in "-2.0-2.0"
         q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
       end
     end
 
     def change_presence_penalty
-      PROMPT.ask(" Set value of presence penalty [-2.0 to 2.0]", convert: :float) do |q|
+      PROMPT_SYSTEM.ask(" Set value of presence penalty [-2.0 to 2.0]", convert: :float) do |q|
         q.in "-2.0-2.0"
         q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
       end
     end
 
     def change_model
-      model = PROMPT.select(" Select a model:",
-                            per_page: 10,
-                            cycle: false,
-                            show_help: :always,
-                            filter: true,
-                            default: 1) do |menu|
+      model = PROMPT_SYSTEM.select(" Select a model:",
+                                   per_page: 10,
+                                   cycle: false,
+                                   show_help: :always,
+                                   filter: true,
+                                   default: 1) do |menu|
         menu.choice "#{BULLET} Cancel", "cancel"
         @completion.models.sort_by { |m| -m["created"] }.each do |m|
           menu.choice "#{BULLET} #{m["id"]}", m["id"]
@@ -310,7 +308,7 @@ module MonadicChat
 
         params_md += "- #{key}: #{val}\n"
       end
-      # MonadicChat.prompt_monadic
+      print MonadicChat.prompt_system, "\n"
       puts "#{TTY::Markdown.parse(params_md, indent: 0).strip}\n\n"
     end
 
@@ -327,49 +325,41 @@ module MonadicChat
         - **clear**, **clean**: clear screen
         - **bye**, **exit**, **quit**: go back to main menu
       HELP
-      # MonadicChat.prompt_monadic
+      print MonadicChat.prompt_system
       print "\n#{TTY::Markdown.parse(help_md, indent: 0).strip}\n\n"
     end
 
-    def set_cursor
-      vpos = Cursor.pos[:row]
+    def count_lines_below
       screen_height = TTY::Screen.height
-      gap = (screen_height / 4 * 3) - vpos
-      return unless gap.negative?
-
-      print @cursor.down((screen_height - vpos).abs)
-      ((screen_height - vpos)).times do
-        print @cursor.scroll_down
-      end
-      print @cursor.up((screen_height - vpos) * 2)
+      vpos = Cursor.pos[:row]
+      screen_height - vpos
     end
 
     def bind_and_unwrap(input, num_retry: 0)
-      set_cursor
+      print MonadicChat.prompt_gpt, " "
       params = prepare_params(input)
       print @cursor.save
-      print "❯ "
-      start_vpos = Cursor.pos[:row]
       Thread.new do
         response_all_shown = false
         key_start = /"#{@prop_newdata}":\s*"/
-        # key_finish = /\s+###\s+"/m
-        key_finish = /(?!\\)"/
+        key_finish = /\s+###\s*"/m
+        # key_finish = /(?!\\)"/
         started = false
         escaping = +""
         last_chunk = +""
         finished = false
         @threads << true
         response = +""
-        past_five_lines = false
         spinning = false
         res = @completion.run_expecting_json(params, num_retry: num_retry) do |chunk|
           if finished && !response_all_shown
             response_all_shown = true
-            print "\n"
-            # @responses << response.sub(/\s+###\s+".*/m, "")
-            @responses << response.sub(/(?!\\)".*/m, "")
-            SPINNER2.stop("")
+            @responses << response.sub(/\s+###\s*".*/m, "")
+            # @responses << response.sub(/(?!\\)".*/, "")
+            if spinning
+              @cursor.backword(" ▹▹▹▹▹ ".size)
+              @cursor.clear_char(" ▹▹▹▹▹ ".size)
+            end
           end
 
           unless finished
@@ -390,11 +380,11 @@ module MonadicChat
               if key_finish =~ response
                 finished = true
               else
-                past_five_lines = (Cursor.pos[:row] - start_vpos) >= 5
-                if past_five_lines && !spinning
-                  SPINNER2.auto_spin
-                else
+                if count_lines_below > 3
                   print MonadicChat::PASTEL.magenta(last_chunk)
+                elsif !spinning
+                  print ". . ."
+                  spinning = true
                 end
                 last_chunk = chunk
               end
@@ -404,12 +394,22 @@ module MonadicChat
             end
           end
         end
+
+        unless response_all_shown
+          if spinning
+            @cursor.backword(". . .".size)
+            @cursor.clear_char(". . .".size)
+          end
+          @responses << response.sub(/\s+###\s*".*/m, "")
+        end
+
         update_template(res)
         @threads.clear
         show_html if @show_html
-      rescue StandardError
+      rescue StandardError => e
         @threads.clear
         @responses << "Error: something went wrong in a thread"
+        pp e
       end
 
       loop do
@@ -418,21 +418,20 @@ module MonadicChat
         else
           print @cursor.restore
           print @cursor.clear_screen_down
-          # text = @responses.pop.sub(/\s+###\s+".*/m, "")
-          text = @responses.pop.sub(/(?!\\)".*/m, "")
+          text = @responses.pop
+          # text = @responses.pop.sub(/(?!\\)".*/m, "")
           text = text.gsub(/(?!\\\\)\\/) { "" }
-          print "❯ #{TTY::Markdown.parse(text).strip}\n"
+          print "#{TTY::Markdown.parse(text).strip}\n"
           break
         end
       end
       print "\n"
-      set_cursor
     end
 
     def confirm_query(input)
       if input.size < MIN_LENGTH
-        # MonadicChat.prompt_monadic
-        PROMPT.yes?(" Would you like to proceed with this (very short) prompt?")
+        print MonadicChat.prompt_system
+        PROMPT_SYSTEM.yes?(" Would you like to proceed with this (very short) prompt?")
       else
         true
       end
@@ -462,17 +461,14 @@ module MonadicChat
         else
           if input && confirm_query(input)
             begin
-              # MonadicChat.prompt_gpt
               bind_and_unwrap(input, num_retry: NUM_RETRY)
             rescue StandardError => e
-              SPINNER1.stop("")
-              SPINNER2.stop("")
+              # SPINNER1.stop("")
               input = ask_retrial(input, e.message)
               next
             end
           end
         end
-        # MonadicChat.prompt_user
         input = textbox
       end
     end
@@ -516,13 +512,14 @@ module MonadicChat
       if @placeholders.empty?
         parse
       else
-        # MonadicChat.prompt_monadic
-        loadfile = PROMPT.select(" Load saved file?", default: 2) do |menu|
+        print MonadicChat.prompt_system
+        loadfile = PROMPT_SYSTEM.select(" Load saved file?", default: 2) do |menu|
           menu.choice "Yes", "yes"
           menu.choice "No", "no"
         end
         parse if loadfile == "yes" && load_data || fulfill_placeholders
       end
+      @cursor.clear_line
     end
   end
 end

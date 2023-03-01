@@ -43,8 +43,7 @@ loop do
 
   openai_completion ||= MonadicChat.authenticate
 
-  MonadicChat.prompt_monadic
-  parameter = MonadicChat::PROMPT.select(" Select app:", per_page: 6, cycle: false, filter: true, default: 1) do |menu|
+  parameter = MonadicChat::PROMPT_SYSTEM.select(" Select app:", per_page: 6, cycle: false, filter: true, default: 1) do |menu|
     menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Chat")}      - #{MonadicChat::Chat::DESC}", "chat"
     menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Code")}      - #{MonadicChat::Code::DESC}", "code"
     menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Novel")}     - #{MonadicChat::Novel::DESC}", "novel"

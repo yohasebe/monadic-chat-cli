@@ -4,7 +4,6 @@ require "tty-cursor"
 require "tty-screen"
 require "tty-markdown"
 require "tty-prompt"
-require "tty-spinner"
 require "tty-box"
 require "pastel"
 require "oj"
@@ -57,14 +56,6 @@ module MonadicChat
     res = TTY::Prompt.new.yes?("Quit the app?")
     exit if res
   end
-  PROMPT = TTY::Prompt.new(active_color: :blue, prefix: "❯", interrupt: interrupt)
-
-  spinner_opts = { clear: true, format: :arrow_pulse }
-  SPINNER1 = TTY::Spinner.new(PASTEL.cyan("Building the contextual data. Please wait. :spinner"), spinner_opts)
-
-  SPINNER2 = TTY::Spinner.new(PASTEL.cyan(":spinner"), spinner_opts)
-
-  BULLET = "\e[33m●\e[0m"
 
   TEMP_HTML = File.join(Dir.home, "monadic_chat.html")
   style = +File.read(File.join(__dir__, "..", "..", "assets", "github.css")).gsub(".markdown-") { "" }
@@ -111,9 +102,8 @@ module MonadicChat
 
   def self.authenticate(overwrite: false)
     if overwrite
-      prompt_monadic
       access_token = nil
-      access_token ||= PROMPT.mask(" Input your OpenAI access token:") until access_token
+      access_token ||= PROMPT_SYSTEM.mask("Input your OpenAI access token:") until access_token
 
       File.open(CONFIG, "w") do |f|
         config = { "access_token" => access_token }
@@ -125,7 +115,7 @@ module MonadicChat
       config = JSON.parse(json)
       access_token = config["access_token"]
     else
-      access_token ||= PROMPT.mask(" Input your OpenAI access token:") until access_token
+      access_token ||= PROMPT.mask("Input your OpenAI access token:") until access_token
       File.open(CONFIG, "w") do |f|
         config = { "access_token" => access_token }
         f.write(JSON.pretty_generate(config))
@@ -133,7 +123,7 @@ module MonadicChat
       end
     end
 
-    print "Checking configuration ... "
+    print "Checking configuration ▹▹▹▹▹ "
     begin
       raise if OpenAI.models(access_token).empty?
 
@@ -145,25 +135,25 @@ module MonadicChat
     end
   end
 
-  def self.prompt_monadic
+  def self.prompt_system
     box_width = 8
     name = "System".center(box_width, " ")
     color = "green"
-    print "\n#{PASTEL.send(:"on_#{color}", name)}\n"
+    "\n#{PASTEL.send(:"on_#{color}", name)}"
   end
 
   def self.prompt_user
-    box_width = 8
+    box_width = 6
     color = "blue"
     name = "User".center(box_width, " ")
-    print "\n#{PASTEL.send(:"on_#{color}", name)}\n"
+    "\n#{PASTEL.send(:"on_#{color}", name)}"
   end
 
   def self.prompt_gpt
-    box_width = 8
+    box_width = 5
     color = "red"
     name = "GPT".center(box_width, " ")
-    print "\n#{PASTEL.send(:"on_#{color}", name)}\n"
+    "\n#{PASTEL.send(:"on_#{color}", name)}"
   end
 
   def self.banner(title, desc, color1, color2)
@@ -180,6 +170,14 @@ module MonadicChat
     BANNER
     print TTY::Box.frame banner.strip
   end
+
+  PROMPT_USER = TTY::Prompt.new(active_color: :blue, prefix: prompt_user, interrupt: interrupt)
+  PROMPT_SYSTEM = TTY::Prompt.new(active_color: :blue, prefix: prompt_system, interrupt: interrupt)
+
+  # spinner_opts = { clear: true, hide_cursor: false, format: :arrow_pulse }
+  # SPINNER1 = TTY::Spinner.new(PASTEL.cyan("Building the contextual data. Please wait. :spinner"), spinner_opts)
+
+  BULLET = "\e[33m●\e[0m"
 
   def self.clear_screen
     print "\e[2J\e[f"

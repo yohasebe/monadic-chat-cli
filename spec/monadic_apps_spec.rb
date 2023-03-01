@@ -55,11 +55,11 @@ RSpec.describe "MonadicChat:Novel" do
   novel.wait.bind_and_unwrap(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(novel.wait.objectify.keys).to include "mode", "num_turns", "new_paragraph", "paragraphs", "event"
+    expect(novel.wait.objectify.keys).to include "mode", "num_turns", "response", "conversation_history", "prompt"
   end
 
   it "gives as many responses as the number of prompts given" do
-    expect(novel.wait.objectify["paragraphs"].size).to be novel.wait.objectify["num_turns"]
+    expect(novel.wait.objectify["conversation_history"].size).to be novel.wait.objectify["num_turns"]
   end
 end
 
