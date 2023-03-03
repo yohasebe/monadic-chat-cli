@@ -564,18 +564,18 @@ module MonadicChat
           change_parameter
         else
           if input && confirm_query(input)
-            # begin
+            begin
               case @method
               when "completions"
                 bind_and_unwrap1(input, num_retry: NUM_RETRY)
               when "chat/completions"
                 bind_and_unwrap2(input, num_retry: NUM_RETRY)
               end
-            # rescue StandardError => e
-            #   # SPINNER1.stop("")
-            #   input = ask_retrial(input, e.message)
-            #   next
-            # end
+            rescue StandardError => e
+              # SPINNER1.stop("")
+              input = ask_retrial(input, e.message)
+              next
+            end
           end
         end
         input = textbox
