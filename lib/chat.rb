@@ -8,13 +8,13 @@ module MonadicChat
 
     attr_accessor :template, :config, :params, :completion
 
-    def initialize(openai_completion)
+    def initialize(openai_completion, research_mode: false)
       params = {
         "temperature" => 0.3,
         "top_p" => 1.0,
         "presence_penalty" => 0.1,
         "frequency_penalty" => 0.1,
-        "model" => "gpt-3.5-turbo",
+        "model" => OpenAI.model_name(research_mode: research_mode),
         "max_tokens" => 1000,
         "stream" => true,
         "stop" => nil

@@ -34,6 +34,7 @@ banner = <<~BANNER
   #{MonadicChat::PASTEL.on_blue(vpad)}
 BANNER
 
+research_mode = false
 openai_completion = nil
 parameter = ""
 
@@ -44,24 +45,32 @@ loop do
   openai_completion ||= MonadicChat.authenticate
 
   parameter = MonadicChat::PROMPT_SYSTEM.select(" Select app:", per_page: 6, cycle: false, filter: true, default: 1) do |menu|
-    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Chat")}      - #{MonadicChat::Chat::DESC}", "chat"
-    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Code")}      - #{MonadicChat::Code::DESC}", "code"
-    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Novel")}     - #{MonadicChat::Novel::DESC}", "novel"
-    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Translate")} - #{MonadicChat::Translate::DESC}", "translate"
-    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Quit")}      - Quit/Exit/Bye", "exit"
+    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Chat")}          - #{MonadicChat::Chat::DESC}", "chat"
+    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Code")}          - #{MonadicChat::Code::DESC}", "code"
+    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Novel")}         - #{MonadicChat::Novel::DESC}", "novel"
+    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Translate")}     - #{MonadicChat::Translate::DESC}", "translate"
+    if research_mode
+      menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Normal Mode")}   - Switch to normal mode", "mode"
+    else
+      menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Reserach Mode")} - Switch to research mode", "mode"
+    end
+    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Quit")}          - Quit/Exit/Bye", "exit"
   end
 
   MonadicChat.clear_screen
 
   case parameter
   when "chat"
-    MonadicChat::Chat.new(openai_completion).run
+    MonadicChat::Chat.new(openai_completion, research_mode: research_mode).run
   when "code"
-    MonadicChat::Code.new(openai_completion).run
+    MonadicChat::Code.new(openai_completion, research_mode: research_mode).run
   when "novel"
-    MonadicChat::Novel.new(openai_completion).run
+    MonadicChat::Novel.new(openai_completion, research_mode: research_mode).run
   when "translate"
-    MonadicChat::Translate.new(openai_completion).run
+    MonadicChat::Translate.new(openai_completion, research_mode: research_mode).run
+  when "mode"
+    research_mode = research_mode ? false : true
+    next
   when "exit"
     print "#{MonadicChat::PASTEL.bold("Bye!")}\n"
     exit

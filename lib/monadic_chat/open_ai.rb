@@ -11,6 +11,10 @@ require "tty-progressbar"
 Oj.mimic_JSON
 
 module OpenAI
+  def self.model_name(research_mode: false)
+    research_mode ? "text-davinci-003" : "gpt-3.5-turbo"
+  end
+
   def self.model_to_method(model)
     {
       "text-davinci-003" => "completions",

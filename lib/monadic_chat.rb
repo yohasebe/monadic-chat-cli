@@ -98,7 +98,12 @@ module MonadicChat
       contextual << newdata
 
       h1 = self.class.name
-      "# #{h1}\n\n#{contextual}\n#{accumulated}"
+
+      if newdata
+        "# #{h1}\n\n#{contextual}\n#{accumulated}"
+      else
+        "# #{h1}\n\n#{accumulated}"
+      end
     end
 
     def show_data
@@ -528,7 +533,7 @@ module MonadicChat
     def textbox(text = nil)
       print "\n"
       if text
-        PROMPT_USER.ask(etxt)
+        PROMPT_USER.ask(text)
       else
         PROMPT_USER.ask
       end
@@ -559,18 +564,18 @@ module MonadicChat
           change_parameter
         else
           if input && confirm_query(input)
-            begin
+            # begin
               case @method
               when "completions"
                 bind_and_unwrap1(input, num_retry: NUM_RETRY)
               when "chat/completions"
                 bind_and_unwrap2(input, num_retry: NUM_RETRY)
               end
-            rescue StandardError => e
-              # SPINNER1.stop("")
-              input = ask_retrial(input, e.message)
-              next
-            end
+            # rescue StandardError => e
+            #   # SPINNER1.stop("")
+            #   input = ask_retrial(input, e.message)
+            #   next
+            # end
           end
         end
         input = textbox
@@ -604,7 +609,12 @@ module MonadicChat
         false
       else
         replacements.each do |key, value|
-          @template.gsub!(key, value)
+          case @method
+          when "completions"
+            @template.gsub!(key, value)
+          when "chat/completions"
+            @template["messages"][0]["content"].gsub!(key, value)
+          end
         end
         true
       end
