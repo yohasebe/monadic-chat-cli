@@ -11,6 +11,14 @@ require "tty-progressbar"
 Oj.mimic_JSON
 
 module OpenAI
+  def self.model_to_method(model)
+    {
+      "text-davinci-003" => "completions",
+      "gpt-3.5-turbo" => "chat/completions",
+      "gpt-3.5-turbo-0301" => "chat/completions"
+    }[model]
+  end
+
   def self.query(access_token, mode, method, timeout_sec = 60, query = {}, &block)
     target_uri = "https://api.openai.com/v1/#{method}"
     headers = {
@@ -35,12 +43,23 @@ module OpenAI
           break if content == "[DONE]"
 
           stream = JSON.parse(content)
-          text = stream["choices"][0]["text"]
-          block&.call text
+          fragment = case method
+                     when "completions"
+                       stream["choices"][0]["text"]
+                     when "chat/completions"
+                       stream["choices"][0]["delta"]["content"] || ""
+                     end
+          block&.call fragment
           if !json
             json = stream
           else
-            json["choices"][0]["text"] << text
+            case method
+            when "completions"
+              json["choices"][0]["text"] << fragment
+            when "chat/completions"
+              json["choices"][0]["text"] ||= +""
+              json["choices"][0]["text"] << fragment
+            end
           end
         end
       end
@@ -64,38 +83,41 @@ module OpenAI
       OpenAI.models(@access_token)
     end
 
-    def run(params, &block)
-      response = OpenAI.query(@access_token, "post", "completions", 60, params, &block)
+    def run(params, num_retry: 1, &block)
+      method = OpenAI.model_to_method(params["model"])
+
+      response = OpenAI.query(@access_token, "post", method, 60, params, &block)
       if response["error"]
         raise response["error"]["message"]
       elsif response["choices"][0]["finish_reason"] == "length"
         raise "finished because of length"
       end
 
-      response
-    end
-
-    def get_json(data)
-      case data
-      when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
-        json = Regexp.last_match(1).gsub(/\r\n?/, "\n")
-        # JSON.parse(json.gsub(/\r\n/) { "\n" })
-        JSON.parse(json)
-      else
-        raise "valid json object not found"
+      case method
+      when "completions"
+        get_json response ["choices"][0]["text"]
+      when "chat/completions"
+        response ["choices"][0]["text"]
       end
-    end
-
-    def run_expecting_json(params, num_retry: 1, &block)
-      res = run(params, &block)
-      text = res["choices"][0]["text"]
-      get_json text
     rescue StandardError => e
       case num_retry
       when 0
         raise e
       else
-        run_expecting_json(params, num_retry: num_retry - 1, &block)
+        run(params, num_retry: num_retry - 1, &block)
+      end
+    end
+
+    def get_json(data)
+      case data
+      when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
+        json = Regexp.last_match(1).gsub(/\r\n?/, "\n").gsub(/\r\n/) { "\n" }
+        JSON.parse(json)
+      when /(\{.+\})/m
+        json = Regexp.last_match(1).gsub(/\r\n?/, "\n").gsub(/\r\n/) { "\n" }
+        JSON.parse(json)
+      else
+        data
       end
     end
 
@@ -107,7 +129,7 @@ module OpenAI
       json = ""
       prompts.each do |prompt|
         params["prompt"] = template.sub(replace_key, prompt)
-        res = run_expecting_json(params, num_retry: num_retry)
+        res = run(params, num_retry: num_retry)
         json = JSON.pretty_generate(res)
         bar.advance(1)
         template = template.sub(/\n\n```json.+?```\n\n/m, "\n\n```json\n#{json}\n```\n\n")

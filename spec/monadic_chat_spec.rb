@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
 PARAMS = {
-  model: "text-davinci-003",
-  max_tokens: 300,
-  temperature: 0.0,
-  top_p: 1.0,
-  stream: false,
-  logprobs: nil,
-  echo: false,
-  stop: nil,
-  presence_penalty: 0.0,
-  frequency_penalty: 0.0
+  "model" => "text-davinci-003",
+  "max_tokens" => 300,
+  "temperature" => 0.0,
+  "top_p" => 1.0,
+  "stream" => false,
+  "logprobs" => nil,
+  "echo" => false,
+  "stop" => nil,
+  "presence_penalty" => 0.0,
+  "frequency_penalty" => 0.0
 }.freeze
 
 RSpec.describe MonadicChat do
@@ -30,12 +30,12 @@ RSpec.describe OpenAI do
     params = PARAMS.dup
 
     it "can return a text" do
-      params[:prompt] = "What is the Japanese translation for 'Ruby'?"
-      expect(completion.run(params).keys).to include "choices", "usage"
+      params["prompt"] = "What does 'ruby' mean?"
+      expect(completion.run(params)).to be_a String
     end
 
     it "can return a json object" do
-      params[:prompt] = <<~PROMPT
+      params["prompt"] = <<~PROMPT
         What is the Japanese translation for Ruby? Give your response as a JSON object of the structure below\n
         ```json
         {"answer": ""}
@@ -43,7 +43,7 @@ RSpec.describe OpenAI do
         Wrap the json object with "<JSON>\n" and "\n</JSON>"
       PROMPT
 
-      res = completion.run_expecting_json(params, num_retry: 1)
+      res = completion.run(params, num_retry: 1)
       expect(res.keys).to include "answer"
     end
 

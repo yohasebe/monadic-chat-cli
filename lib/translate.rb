@@ -15,7 +15,7 @@ module MonadicChat
         "presence_penalty" => 0.0,
         "frequency_penalty" => 0.0,
         "model" => "text-davinci-003",
-        "max_tokens" => 3000,
+        "max_tokens" => 1000,
         "logprobs" => nil,
         "echo" => false,
         "stream" => true,
@@ -32,8 +32,8 @@ module MonadicChat
             "translation",
             proc do |res|
               if res["translation_history"].size > 1 && res["num_tokens"].to_i > params["max_tokens"].to_i / 2
-                res["translation_history"].shift(2)
-                res["num_turns"] = res["num_turns"].to_i - 2
+                res["translation_history"].shift(1)
+                res["num_turns"] = res["num_turns"].to_i - 1
               end
               res
             end

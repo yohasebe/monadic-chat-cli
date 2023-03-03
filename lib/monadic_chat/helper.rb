@@ -42,10 +42,10 @@ module MonadicChat
   TIMEOUT_SEC = 120
 
   template_dir = File.join(__dir__, "..", "..", "templates")
-  templates = Dir["#{template_dir}/*.md"]
+  templates = Dir.glob ["#{template_dir}/*.md", "#{template_dir}/*.json"]
   template_map = {}
   templates.each do |template|
-    template_map[File.basename(template, ".md")] = template
+    template_map[File.basename(template, ".*")] = template
   end
 
   TEMPLATES = template_map

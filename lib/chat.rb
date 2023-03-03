@@ -14,24 +14,34 @@ module MonadicChat
         "top_p" => 1.0,
         "presence_penalty" => 0.1,
         "frequency_penalty" => 0.1,
-        "model" => "text-davinci-003",
-        "max_tokens" => 3000,
-        "logprobs" => nil,
-        "echo" => false,
+        "model" => "gpt-3.5-turbo",
+        "max_tokens" => 1000,
         "stream" => true,
         "stop" => nil
       }
+      method = OpenAI.model_to_method(params["model"])
+      template = case method
+                 when "completions"
+                   TEMPLATES["chat"]
+                 when "chat/completions"
+                   TEMPLATES["chat_chat"]
+                 end
       super(params,
-            TEMPLATES["chat"],
+            template,
             {},
             "conversation_history",
             "response",
             proc do |res|
-              if res["conversation_history"].size > 1 && res["num_tokens"].to_i > params["max_tokens"].to_i / 2
-                res["conversation_history"].shift(2)
-                res["num_turns"] = res["num_turns"].to_i - 2
+              case method
+              when "completions"
+                if res["conversation_history"].size > 1 && res["num_tokens"].to_i > params["max_tokens"].to_i / 2
+                  res["conversation_history"].shift(1)
+                  res["num_turns"] = res["num_turns"].to_i - 1
+                end
+                res
+              when "chat/completions"
+                res
               end
-              res
             end
            )
       @completion = openai_completion
