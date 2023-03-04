@@ -184,6 +184,12 @@ module MonadicChat
   end
 
   def self.add_to_html(text, filepath)
+    text = text.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "<br/>\n" }
+    text = text.gsub(/~~~(.+)~~~/m) do
+      m = Regexp.last_match
+      "~~~#{m[1].gsub("<br/>\n") { "\n" }}~~~"
+    end
+
     `touch #{filepath}` unless File.exist?(filepath)
     File.open(filepath, "w") do |f|
       html = <<~HTML

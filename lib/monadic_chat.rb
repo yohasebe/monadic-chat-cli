@@ -257,7 +257,6 @@ module MonadicChat
           raise unless data["mode"] == self.class.name.downcase.split("::")[-1]
 
           new_template = @template.sub(/\n\n```json\s*\{.+\}\s*```\n\n/m, "\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
-          print "Data has been loaded successfully\n"
           @template = new_template
         when "chat/completions"
           raise unless data["messages"] && data["messages"][0]["role"]
@@ -501,7 +500,15 @@ module MonadicChat
 
       print @cursor.restore
       print @cursor.clear_screen_down
-      print "#{TTY::Markdown.parse(response).strip}\n"
+
+      text = response.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "{{NEWLINE}}\n" }
+      text = text.gsub(/```(.+)```/m) do
+        m = Regexp.last_match
+        "```#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}```"
+      end
+
+      # text = text.gsub(/(?!\\\\)\\/) { "" }
+      print "#{TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip}\n"
 
       update_template(res)
       show_html if @show_html
@@ -605,8 +612,15 @@ module MonadicChat
           print @cursor.restore
           print @cursor.clear_screen_down
           text = @responses.pop
-          text = text.gsub(/(?!\\\\)\\/) { "" }
-          print "#{TTY::Markdown.parse(text).strip}\n"
+
+          text = text.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "{{NEWLINE}}\n" }
+          text = text.gsub(/```(.+)```/m) do
+            m = Regexp.last_match
+            "```#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}```"
+          end
+
+          # text = text.gsub(/(?!\\\\)\\/) { "" }
+          print "#{TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip}\n"
           break
         end
       end
