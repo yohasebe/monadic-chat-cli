@@ -9,6 +9,7 @@ module MonadicChat
     attr_accessor :template, :config, :params, :completion
 
     def initialize(openai_completion, research_mode: false)
+      @num_retained_turns = 2
       params = {
         "temperature" => 0.0,
         "top_p" => 1.0,
@@ -40,6 +41,10 @@ module MonadicChat
                 end
                 res
               when "chat/completions"
+                if res.size > @num_retained_turns * 2 + 1
+                  res.delete_at 1
+                  res.delete_at 1
+                end
                 res
               end
             end

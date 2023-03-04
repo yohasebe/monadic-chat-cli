@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-completion = OpenAI::Completion.new(ACCESS_TOKEN)
 num_retry = 2
 
 RSpec.describe "MonadicChat::Translate" do
@@ -9,7 +8,7 @@ RSpec.describe "MonadicChat::Translate" do
     "{{TARGET_LANG}}" => "English"
   }
 
-  translate = MonadicChat::Translate.new(completion, replacements: replacements, research_mode: true)
+  translate = MonadicChat::Translate.new(COMPLETION, replacements: replacements, research_mode: true)
   translate.fulfill_placeholders
   input1 = "ワタシは猫なんですけどね。"
   translate.wait.bind_and_unwrap1(input1, num_retry: num_retry)
@@ -28,7 +27,7 @@ RSpec.describe "MonadicChat::Translate" do
 end
 
 RSpec.describe "MonadicChat::Chat" do
-  chat = MonadicChat::Chat.new(completion, research_mode: true)
+  chat = MonadicChat::Chat.new(COMPLETION, research_mode: true)
   input1 = "What is the best place to visit in Texas?"
   chat.bind_and_unwrap1(input1, num_retry: num_retry)
   input2 = "What do people say about the place?"
@@ -46,7 +45,7 @@ RSpec.describe "MonadicChat::Chat" do
 end
 
 RSpec.describe "MonadicChat:Novel" do
-  novel = MonadicChat::Novel.new(completion, research_mode: true)
+  novel = MonadicChat::Novel.new(COMPLETION, research_mode: true)
   input1 = "Tom woke up to the sound of pouring rain."
   novel.bind_and_unwrap1(input1, num_retry: num_retry)
   input2 = "He decided to call his old friend first time in many years."
@@ -64,7 +63,7 @@ RSpec.describe "MonadicChat:Novel" do
 end
 
 RSpec.describe "MonadicChat::Code" do
-  code = MonadicChat::Code.new(completion, research_mode: true)
+  code = MonadicChat::Code.new(COMPLETION, research_mode: true)
   input1 = "Write a command line app that shows the current global IP in Ruby."
   code.bind_and_unwrap1(input1, num_retry: num_retry)
   input2 = "Make the code capable of showing the approximate geographical locatioin."

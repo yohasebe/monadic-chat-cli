@@ -8,70 +8,86 @@ require_relative "../lib/code"
 require_relative "../lib/novel"
 require_relative "../lib/translate"
 
-wid = 60
-mon = " /M/O/N/A/D/I/C/"
-chat = " /C/H/A/T/ "
-hpad = " " * ((wid - (mon.size + chat.size) - 1) / 2).to_i
-cpad = ""
-montitle = MonadicChat::PASTEL.on_green.bold(mon)
-chattitle = MonadicChat::PASTEL.on_green.bold(chat)
-title = "#{hpad}#{montitle}#{cpad}#{chattitle}#{hpad}"
-title += ((wid - (mon.size + chat.size)) % 2).zero? ? "" : " "
-subtitle = MonadicChat::PASTEL.bold("Command Line Interface for NLP Completion API".center(wid, " "))
-version = "Version: #{MonadicChat::VERSION}".center(wid, " ")
-vpad = " " * wid
+module MonadicApp
+  include MonadicChat
+  def self.run
+    wid = 60
+    mon = " /M/O/N/A/D/I/C/"
+    chat = " /C/H/A/T/ "
+    hpad = " " * ((wid - (mon.size + chat.size) - 1) / 2).to_i
+    cpad = ""
+    montitle = PASTEL.on_green.bold(mon)
+    chattitle = PASTEL.on_green.bold(chat)
+    title = "#{hpad}#{montitle}#{cpad}#{chattitle}#{hpad}"
+    title += ((wid - (mon.size + chat.size)) % 2).zero? ? "" : " "
+    subtitle = PASTEL.bold("Command Line Interface for NLP Completion API".center(wid, " "))
+    version = "Version: #{VERSION}".center(wid, " ")
+    vpad = " " * wid
 
-banner = <<~BANNER
-  #{MonadicChat::PASTEL.on_blue(vpad)}
-  #{MonadicChat::PASTEL.on_cyan(vpad)}
-  #{MonadicChat::PASTEL.on_cyan(title)}
-  #{MonadicChat::PASTEL.on_cyan(vpad)}
-  #{MonadicChat::PASTEL.on_cyan(subtitle)}
-  #{MonadicChat::PASTEL.on_cyan(vpad)}
-  #{MonadicChat::PASTEL.on_cyan(version)}
-  #{MonadicChat::PASTEL.on_cyan(vpad)}
-  #{MonadicChat::PASTEL.on_blue(vpad)}
-BANNER
+    banner = <<~BANNER
+      #{PASTEL.on_blue(vpad)}
+      #{PASTEL.on_cyan(vpad)}
+      #{PASTEL.on_cyan(title)}
+      #{PASTEL.on_cyan(vpad)}
+      #{PASTEL.on_cyan(subtitle)}
+      #{PASTEL.on_cyan(vpad)}
+      #{PASTEL.on_cyan(version)}
+      #{PASTEL.on_cyan(vpad)}
+      #{PASTEL.on_blue(vpad)}
+    BANNER
 
-research_mode = false
-openai_completion = nil
-parameter = ""
+    research_mode = false
+    openai_completion = nil
+    parameter = ""
 
-loop do
-  MonadicChat.clear_screen
-  print TTY::Box.frame banner.strip
+    loop do
+      MonadicChat.clear_screen
+      print TTY::Box.frame banner.strip
 
-  openai_completion ||= MonadicChat.authenticate
+      openai_completion ||= MonadicChat.authenticate
 
-  parameter = MonadicChat::PROMPT_SYSTEM.select(" Select app:", per_page: 7, cycle: true, filter: true, default: 1) do |menu|
-    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Chat")}      #{MonadicChat::Chat::DESC}", "chat"
-    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Code")}      #{MonadicChat::Code::DESC}", "code"
-    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Novel")}     #{MonadicChat::Novel::DESC}", "novel"
-    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Translate")} #{MonadicChat::Translate::DESC}", "translate"
-    if research_mode
-      menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Mode")}      Switch from #{MonadicChat::PASTEL.red("Research")} (current) to #{MonadicChat::PASTEL.green("Normal")}", "mode"
-    else
-      menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Mode")}      Switch from #{MonadicChat::PASTEL.green("Normal")} (current) to #{MonadicChat::PASTEL.red("Research")}", "mode"
+      parameter = PROMPT_SYSTEM.select(" Select app:",
+                                       per_page: 7,
+                                       cycle: true,
+                                       filter: true,
+                                       default: 1,
+                                       show_help: :never) do |menu|
+        menu.choice "#{BULLET} #{PASTEL.bold("Chat")}      #{Chat::DESC}", "chat"
+        menu.choice "#{BULLET} #{PASTEL.bold("Code")}      #{Code::DESC}", "code"
+        menu.choice "#{BULLET} #{PASTEL.bold("Novel")}     #{Novel::DESC}", "novel"
+        menu.choice "#{BULLET} #{PASTEL.bold("Translate")} #{Translate::DESC}", "translate"
+        if research_mode
+          menu.choice "#{BULLET} #{PASTEL.bold("Mode")}      Switch from #{PASTEL.bold.red("Research")} (current) to #{PASTEL.bold.green("Normal")}", "mode"
+        else
+          menu.choice "#{BULLET} #{PASTEL.bold("Mode")}      Switch from #{PASTEL.bold.green("Normal")} (current) to #{PASTEL.bold.red("Research")}", "mode"
+        end
+        menu.choice "#{BULLET} #{PASTEL.bold("Quit")}      Quit/Exit/Bye", "exit"
+      end
+
+      MonadicChat.clear_screen
+
+      begin
+        case parameter
+        when "chat"
+          Chat.new(openai_completion, research_mode: research_mode).run
+        when "code"
+          Code.new(openai_completion, research_mode: research_mode).run
+        when "novel"
+          Novel.new(openai_completion, research_mode: research_mode).run
+        when "translate"
+          Translate.new(openai_completion, research_mode: research_mode).run
+        when "mode"
+          research_mode = research_mode ? false : true
+          next
+        when "exit"
+          print "#{PASTEL.bold("Bye!")}\n"
+          exit
+        end
+      rescue StandardError
+        next
+      end
     end
-    menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("Quit")}      Quit/Exit/Bye", "exit"
-  end
-
-  MonadicChat.clear_screen
-
-  case parameter
-  when "chat"
-    MonadicChat::Chat.new(openai_completion, research_mode: research_mode).run
-  when "code"
-    MonadicChat::Code.new(openai_completion, research_mode: research_mode).run
-  when "novel"
-    MonadicChat::Novel.new(openai_completion, research_mode: research_mode).run
-  when "translate"
-    MonadicChat::Translate.new(openai_completion, research_mode: research_mode).run
-  when "mode"
-    research_mode = research_mode ? false : true
-    next
-  when "exit"
-    print "#{MonadicChat::PASTEL.bold("Bye!")}\n"
-    exit
   end
 end
+
+MonadicApp.run

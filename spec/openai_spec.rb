@@ -21,17 +21,16 @@ end
 
 RSpec.describe OpenAI do
   it "Retrieves models using OpenAI API" do
-    models = OpenAI.models(ACCESS_TOKEN)
+    models = OpenAI.models(COMPLETION.acess_token)
     expect(!models.empty?).to be true
   end
 
   context "an object specilizing 'completion' created" do
-    completion = OpenAI::Completion.new(ACCESS_TOKEN)
     params = PARAMS.dup
 
     it "can return a text" do
       params["prompt"] = "What does 'ruby' mean?"
-      expect(completion.run(params)).to be_a String
+      expect(COMPLETION.run(params)).to be_a String
     end
 
     it "can return a json object" do
@@ -43,7 +42,7 @@ RSpec.describe OpenAI do
         Wrap the json object with "<JSON>\n" and "\n</JSON>"
       PROMPT
 
-      res = completion.run(params, num_retry: 1)
+      res = COMPLETION.run(params, num_retry: 1)
       expect(res.keys).to include "answer"
     end
 
@@ -70,7 +69,7 @@ RSpec.describe OpenAI do
       replace_key = "{{PROMPT}}"
 
       num_prompts = prompts.size + 1
-      res = completion.run_iteration(params, prompts, template, replace_key)
+      res = COMPLETION.run_iteration(params, prompts, template, replace_key)
       expect(res.keys).to include "responses", "prompts"
       expect(res["responses"].size).to be num_prompts
       expect(res["prompts"].size).to be num_prompts

@@ -6,9 +6,10 @@ require "novel"
 require "code"
 require "translate"
 
-CONFIG_FILE = File.join(Dir.home, "monadic_chat.conf")
-CONFIG = JSON.parse(File.read(CONFIG_FILE))
-ACCESS_TOKEN = CONFIG["access_token"]
+COMPLETION = MonadicChat.authenticate
+# CONFIG_FILE = File.join(Dir.home, "monadic_chat.conf")
+# CONFIG = JSON.parse(File.read(CONFIG_FILE))
+# ACCESS_TOKEN = CONFIG["access_token"]
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

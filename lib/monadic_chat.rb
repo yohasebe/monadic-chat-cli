@@ -9,6 +9,7 @@ module MonadicChat
     attr_reader :template
 
     def initialize(params, template, placeholders, prop_accumulated, prop_newdata, update_proc)
+      @exit = false
       @responses = Thread::Queue.new
       @threads = Thread::Queue.new
       @cursor = TTY::Cursor
@@ -27,6 +28,12 @@ module MonadicChat
         @template = @template_original.dup
       when "chat/completions"
         @template = JSON.parse @template_original
+      end
+      PROMPT_USER.on(:keypress) do |event|
+        if event.key.name == :ctrl_l
+          PROMPT_USER.trigger(:keyenter)
+          raise unless show_help
+        end
       end
     end
 
@@ -48,12 +55,10 @@ module MonadicChat
       when "completions"
         @template = @template_original.dup
       when "chat/completions"
-        @template = JSON.parse @template_2
+        @template = JSON.parse @template_original
       end
 
-      @template = @template_original.dup
       if @placeholders.empty?
-        print "\n"
         print MonadicChat.prompt_system
         print " Context and parameters has been reset.\n"
       else
@@ -107,7 +112,6 @@ module MonadicChat
     end
 
     def show_data
-      print "\n"
       print MonadicChat.prompt_system
       unless @threads.empty?
         print @cursor.save
@@ -125,7 +129,6 @@ module MonadicChat
     end
 
     def set_html
-      print "\n"
       print MonadicChat.prompt_system
       unless @threads.empty?
         print @cursor.save
@@ -166,21 +169,22 @@ module MonadicChat
     end
 
     def update_template(res)
-      updated = @update_proc.call(res)
       case @method
       when "completions"
+        updated = @update_proc.call(res)
         json = updated.to_json.strip
         @template.sub!(/\n\n```json.+```\n\n/m, "\n\n```json\n#{json}\n```\n\n")
       when "chat/completions"
-        @template["messages"] << { "role" => "assistant", "content" => updated }
+        @template["messages"] << { "role" => "assistant", "content" => res }
+        @template["messages"] = @update_proc.call(@template["messages"])
       end
     end
 
     def ask_retrial(input, message = nil)
-      print "\n"
       print MonadicChat.prompt_system
       print " Error: #{message.capitalize}\n" if message
-      retrial = PROMPT_USER.select(" Do you want to try again?") do |menu|
+      retrial = PROMPT_USER.select(" Do you want to try again?",
+                                   show_help: :never) do |menu|
         menu.choice "Yes", "yes"
         menu.choice "No", "no"
         menu.choice "Show current contextual data", "show"
@@ -197,7 +201,6 @@ module MonadicChat
     end
 
     def save_data
-      print "\n"
       input = PROMPT_SYSTEM.ask(" Enter the path and file name of the saved data:\n")
       return if input.to_s == ""
 
@@ -210,8 +213,8 @@ module MonadicChat
       end
 
       if File.exist? filepath
-        print "\n"
-        overwrite = PROMPT_SYSTEM.select(" #{filepath} already exists.\nOverwrite?") do |menu|
+        overwrite = PROMPT_SYSTEM.select(" #{filepath} already exists.\nOverwrite?",
+                                         show_help: :never) do |menu|
           menu.choice "Yes", "yes"
           menu.choice "No", "no"
         end
@@ -224,14 +227,20 @@ module MonadicChat
         save_data
       end
       File.open(filepath, "w") do |f|
-        m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
-        f.write JSON.pretty_generate(JSON.parse(m[1]))
+        case @method
+        when "completions"
+          m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
+          f.write JSON.pretty_generate(JSON.parse(m[1]))
+        when "chat/completions"
+          f.write JSON.pretty_generate(@template)
+        end
+
         print "Data has been saved successfully\n"
       end
     end
 
     def load_data
-      input = PROMPT_USER.ask(" Enter the path and file name of the saved data:\n")
+      input = PROMPT_SYSTEM.ask(" Enter the path and file name of the saved data:\n")
       return false if input.to_s == ""
 
       filepath = File.expand_path(input)
@@ -243,24 +252,32 @@ module MonadicChat
       begin
         json = File.read(filepath)
         data = JSON.parse(json)
-        raise if data["mode"] != self.class.name.downcase.split("::")[-1]
+        case @method
+        when "completions"
+          raise unless data["mode"] == self.class.name.downcase.split("::")[-1]
+
+          new_template = @template.sub(/\n\n```json\s*\{.+\}\s*```\n\n/m, "\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
+          print "Data has been loaded successfully\n"
+          @template = new_template
+        when "chat/completions"
+          raise unless data["messages"] && data["messages"][0]["role"]
+
+          @template["messages"] = data["messages"]
+        end
       rescue StandardError
         print "The data structure is not valid for this app\n"
         return false
       end
 
-      new_template = @template.sub(/\n\n```json\s*\{.+\}\s*```\n\n/m, "\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
       print "Data has been loaded successfully\n"
-      @template = new_template
       true
     end
 
     def change_parameter
-      print "\n"
       parameter = PROMPT_SYSTEM.select(" Select the parmeter to be set:",
                                        per_page: 7,
                                        cycle: true,
-                                       show_help: :always,
+                                       show_help: :never,
                                        filter: true,
                                        default: 1) do |menu|
         menu.choice "#{BULLET} Cancel", "cancel"
@@ -299,7 +316,6 @@ module MonadicChat
     end
 
     def change_max_tokens
-      print "\n"
       PROMPT_SYSTEM.ask(" Set value of max tokens [1000 to 8000]", convert: :int) do |q|
         q.in "1000-8000"
         q.messages[:range?] = "Value out of expected range [1000 to 2048]"
@@ -307,7 +323,6 @@ module MonadicChat
     end
 
     def change_temperature
-      print "\n"
       PROMPT_SYSTEM.ask(" Set value of temperature [0.0 to 1.0]", convert: :float) do |q|
         q.in "0.0-1.0"
         q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
@@ -315,7 +330,6 @@ module MonadicChat
     end
 
     def change_top_p
-      print "\n"
       PROMPT_SYSTEM.ask(" Set value of top_p [0.0 to 1.0]", convert: :float) do |q|
         q.in "0.0-1.0"
         q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
@@ -323,7 +337,6 @@ module MonadicChat
     end
 
     def change_frequency_penalty
-      print "\n"
       PROMPT_SYSTEM.ask(" Set value of frequency penalty [-2.0 to 2.0]", convert: :float) do |q|
         q.in "-2.0-2.0"
         q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
@@ -331,7 +344,6 @@ module MonadicChat
     end
 
     def change_presence_penalty
-      print "\n"
       PROMPT_SYSTEM.ask(" Set value of presence penalty [-2.0 to 2.0]", convert: :float) do |q|
         q.in "-2.0-2.0"
         q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
@@ -339,7 +351,6 @@ module MonadicChat
     end
 
     def change_model
-      print "\n"
       model = PROMPT_SYSTEM.select(" Select a model:",
                                    per_page: 10,
                                    cycle: false,
@@ -386,7 +397,12 @@ module MonadicChat
 
     def show_help
       print @cursor.save
-      parameter = PROMPT_SYSTEM.select(" Select app:", per_page: 10, cycle: true, filter: true, default: 1) do |menu|
+      parameter = PROMPT_SYSTEM.select(" Select app:",
+                                       per_page: 10,
+                                       cycle: true,
+                                       filter: true,
+                                       default: 1,
+                                       show_help: :never) do |menu|
         menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("cancel/return/escape")}   cancel this menu", "cancel"
         menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("params/settings/config")} show and change values of parameters", "params"
         menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("data/context")}           show currrent contextual info", "data"
@@ -419,6 +435,7 @@ module MonadicChat
         load_data
       when "clear"
         MonadicChat.clear_screen
+        print @cursor.clear_screen_down
       when "exit"
         return false
       end
@@ -610,18 +627,18 @@ module MonadicChat
       if text
         PROMPT_USER.ask(text)
       else
-        PROMPT_USER.on(:keypress) do |event|
-          return false if event.key.name == :ctrl_l && !show_help
-        end
         PROMPT_USER.ask
       end
     end
 
     def parse(input = nil)
-      return unless input
-
       loop do
+        return if !input || @exit
+
         case input
+        when TrueClass
+          input = textbox
+          next
         when /\A\s*(?:help|menu|commands?|\?|h)\s*\z/i
           show_help
         when /\A\s*(?:bye|exit|quit)\s*\z/i
@@ -707,7 +724,9 @@ module MonadicChat
       else
         print "\n"
         print MonadicChat.prompt_system
-        loadfile = PROMPT_SYSTEM.select(" Load saved file?", default: 2) do |menu|
+        loadfile = PROMPT_SYSTEM.select(" Load saved file?",
+                                        default: 2,
+                                        show_help: :never) do |menu|
           menu.choice "Yes", "yes"
           menu.choice "No", "no"
         end
