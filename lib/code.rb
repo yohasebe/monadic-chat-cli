@@ -9,14 +9,14 @@ module MonadicChat
     attr_accessor :template, :config, :params, :completion
 
     def initialize(openai_completion, research_mode: false)
-      @num_retained_turns = 2
+      @num_retained_turns = 10
       params = {
         "temperature" => 0.0,
         "top_p" => 1.0,
         "presence_penalty" => 0.0,
         "frequency_penalty" => 0.0,
         "model" => OpenAI.model_name(research_mode: research_mode),
-        "max_tokens" => 1000,
+        "max_tokens" => 2000,
         "stream" => true,
         "stop" => nil
       }

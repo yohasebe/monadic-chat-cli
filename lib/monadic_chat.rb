@@ -5,6 +5,24 @@ require_relative "monadic_chat/helper"
 Thread.abort_on_exception = true
 
 module MonadicChat
+  def self.open_readme
+    url = "https://github.com/yohasebe/monadic-chat/"
+    shellscript = <<~SHELL
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        open "#{url}"
+      elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if command -v xdg-open >/dev/null 2>&1; then
+          xdg-open "#{url}"
+        else
+          echo "#{url}"
+        fi
+      else
+        echo "#{url}"
+      fi
+    SHELL
+    `#{shellscript}`
+  end
+
   class App
     attr_reader :template
 
@@ -60,7 +78,7 @@ module MonadicChat
 
       if @placeholders.empty?
         print MonadicChat.prompt_system
-        print " Context and parameters has been reset.\n"
+        print " Context and parameters have been reset.\n"
       else
         fulfill_placeholders
       end
@@ -141,7 +159,7 @@ module MonadicChat
         print @cursor.restore
         print @cursor.clear_line_after
       end
-      print " HTML rendering is enabled\n"
+      print " HTML rendering is enabled"
       @show_html = true
       show_html
     end
@@ -311,7 +329,7 @@ module MonadicChat
         value = change_presence_penalty
       end
       @params[parameter] = value if value
-      puts "Parameter #{parameter} has been set to #{PASTEL.green(value)}" if value
+      print "Parameter #{parameter} has been set to #{PASTEL.green(value)}" if value
     end
 
     def change_max_tokens
@@ -376,7 +394,7 @@ module MonadicChat
         params_md += "- #{key}: #{val}\n"
       end
       print MonadicChat.prompt_system, "\n"
-      puts "#{TTY::Markdown.parse(params_md, indent: 0).strip}\n\n"
+      print "#{TTY::Markdown.parse(params_md, indent: 0).strip}\n\n"
     end
 
     def show_greet
@@ -410,6 +428,7 @@ module MonadicChat
         menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("save")}                   save current contextual info to file", "save"
         menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("load")}                   load current contextual info from file", "load"
         menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("clear/clean")}            clear screen", "clear"
+        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("readme/documentation")}   open readme/documentation", "readme"
         menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("exit/bye/quit")}          go back to main menu", "exit"
       end
 
@@ -435,6 +454,8 @@ module MonadicChat
       when "clear"
         MonadicChat.clear_screen
         print @cursor.clear_screen_down
+      when "readme"
+        MonadicChat.open_readme
       when "exit"
         return false
       end
@@ -448,7 +469,6 @@ module MonadicChat
     end
 
     def bind_and_unwrap2(input, num_retry: 0)
-      print "\n"
       print MonadicChat.prompt_gpt, " "
       print @cursor.save
       unless @threads.empty?
@@ -502,20 +522,23 @@ module MonadicChat
       print @cursor.clear_screen_down
 
       text = response.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "{{NEWLINE}}\n" }
-      text = text.gsub(/```(.+)```/m) do
+      text = text.gsub(/```(.+?)```/m) do
         m = Regexp.last_match
         "```#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}```"
       end
+      text = text.gsub(/`(.+?)`/) do
+        m = Regexp.last_match
+        "`#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}`"
+      end
 
       # text = text.gsub(/(?!\\\\)\\/) { "" }
-      print "#{TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip}\n"
+      print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
 
       update_template(res)
       show_html if @show_html
     end
 
     def bind_and_unwrap1(input, num_retry: 0)
-      print "\n"
       print MonadicChat.prompt_gpt, " "
       unless @threads.empty?
         print @cursor.save
@@ -614,13 +637,17 @@ module MonadicChat
           text = @responses.pop
 
           text = text.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "{{NEWLINE}}\n" }
-          text = text.gsub(/```(.+)```/m) do
+          text = text.gsub(/```(.+?)```/m) do
             m = Regexp.last_match
             "```#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}```"
           end
+          text = text.gsub(/`(.+?)`/) do
+            m = Regexp.last_match
+            "`#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}`"
+          end
 
           # text = text.gsub(/(?!\\\\)\\/) { "" }
-          print "#{TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip}\n"
+          print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
           break
         end
       end
@@ -638,11 +665,14 @@ module MonadicChat
 
     def textbox(text = nil)
       print "\n"
-      if text
-        PROMPT_USER.ask(text)
-      else
-        PROMPT_USER.ask
-      end
+      res = if text
+              PROMPT_USER.ask(text)
+            else
+              PROMPT_USER.ask
+            end
+      @cursor.up
+      @cursor.clear_screen_down
+      res
     end
 
     def parse(input = nil)

@@ -13,10 +13,10 @@ module MonadicChat
       params = {
         "temperature" => 0.3,
         "top_p" => 1.0,
-        "presence_penalty" => 0.1,
-        "frequency_penalty" => 0.1,
+        "presence_penalty" => 0.2,
+        "frequency_penalty" => 0.2,
         "model" => OpenAI.model_name(research_mode: research_mode),
-        "max_tokens" => 1000,
+        "max_tokens" => 2000,
         "stream" => true,
         "stop" => nil
       }

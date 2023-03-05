@@ -75,7 +75,7 @@ module OpenAI
 
   def self.models(access_token)
     res = query(access_token, "get", "models")
-    res.fetch("data", [])
+    res.fetch("data", []).sort_by { |m| -m["created"] }
   end
 
   class Completion

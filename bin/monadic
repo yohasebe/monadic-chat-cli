@@ -42,6 +42,7 @@ module MonadicApp
 
     loop do
       MonadicChat.clear_screen
+      TTY::Cursor.clear_screen_down
       print TTY::Box.frame banner.strip
 
       openai_completion ||= MonadicChat.authenticate
@@ -61,25 +62,32 @@ module MonadicApp
         else
           menu.choice "#{BULLET} #{PASTEL.bold("Mode")}      Switch from #{PASTEL.bold.green("Normal")} (current) to #{PASTEL.bold.red("Research")}", "mode"
         end
+        menu.choice "#{BULLET} #{PASTEL.bold("Readme")}    Open Readme/Documentation", "readme"
         menu.choice "#{BULLET} #{PASTEL.bold("Quit")}      Quit/Exit/Bye", "exit"
       end
-
-      MonadicChat.clear_screen
 
       begin
         case parameter
         when "chat"
+          MonadicChat.clear_screen
           Chat.new(openai_completion, research_mode: research_mode).run
         when "code"
+          MonadicChat.clear_screen
           Code.new(openai_completion, research_mode: research_mode).run
         when "novel"
+          MonadicChat.clear_screen
           Novel.new(openai_completion, research_mode: research_mode).run
         when "translate"
+          MonadicChat.clear_screen
           Translate.new(openai_completion, research_mode: research_mode).run
         when "mode"
           research_mode = research_mode ? false : true
           next
+        when "readme"
+          MonadicChat.open_readme
+          next
         when "exit"
+          MonadicChat.clear_screen
           print "#{PASTEL.bold("Bye!")}\n"
           exit
         end
@@ -90,4 +98,5 @@ module MonadicApp
   end
 end
 
+MonadicChat.clear_screen
 MonadicApp.run

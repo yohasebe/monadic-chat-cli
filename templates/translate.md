@@ -26,5 +26,7 @@ Make sure the following requirements are all fulfilled:
 - increment the value of "num_turns" by 1 and update the property so that the value of "num_turns" must equal the number of the items in the "translation_history" of the resulting JSON object
 - update the value of "num_tokens" with the number of tokens of the resulting JSON object"
 - escape double quotes and other special characters in the text values in the resulting JSON object
-- add "\n\n###\n\n" at the end of the "translation" value
-- wrap the JSON object with "<JSON>\n" and "\n</JSON>"
+
+Add "\n\n###\n\n" at the end of the "translation" value
+
+Wrap the JSON object with "<JSON>\n" and "\n</JSON>"

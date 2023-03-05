@@ -6,8 +6,6 @@ PARAMS = {
   "temperature" => 0.0,
   "top_p" => 1.0,
   "stream" => false,
-  "logprobs" => nil,
-  "echo" => false,
   "stop" => nil,
   "presence_penalty" => 0.0,
   "frequency_penalty" => 0.0
@@ -21,7 +19,11 @@ end
 
 RSpec.describe OpenAI do
   it "Retrieves models using OpenAI API" do
-    models = OpenAI.models(COMPLETION.acess_token)
+    models = OpenAI.models(COMPLETION.access_token)
+    models[0...10].each do |m|
+      print "#{m["id"]}: "
+      puts Time.at(m["created"]).strftime("%Y-%m-%d %H:%M:%S")
+    end
     expect(!models.empty?).to be true
   end
 
