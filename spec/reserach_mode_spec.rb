@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-num_retry = 2
+num_retry = 3
 
 RSpec.describe "MonadicChat::Translate" do
   replacements = {
@@ -8,74 +8,74 @@ RSpec.describe "MonadicChat::Translate" do
     "{{TARGET_LANG}}" => "English"
   }
 
-  translate = MonadicChat::Translate.new(COMPLETION, replacements: replacements, research_mode: true)
+  translate = MonadicChat::Translate.new(COMPLETION, replacements: replacements, research_mode: true, stream: true)
   translate.fulfill_placeholders
   input1 = "ワタシは猫なんですけどね。"
-  translate.wait.bind_and_unwrap1(input1, num_retry: num_retry)
+  translate.wait.bind_research_mode(input1, num_retry: num_retry)
   input2 = "名前はまだないんですよ。"
-  translate.wait.bind_and_unwrap1(input2, num_retry: num_retry)
+  translate.wait.bind_research_mode(input2, num_retry: num_retry)
   input3 = "誰か良い名前を付けてくれませんかね。"
-  translate.wait.bind_and_unwrap1(input3, num_retry: num_retry)
+  translate.wait.bind_research_mode(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(translate.wait.objectify.keys).to include "mode", "num_turns", "original", "translation", "translation_history", "current_target_lang"
+    expect(translate.wait.objectify.keys).to include "mode", "turns", "prompt", "response", "messages", "target_lang"
   end
 
   it "gives as many responses as the number of prompts given" do
-    expect(translate.wait.objectify["translation_history"].size).to be translate.wait.objectify["num_turns"]
+    expect(translate.wait.objectify["messages"].size).to eq translate.wait.objectify["turns"]
   end
 end
 
 RSpec.describe "MonadicChat::Chat" do
-  chat = MonadicChat::Chat.new(COMPLETION, research_mode: true)
+  chat = MonadicChat::Chat.new(COMPLETION, research_mode: true, stream: true)
   input1 = "What is the best place to visit in Texas?"
-  chat.bind_and_unwrap1(input1, num_retry: num_retry)
+  chat.bind_research_mode(input1, num_retry: num_retry)
   input2 = "What do people say about the place?"
-  chat.wait.bind_and_unwrap1(input2, num_retry: num_retry)
+  chat.wait.bind_research_mode(input2, num_retry: num_retry)
   input3 = "How can I go there from Kansai, Japan?"
-  chat.wait.bind_and_unwrap1(input3, num_retry: num_retry)
+  chat.wait.bind_research_mode(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(chat.wait.objectify.keys).to include "mode", "num_turns", "response", "conversation_history", "language", "topics"
+    expect(chat.wait.objectify.keys).to include "mode", "turns", "response", "messages", "language", "topics"
   end
 
   it "gives as many responses as the number of prompts given" do
-    expect(chat.wait.objectify["conversation_history"].size).to be chat.wait.objectify["num_turns"]
+    expect(chat.wait.objectify["messages"].size).to eq chat.wait.objectify["turns"]
   end
 end
 
 RSpec.describe "MonadicChat:Novel" do
-  novel = MonadicChat::Novel.new(COMPLETION, research_mode: true)
+  novel = MonadicChat::Novel.new(COMPLETION, research_mode: true, stream: true)
   input1 = "Tom woke up to the sound of pouring rain."
-  novel.bind_and_unwrap1(input1, num_retry: num_retry)
-  input2 = "He decided to call his old friend first time in many years."
-  novel.wait.bind_and_unwrap1(input2, num_retry: num_retry)
-  input3 = "The voice of the person who spoke back from the other end was an unfamilier one."
-  novel.wait.bind_and_unwrap1(input3, num_retry: num_retry)
+  novel.bind_research_mode(input1, num_retry: num_retry)
+  input2 = "he decided to call his old friend first time in many years."
+  novel.wait.bind_research_mode(input2, num_retry: num_retry)
+  input3 = "the voice of the person the other end was an unfamilier one."
+  novel.wait.bind_research_mode(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(novel.wait.objectify.keys).to include "mode", "num_turns", "response", "conversation_history", "prompt"
+    expect(novel.wait.objectify.keys).to include "mode", "turns", "response", "messages", "prompt"
   end
 
   it "gives as many responses as the number of prompts given" do
-    expect(novel.wait.objectify["conversation_history"].size).to be novel.wait.objectify["num_turns"]
+    expect(novel.wait.objectify["messages"].size).to eq novel.wait.objectify["turns"]
   end
 end
 
 RSpec.describe "MonadicChat::Code" do
-  code = MonadicChat::Code.new(COMPLETION, research_mode: true)
+  code = MonadicChat::Code.new(COMPLETION, research_mode: true, stream: true)
   input1 = "Write a command line app that shows the current global IP in Ruby."
-  code.bind_and_unwrap1(input1, num_retry: num_retry)
+  code.bind_research_mode(input1, num_retry: num_retry)
   input2 = "Make the code capable of showing the approximate geographical locatioin."
-  code.wait.bind_and_unwrap1(input2, num_retry: num_retry)
+  code.wait.bind_research_mode(input2, num_retry: num_retry)
   input3 = "Add a usage example and a sample output to this code."
-  code.wait.bind_and_unwrap1(input3, num_retry: num_retry)
+  code.wait.bind_research_mode(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
-    expect(code.wait.objectify.keys).to include "mode", "num_turns", "prompt", "response", "conversation_history"
+    expect(code.wait.objectify.keys).to include "mode", "turns", "prompt", "response", "messages"
   end
 
   it "gives as many responses as the number of prompts given" do
-    expect(code.wait.objectify["conversation_history"].size).to be code.wait.objectify["num_turns"]
+    expect(code.wait.objectify["messages"].size).to eq code.wait.objectify["turns"]
   end
 end

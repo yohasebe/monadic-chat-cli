@@ -1,43 +1,43 @@
 # frozen_string_literal: true
 
-require_relative "monadic_chat"
+require_relative "../app"
 
 module MonadicChat
-  class Novel < App
-    DESC = "Interactive Story Plot Generator"
+  class Chat < App
+    DESC = "Natural Language Chat Agent"
 
     attr_accessor :template, :config, :params, :completion
 
-    def initialize(openai_completion, research_mode: false)
+    def initialize(openai_completion, research_mode: false, stream: true)
       @num_retained_turns = 10
       params = {
         "temperature" => 0.3,
         "top_p" => 1.0,
-        "presence_penalty" => 0.1,
-        "frequency_penalty" => 0.1,
+        "presence_penalty" => 0.2,
+        "frequency_penalty" => 0.2,
         "model" => OpenAI.model_name(research_mode: research_mode),
         "max_tokens" => 2000,
-        "stream" => true,
+        "stream" => stream,
         "stop" => nil
       }
       method = OpenAI.model_to_method(params["model"])
       template = case method
                  when "completions"
-                   TEMPLATES["novel"]
+                   TEMPLATES["research/chat"]
                  when "chat/completions"
-                   TEMPLATES["chat_novel"]
+                   TEMPLATES["normal/chat"]
                  end
       super(params,
             template,
             {},
-            "conversation_history",
+            "messages",
             "response",
             proc do |res|
               case method
               when "completions"
-                if res["conversation_history"].size > 1 && res["num_tokens"].to_i > params["max_tokens"].to_i / 2
-                  res["conversation_history"].shift(1)
-                  res["num_turns"] = res["num_turns"].to_i - 1
+                if res["messages"].size > 1 && res["tokens"].to_i > params["max_tokens"].to_i / 2
+                  res["messages"].shift(1)
+                  res["turns"] = res["turns"].to_i - 1
                 end
                 res
               when "chat/completions"

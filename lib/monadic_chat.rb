@@ -1,10 +1,107 @@
 # frozen_string_literal: true
 
-require_relative "monadic_chat/helper"
+require "tty-cursor"
+require "tty-screen"
+require "tty-markdown"
+require "tty-prompt"
+require "tty-box"
+require "pastel"
+require "oj"
+require "kramdown"
+require "rouge"
+require "launchy"
+require "io/console"
 
-Thread.abort_on_exception = true
+require_relative "./monadic_chat/version"
+require_relative "./monadic_chat/tty_markdown_no_br"
+require_relative "./monadic_chat/open_ai"
+
+Oj.mimic_JSON
+
+class Cursor
+  class << self
+    def pos
+      res = +""
+      $stdin.raw do |stdin|
+        $stdout << "\e[6n"
+        $stdout.flush
+        while (c = stdin.getc) != "R"
+          res << c if c
+        end
+      end
+      m = res.match(/(?<row>\d+);(?<column>\d+)/)
+      { row: Integer(m[:row]), column: Integer(m[:column]) }
+    end
+  end
+end
 
 module MonadicChat
+  CONFIG = File.join(Dir.home, "monadic_chat.conf")
+  NUM_RETRY = 1
+  MIN_LENGTH = 5
+  TIMEOUT_SEC = 120
+
+  template_dir = File.join(__dir__, "..", "templates")
+  templates = Dir.glob ["#{template_dir}/normal/*.json", "#{template_dir}/research/*.md"]
+  template_map = {}
+  templates.each do |template|
+    absolute_path = File.absolute_path(template)
+    template_label = "#{File.dirname(absolute_path).split("/").last}/#{File.basename(absolute_path, ".*")}"
+    template_map[template_label] = absolute_path
+  end
+
+  TEMPLATES = template_map
+  PASTEL = Pastel.new
+
+  interrupt = proc do
+    MonadicChat.clear_screen
+    res = TTY::Prompt.new.yes?("Quit the app?")
+    exit if res
+  end
+
+  TEMP_HTML = File.join(Dir.home, "monadic_chat.html")
+  style = +File.read(File.join(__dir__, "..", "assets", "github.css")).gsub(".markdown-") { "" }
+  style << File.read(File.join(__dir__, "..", "assets", "pigments-default.css"))
+  style << <<~CSS
+    body {
+      margin: 50px;
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      color: #333
+    }
+    .monadic_user{
+      display:inline-block;
+      padding-left: 0.5em;
+      padding-right: 0.5em;
+      font-weight: bold;
+      background-color: #c8e5ff;
+    }
+    .monadic_chat {
+      display:inline-block;
+      padding-left: 0.5em;
+      padding-right: 0.5em;
+      font-weight: bold;
+      background-color: #ffcaca;
+    }
+    .monadic_system {
+      display:inline-block;
+      padding-left: 0.5em;
+      padding-right: 0.5em;
+      font-weight: bold;
+      background-color: #c4ffcb;
+    }
+    .monadic_gray {
+      display:inline-block;
+      font-weight: bold;
+      color: #999;
+    }
+    .monadic_app {
+      display:inline-block;
+      font-weight: bold;
+      color: #EB742B;
+    }
+  CSS
+  GITHUB_STYLE = style
+
   def self.open_readme
     url = "https://github.com/yohasebe/monadic-chat/"
     shellscript = <<~SHELL
@@ -23,759 +120,140 @@ module MonadicChat
     `#{shellscript}`
   end
 
-  class App
-    attr_reader :template
+  def self.authenticate(overwrite: false)
+    access_token = ENV["OPENAI_API_KEY"]
+    if overwrite
+      access_token = nil
+      access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
 
-    def initialize(params, template, placeholders, prop_accumulated, prop_newdata, update_proc)
-      @exit = false
-      @responses = Thread::Queue.new
-      @threads = Thread::Queue.new
-      @cursor = TTY::Cursor
-      @placeholders = placeholders
-      @prop_accumulated = prop_accumulated
-      @prop_newdata = prop_newdata
-      @completion = nil
-      @update_proc = update_proc
-      @show_html = false
-      @params_original = params
-      @params = @params_original.dup
-      @template_original = File.read(template)
-      @method = OpenAI.model_to_method @params["model"]
-      case @method
-      when "completions"
-        @template = @template_original.dup
-      when "chat/completions"
-        @template = JSON.parse @template_original
+      File.open(CONFIG, "w") do |f|
+        config = { "access_token" => access_token }
+        f.write(JSON.pretty_generate(config))
+        print "New access token has been saved to #{CONFIG}\n"
       end
-      PROMPT_USER.on(:keypress) do |event|
-        if event.key.name == :ctrl_l
-          PROMPT_USER.trigger(:keyenter)
-          raise unless show_help
-        end
+    elsif File.exist?(CONFIG)
+      json = File.read(CONFIG)
+      config = JSON.parse(json)
+      access_token = config["access_token"]
+    else
+      access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
+      File.open(CONFIG, "w") do |f|
+        config = { "access_token" => access_token }
+        f.write(JSON.pretty_generate(config))
+        print "Access token has been saved to #{CONFIG}\n"
       end
     end
 
-    def wait
-      MonadicChat::TIMEOUT_SEC.times do |i|
-        raise "Error: something went wrong" if i + 1 == MonadicChat::TIMEOUT_SEC
-        break if @threads.empty?
+    print "Checking configuration ▹▹▹▹▹ "
+    begin
+      raise if OpenAI.models(access_token).empty?
 
-        sleep 1
-      end
-      self
+      print "success.\n"
+      OpenAI::Completion.new(access_token)
+    rescue StandardError
+      print "failure.\n"
+      authenticate(overwrite: true)
+    end
+  end
+
+  def self.prompt_system
+    box_width = 8
+    name = "System".center(box_width, " ")
+    color = "green"
+    "\n#{PASTEL.send(:"on_#{color}", name)}"
+  end
+
+  def self.prompt_user
+    box_width = 6
+    color = "blue"
+    name = "User".center(box_width, " ")
+    "\n#{PASTEL.send(:"on_#{color}", name)}"
+  end
+
+  def self.prompt_assistant
+    box_width = 5
+    color = "red"
+    name = "GPT".center(box_width, " ")
+    "\n#{PASTEL.send(:"on_#{color}", name)}"
+  end
+
+  def self.banner(title, desc, color1, color2)
+    title = title.center(60, " ")
+    desc = desc.center(60, " ")
+    padding = "".center(60, " ")
+    banner = <<~BANNER
+      #{PASTEL.send(:"on_#{color2}", padding)}
+      #{PASTEL.send(:"on_#{color1}", padding)}
+      #{PASTEL.send(:"on_#{color1}").bold(title)}
+      #{PASTEL.send(:"on_#{color1}", desc)}
+      #{PASTEL.send(:"on_#{color1}", padding)}
+      #{PASTEL.send(:"on_#{color2}", padding)}
+    BANNER
+    print TTY::Box.frame banner.strip
+  end
+
+  PROMPT_USER = TTY::Prompt.new(active_color: :blue, prefix: prompt_user, interrupt: interrupt)
+  PROMPT_SYSTEM = TTY::Prompt.new(active_color: :blue, prefix: prompt_system, interrupt: interrupt)
+
+  BULLET = "\e[33m●\e[0m"
+
+  def self.clear_screen
+    print "\e[2J\e[f"
+  end
+
+  def self.add_to_html(text, filepath)
+    text = text.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "<br/>\n" }
+    text = text.gsub(/~~~(.+?)~~~/m) do
+      m = Regexp.last_match
+      "~~~#{m[1].gsub("<br/>\n") { "\n" }}~~~"
+    end
+    text = text.gsub(/`(.+?)`/) do
+      m = Regexp.last_match
+      "`#{m[1].gsub("<br/>\n") { "\n" }}`"
     end
 
-    def reset
-      @show_html = false
-      @params = @params_original.dup
-
-      case @method
-      when "completions"
-        @template = @template_original.dup
-      when "chat/completions"
-        @template = JSON.parse @template_original
-      end
-
-      if @placeholders.empty?
-        print MonadicChat.prompt_system
-        print " Context and parameters have been reset.\n"
-      else
-        fulfill_placeholders
-      end
+    `touch #{filepath}` unless File.exist?(filepath)
+    File.open(filepath, "w") do |f|
+      html = <<~HTML
+        <!doctype html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style type="text/css">
+              #{GITHUB_STYLE}
+            </style>
+            <title>Monadic Chat</title>
+          </head>
+          <body>
+              #{Kramdown::Document.new(text, syntax_highlighter: :rouge, syntax_highlighter_ops: {}).to_html}
+          </body>
+          <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+          <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+          <script>
+            $(window).on("load", function() {
+              $("html, body").animate({ scrollTop: $(document).height() }, 500);
+            });
+          </script>
+        </html>
+      HTML
+      f.write html
     end
+    Launchy.open(filepath)
+  end
 
-    def objectify
-      case @method
-      when "completions"
-        m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
-        json = m[1].gsub(/(?!\\\\\\)\\\\"/) { '\\\"' }
-        JSON.parse(json)
-      when "chat/completions"
-        @template
-      end
-    end
+  def self.count_lines_below
+    screen_height = TTY::Screen.height
+    vpos = Cursor.pos[:row]
+    screen_height - vpos
+  end
 
-    def format_data
-      contextual = []
-      accumulated = []
-
-      objectify.each do |key, val|
-        next if %w[prompt response].include? key
-
-        if (@method == "completions" && key == @prop_accumulated) ||
-           (@method == "chat/completions" && key == "messages")
-          val = val.map do |v|
-            case @method
-            when "completions"
-              if v.instance_of?(String)
-                v.sub(/\s+###\s*$/m, "")
-              else
-                v.map { |role, text| "#{role.strip.capitalize}: #{text.sub(/\s+###\s*$/m, "")}" }
-              end
-            when "chat/completions"
-              "#{v["role"].capitalize}: #{v["content"]}"
-            end
-          end
-          accumulated << val.join("\n\n")
-        else
-          contextual << "- **#{key.to_s.capitalize}**: #{val.to_s.strip}"
-        end
-      end
-
-      h1 = "# #{self.class.name}\n\n"
-      contextual.map!(&:strip).unshift "## Contextual Data\n" unless contextual.empty?
-      accum_label = @prop_accumulated.split("_").map(&:capitalize).join(" ")
-      accumulated.map!(&:strip).unshift "## #{accum_label}\n" unless accumulated.empty?
-      "#{h1}#{contextual.join("\n")}\n\n#{accumulated.join("\n")}"
-    end
-
-    def show_data
+  def self.confirm_query(input)
+    if input.size < MIN_LENGTH
       print MonadicChat.prompt_system
-      unless @threads.empty?
-        print @cursor.save
-        print " Building contextual data ..."
-        loop do
-          break if @threads.empty?
-
-          sleep 1
-        end
-        print @cursor.restore
-        print @cursor.clear_line_after
-      end
-      res = format_data
-      print "\n#{TTY::Markdown.parse(res, indent: 0).strip}\n"
-    end
-
-    def set_html
-      print MonadicChat.prompt_system
-      unless @threads.empty?
-        print @cursor.save
-        print " Building contextual data ..."
-        loop do
-          break if @threads.empty?
-
-          sleep 1
-        end
-        print @cursor.restore
-        print @cursor.clear_line_after
-      end
-      print " HTML rendering is enabled"
-      @show_html = true
-      show_html
-    end
-
-    def show_html
-      res = format_data.sub(/::(.+)?\b/) { " <span class='monadic_gray'>::</span> <span class='monadic_app'>#{Regexp.last_match(1)}</span>" }
-                       .gsub("```") { "~~~" }
-                       .gsub(/^(system):/i) { "<span class='monadic_system'> #{Regexp.last_match(1)} </span><br />" }
-                       .gsub(/^(user):/i) { "<span class='monadic_user'> #{Regexp.last_match(1)} </span><br />" }
-                       .gsub(/^(assistant|gpt):/i) { "<span class='monadic_chat'> #{Regexp.last_match(1)} </span><br />" }
-      MonadicChat.add_to_html(res, TEMP_HTML)
-    end
-
-    def prepare_params(input)
-      params = @params.dup
-      case @method
-      when "completions"
-        template = @template.dup.sub("{{PROMPT}}", input).sub("{{MAX_TOKENS}}", (@params["max_tokens"] / 2).to_s)
-        params["prompt"] = template
-      when "chat/completions"
-        @template["messages"] << { "role" => "user", "content" => input }
-        params["messages"] = @template["messages"]
-      end
-      params
-    end
-
-    def update_template(res)
-      case @method
-      when "completions"
-        updated = @update_proc.call(res)
-        json = updated.to_json.strip
-        @template.sub!(/\n\n```json.+```\n\n/m, "\n\n```json\n#{json}\n```\n\n")
-      when "chat/completions"
-        @template["messages"] << { "role" => "assistant", "content" => res }
-        @template["messages"] = @update_proc.call(@template["messages"])
-      end
-    end
-
-    def ask_retrial(input, message = nil)
-      print MonadicChat.prompt_system
-      print " Error: #{message.capitalize}\n" if message
-      retrial = PROMPT_USER.select(" Do you want to try again?",
-                                   show_help: :never) do |menu|
-        menu.choice "Yes", "yes"
-        menu.choice "No", "no"
-        menu.choice "Show current contextual data", "show"
-      end
-      case retrial
-      when "yes"
-        input
-      when "no"
-        textbox
-      when "show"
-        show_data
-        ask_retrial(input)
-      end
-    end
-
-    def save_data
-      input = PROMPT_SYSTEM.ask(" Enter the path and file name of the saved data:\n")
-      return if input.to_s == ""
-
-      filepath = File.expand_path(input)
-      dirname = File.dirname(filepath)
-
-      unless Dir.exist? dirname
-        print "Directory does not exist\n"
-        save_data
-      end
-
-      if File.exist? filepath
-        overwrite = PROMPT_SYSTEM.select(" #{filepath} already exists.\nOverwrite?",
-                                         show_help: :never) do |menu|
-          menu.choice "Yes", "yes"
-          menu.choice "No", "no"
-        end
-        return if overwrite == "no"
-      end
-
-      FileUtils.touch(filepath)
-      unless File.exist? filepath
-        print "File cannot be created\n"
-        save_data
-      end
-      File.open(filepath, "w") do |f|
-        case @method
-        when "completions"
-          m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
-          f.write JSON.pretty_generate(JSON.parse(m[1]))
-        when "chat/completions"
-          f.write JSON.pretty_generate(@template)
-        end
-
-        print "Data has been saved successfully\n"
-      end
-    end
-
-    def load_data
-      input = PROMPT_SYSTEM.ask(" Enter the path and file name of the saved data:\n")
-      return false if input.to_s == ""
-
-      filepath = File.expand_path(input)
-      unless File.exist? filepath
-        print "File does not exit\n"
-        load_data
-      end
-
-      begin
-        json = File.read(filepath)
-        data = JSON.parse(json)
-        case @method
-        when "completions"
-          raise unless data["mode"] == self.class.name.downcase.split("::")[-1]
-
-          new_template = @template.sub(/\n\n```json\s*\{.+\}\s*```\n\n/m, "\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
-          @template = new_template
-        when "chat/completions"
-          raise unless data["messages"] && data["messages"][0]["role"]
-
-          @template["messages"] = data["messages"]
-        end
-      rescue StandardError
-        print "The data structure is not valid for this app\n"
-        return false
-      end
-
-      print "Data has been loaded successfully\n"
+      PROMPT_SYSTEM.yes?(" Would you like to proceed with this (very short) prompt?")
+    else
       true
-    end
-
-    def change_parameter
-      parameter = PROMPT_SYSTEM.select(" Select the parmeter to be set:",
-                                       per_page: 7,
-                                       cycle: true,
-                                       show_help: :never,
-                                       filter: true,
-                                       default: 1) do |menu|
-        menu.choice "#{BULLET} Cancel", "cancel"
-        # menu.choice "#{BULLET} model: #{@params["model"]}", "model"
-        menu.choice "#{BULLET} max_tokens: #{@params["max_tokens"]}", "max_tokens"
-        menu.choice "#{BULLET} temperature: #{@params["temperature"]}", "temperature"
-        menu.choice "#{BULLET} top_p: #{@params["top_p"]}", "top_p"
-        menu.choice "#{BULLET} frequency_penalty: #{@params["frequency_penalty"]}", "frequency_penalty"
-        menu.choice "#{BULLET} presence_penalty: #{@params["presence_penalty"]}", "presence_penalty"
-      end
-      return if parameter == "cancel"
-
-      case parameter
-      # when "model"
-      #   value = change_model
-      #   @method = OpenAI.model_to_method @params["value"]
-      #   case @method
-      #   when "completions"
-      #     @template = @template_original.dup
-      #   when "chat/completions"
-      #     @template = JSON.parse @template_original
-      #   end
-      when "max_tokens"
-        value = change_max_tokens
-      when "temperature"
-        value = change_temperature
-      when "top_p"
-        value = change_top_p
-      when "frequency_penalty"
-        value = change_frequency_penalty
-      when "presence_penalty"
-        value = change_presence_penalty
-      end
-      @params[parameter] = value if value
-      print "Parameter #{parameter} has been set to #{PASTEL.green(value)}" if value
-    end
-
-    def change_max_tokens
-      PROMPT_SYSTEM.ask(" Set value of max tokens [1000 to 8000]", convert: :int) do |q|
-        q.in "1000-8000"
-        q.messages[:range?] = "Value out of expected range [1000 to 2048]"
-      end
-    end
-
-    def change_temperature
-      PROMPT_SYSTEM.ask(" Set value of temperature [0.0 to 1.0]", convert: :float) do |q|
-        q.in "0.0-1.0"
-        q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
-      end
-    end
-
-    def change_top_p
-      PROMPT_SYSTEM.ask(" Set value of top_p [0.0 to 1.0]", convert: :float) do |q|
-        q.in "0.0-1.0"
-        q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
-      end
-    end
-
-    def change_frequency_penalty
-      PROMPT_SYSTEM.ask(" Set value of frequency penalty [-2.0 to 2.0]", convert: :float) do |q|
-        q.in "-2.0-2.0"
-        q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
-      end
-    end
-
-    def change_presence_penalty
-      PROMPT_SYSTEM.ask(" Set value of presence penalty [-2.0 to 2.0]", convert: :float) do |q|
-        q.in "-2.0-2.0"
-        q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
-      end
-    end
-
-    def change_model
-      model = PROMPT_SYSTEM.select(" Select a model:",
-                                   per_page: 10,
-                                   cycle: false,
-                                   show_help: :always,
-                                   filter: true,
-                                   default: 1) do |menu|
-        menu.choice "#{BULLET} Cancel", "cancel"
-        @completion.models.sort_by { |m| -m["created"] }.each do |m|
-          menu.choice "#{BULLET} #{m["id"]}", m["id"]
-        end
-      end
-      if model == "cancel"
-        nil
-      else
-        model
-      end
-    end
-
-    def show_params
-      params_md = "# Current Parameter Values\n\n"
-      @params.each do |key, val|
-        next if /\A(?:prompt|stream|logprobs|echo|stop)\z/ =~ key
-
-        params_md += "- #{key}: #{val}\n"
-      end
-      print MonadicChat.prompt_system, "\n"
-      print "#{TTY::Markdown.parse(params_md, indent: 0).strip}\n\n"
-    end
-
-    def show_greet
-      current_mode = case @method
-                     when "completions"
-                       MonadicChat::PASTEL.red("Research")
-                     when "chat/completions"
-                       MonadicChat::PASTEL.green("Normal")
-                     end
-      greet_md = <<~GREET
-        - You are currently in **#{current_mode}** mode
-        - Type **help** or **CTRL-L** to see available commands
-      GREET
-      print MonadicChat.prompt_system
-      print "\n#{TTY::Markdown.parse(greet_md, indent: 0).strip}"
-    end
-
-    def show_help
-      print @cursor.save
-      parameter = PROMPT_SYSTEM.select(" Select app:",
-                                       per_page: 10,
-                                       cycle: true,
-                                       filter: true,
-                                       default: 1,
-                                       show_help: :never) do |menu|
-        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("cancel/return/escape")}   cancel this menu", "cancel"
-        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("params/settings/config")} show and change values of parameters", "params"
-        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("data/context")}           show currrent contextual info", "data"
-        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("html")}                   view contextual info on the web browser", "html"
-        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("reset")}                  reset context to original state", "reset"
-        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("save")}                   save current contextual info to file", "save"
-        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("load")}                   load current contextual info from file", "load"
-        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("clear/clean")}            clear screen", "clear"
-        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("readme/documentation")}   open readme/documentation", "readme"
-        menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("exit/bye/quit")}          go back to main menu", "exit"
-      end
-
-      @cursor.clear_line
-      print @cursor.restore
-      print @cursor.clear_screen_down
-
-      case parameter
-      when "cancel"
-        return true
-      when "params"
-        change_parameter
-      when "data"
-        show_data
-      when "html"
-        set_html
-      when "reset"
-        reset
-      when "save"
-        save_data
-      when "load"
-        load_data
-      when "clear"
-        MonadicChat.clear_screen
-        print @cursor.clear_screen_down
-      when "readme"
-        MonadicChat.open_readme
-      when "exit"
-        return false
-      end
-      true
-    end
-
-    def count_lines_below
-      screen_height = TTY::Screen.height
-      vpos = Cursor.pos[:row]
-      screen_height - vpos
-    end
-
-    def bind_and_unwrap2(input, num_retry: 0)
-      print MonadicChat.prompt_gpt, " "
-      print @cursor.save
-      unless @threads.empty?
-        print @cursor.save
-        message = PASTEL.red "Processing contextual data ... "
-        print message
-        MonadicChat::TIMEOUT_SEC.times do |i|
-          raise "Error: something went wrong" if i + 1 == MonadicChat::TIMEOUT_SEC
-
-          break if @threads.empty?
-
-          sleep 1
-        end
-        print @cursor.restore
-        print @cursor.clear_char(message.size)
-      end
-
-      params = prepare_params(input)
-      print @cursor.save
-
-      escaping = +""
-      last_chunk = +""
-      response = +""
-      spinning = false
-      res = @completion.run(params, num_retry: num_retry) do |chunk|
-        if escaping
-          chunk = escaping + chunk
-          escaping = ""
-        end
-
-        if /(?:\\\z)/ =~ chunk
-          escaping += chunk
-          next
-        else
-          chunk = chunk.gsub('\\n', "\n")
-          response << chunk
-        end
-
-        if count_lines_below > 3
-          print MonadicChat::PASTEL.magenta(last_chunk)
-        elsif !spinning
-          print PASTEL.red " ... "
-          spinning = true
-        end
-
-        # print MonadicChat::PASTEL.magenta(last_chunk)
-        last_chunk = chunk
-      end
-
-      print @cursor.restore
-      print @cursor.clear_screen_down
-
-      text = response.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "{{NEWLINE}}\n" }
-      text = text.gsub(/```(.+?)```/m) do
-        m = Regexp.last_match
-        "```#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}```"
-      end
-      text = text.gsub(/`(.+?)`/) do
-        m = Regexp.last_match
-        "`#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}`"
-      end
-
-      # text = text.gsub(/(?!\\\\)\\/) { "" }
-      print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
-
-      update_template(res)
-      show_html if @show_html
-    end
-
-    def bind_and_unwrap1(input, num_retry: 0)
-      print MonadicChat.prompt_gpt, " "
-      unless @threads.empty?
-        print @cursor.save
-        message = PASTEL.red "Processing contextual data ... "
-        print message
-        MonadicChat::TIMEOUT_SEC.times do |i|
-          raise "Error: something went wrong" if i + 1 == MonadicChat::TIMEOUT_SEC
-
-          break if @threads.empty?
-
-          sleep 1
-        end
-        print @cursor.restore
-        print @cursor.clear_char(message.size)
-      end
-
-      params = prepare_params(input)
-      print @cursor.save
-      Thread.new do
-        response_all_shown = false
-        key_start = /"#{@prop_newdata}":\s*"/
-        key_finish = /\s+###\s*"/m
-        started = false
-        escaping = +""
-        last_chunk = +""
-        finished = false
-        @threads << true
-        response = +""
-        spinning = false
-        res = @completion.run(params, num_retry: num_retry) do |chunk|
-          if finished && !response_all_shown
-            response_all_shown = true
-            @responses << response.sub(/\s+###\s*".*/m, "")
-            if spinning
-              @cursor.backword(" ▹▹▹▹▹ ".size)
-              @cursor.clear_char(" ▹▹▹▹▹ ".size)
-            end
-          end
-
-          unless finished
-            if escaping
-              chunk = escaping + chunk
-              escaping = ""
-            end
-
-            if /(?:\\\z)/ =~ chunk
-              escaping += chunk
-              next
-            else
-              chunk = chunk.gsub('\\n', "\n")
-              response << chunk
-            end
-
-            if started && !finished
-              if key_finish =~ response
-                finished = true
-              else
-                if count_lines_below > 3
-                  print MonadicChat::PASTEL.magenta(last_chunk)
-                elsif !spinning
-                  print PASTEL.red " ... "
-                  spinning = true
-                end
-                last_chunk = chunk
-              end
-            elsif !started && !finished && key_start =~ response
-              started = true
-              response = +""
-            end
-          end
-        end
-
-        unless response_all_shown
-          if spinning
-            @cursor.backword(" ... ".size)
-            @cursor.clear_char(" ... ".size)
-          end
-          @responses << response.sub(/\s+###\s*".*/m, "")
-        end
-
-        update_template(res)
-        @threads.clear
-        show_html if @show_html
-      rescue StandardError => e
-        @threads.clear
-        @responses << "Error: something went wrong in a thread"
-        pp e
-      end
-
-      loop do
-        if @responses.empty?
-          sleep 1
-        else
-          print @cursor.restore
-          print @cursor.clear_screen_down
-          text = @responses.pop
-
-          text = text.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "{{NEWLINE}}\n" }
-          text = text.gsub(/```(.+?)```/m) do
-            m = Regexp.last_match
-            "```#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}```"
-          end
-          text = text.gsub(/`(.+?)`/) do
-            m = Regexp.last_match
-            "`#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}`"
-          end
-
-          # text = text.gsub(/(?!\\\\)\\/) { "" }
-          print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
-          break
-        end
-      end
-    end
-
-    def confirm_query(input)
-      if input.size < MIN_LENGTH
-        print "\n"
-        print MonadicChat.prompt_system
-        PROMPT_SYSTEM.yes?(" Would you like to proceed with this (very short) prompt?")
-      else
-        true
-      end
-    end
-
-    def textbox(text = nil)
-      print "\n"
-      res = if text
-              PROMPT_USER.ask(text)
-            else
-              PROMPT_USER.ask
-            end
-      @cursor.up
-      @cursor.clear_screen_down
-      res
-    end
-
-    def parse(input = nil)
-      loop do
-        return if !input || @exit
-
-        case input
-        when TrueClass
-          input = textbox
-          next
-        when /\A\s*(?:help|menu|commands?|\?|h)\s*\z/i
-          show_help
-        when /\A\s*(?:bye|exit|quit)\s*\z/i
-          break
-        when /\A\s*(?:reset)\s*\z/i
-          reset
-        when /\A\s*(?:data|context)\s*\z/i
-          show_data
-        when /\A\s*(?:html)\s*\z/i
-          set_html
-        when /\A\s*(?:save)\s*\z/i
-          save_data
-        when /\A\s*(?:load)\s*\z/i
-          load_data
-        when /\A\s*(?:clear|clean)\s*\z/i
-          MonadicChat.clear_screen
-        when /\A\s*(?:params?|parameters?|config|configuration)\s*\z/i
-          change_parameter
-        else
-          break unless input && confirm_query(input)
-
-          begin
-            case @method
-            when "completions"
-              bind_and_unwrap1(input, num_retry: NUM_RETRY)
-            when "chat/completions"
-              bind_and_unwrap2(input, num_retry: NUM_RETRY)
-            end
-          rescue StandardError => e
-            # SPINNER1.stop("")
-            input = ask_retrial(input, e.message)
-            next
-          end
-        end
-        input = textbox
-      end
-    end
-
-    def fulfill_placeholders
-      input = nil
-      replacements = []
-      mode = :replace
-
-      @placeholders.each do |key, val|
-        if key == "mode"
-          mode = val
-          next
-        end
-
-        input = if mode == :replace
-                  val
-                else
-                  print "\n"
-                  PROMPT_SYSTEM.ask(" #{val}:")
-                end
-
-        unless input
-          replacements.clear
-          break
-        end
-        replacements << [key, input]
-      end
-      if replacements.empty?
-        false
-      else
-        replacements.each do |key, value|
-          case @method
-          when "completions"
-            @template.gsub!(key, value)
-          when "chat/completions"
-            @template["messages"][0]["content"].gsub!(key, value)
-          end
-        end
-        true
-      end
-    end
-
-    def run
-      MonadicChat.banner(self.class.name, self.class::DESC, "cyan", "blue")
-      show_greet
-      if @placeholders.empty?
-        parse(textbox)
-      else
-        print "\n"
-        print MonadicChat.prompt_system
-        loadfile = PROMPT_SYSTEM.select(" Load saved file?",
-                                        default: 2,
-                                        show_help: :never) do |menu|
-          menu.choice "Yes", "yes"
-          menu.choice "No", "no"
-        end
-        parse(textbox) if loadfile == "yes" && load_data || fulfill_placeholders
-      end
     end
   end
 end

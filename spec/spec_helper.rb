@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "monadic_chat"
-require "chat"
-require "novel"
-require "code"
-require "translate"
+require "apps/chat"
+require "apps/novel"
+require "apps/code"
+require "apps/translate"
 
 COMPLETION = MonadicChat.authenticate
 # CONFIG_FILE = File.join(Dir.home, "monadic_chat.conf")

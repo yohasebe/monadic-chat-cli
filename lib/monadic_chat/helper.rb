@@ -38,14 +38,16 @@ end
 module MonadicChat
   CONFIG = File.join(Dir.home, "monadic_chat.conf")
   NUM_RETRY = 1
-  MIN_LENGTH = 10
+  MIN_LENGTH = 5
   TIMEOUT_SEC = 120
 
   template_dir = File.join(__dir__, "..", "..", "templates")
-  templates = Dir.glob ["#{template_dir}/*.md", "#{template_dir}/*.json"]
+  templates = Dir.glob ["#{template_dir}/normal/*.json", "#{template_dir}/research/*.md"]
   template_map = {}
   templates.each do |template|
-    template_map[File.basename(template, ".*")] = template
+    absolute_path = File.absolute_path(template)
+    template_label = "#{File.dirname(absolute_path).split("/").last}/#{File.basename(absolute_path, ".*")}"
+    template_map[template_label] = absolute_path
   end
 
   TEMPLATES = template_map
@@ -100,10 +102,29 @@ module MonadicChat
   CSS
   GITHUB_STYLE = style
 
+  def self.open_readme
+    url = "https://github.com/yohasebe/monadic-chat/"
+    shellscript = <<~SHELL
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        open "#{url}"
+      elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if command -v xdg-open >/dev/null 2>&1; then
+          xdg-open "#{url}"
+        else
+          echo "#{url}"
+        fi
+      else
+        echo "#{url}"
+      fi
+    SHELL
+    `#{shellscript}`
+  end
+
   def self.authenticate(overwrite: false)
+    access_token = ENV["OPENAI_API_KEY"]
     if overwrite
       access_token = nil
-      access_token ||= PROMPT_SYSTEM.mask("Input your OpenAI access token:") until access_token
+      access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
 
       File.open(CONFIG, "w") do |f|
         config = { "access_token" => access_token }
@@ -115,11 +136,11 @@ module MonadicChat
       config = JSON.parse(json)
       access_token = config["access_token"]
     else
-      access_token ||= PROMPT.mask("Input your OpenAI access token:") until access_token
+      access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
       File.open(CONFIG, "w") do |f|
         config = { "access_token" => access_token }
         f.write(JSON.pretty_generate(config))
-        print "New access token has been saved to config\n"
+        print "Access token has been saved to #{CONFIG}\n"
       end
     end
 
@@ -149,10 +170,10 @@ module MonadicChat
     "\n#{PASTEL.send(:"on_#{color}", name)}"
   end
 
-  def self.prompt_gpt
+  def self.prompt_assistant
     box_width = 5
     color = "red"
-    name = "GPT".center(box_width, " ")
+    name = "Assistant".center(box_width, " ")
     "\n#{PASTEL.send(:"on_#{color}", name)}"
   end
 
@@ -173,9 +194,6 @@ module MonadicChat
 
   PROMPT_USER = TTY::Prompt.new(active_color: :blue, prefix: prompt_user, interrupt: interrupt)
   PROMPT_SYSTEM = TTY::Prompt.new(active_color: :blue, prefix: prompt_system, interrupt: interrupt)
-
-  # spinner_opts = { clear: true, hide_cursor: false, format: :arrow_pulse }
-  # SPINNER1 = TTY::Spinner.new(PASTEL.cyan("Building the contextual data. Please wait. :spinner"), spinner_opts)
 
   BULLET = "\e[33m●\e[0m"
 

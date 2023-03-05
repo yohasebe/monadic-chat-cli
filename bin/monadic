@@ -2,14 +2,24 @@
 
 # frozen_string_literal: true
 
-require_relative "../lib/monadic_chat"
-require_relative "../lib/chat"
-require_relative "../lib/code"
-require_relative "../lib/novel"
-require_relative "../lib/translate"
+# require_relative "../lib/monadic_chat"
+require_relative "../lib/apps/chat"
+require_relative "../lib/apps/code"
+require_relative "../lib/apps/novel"
+require_relative "../lib/apps/translate"
 
 module MonadicApp
   include MonadicChat
+
+  PROMPT_SYSTEM.on(:keypress) do |event|
+    case event.key.name
+    when :ctrl_p
+      PROMPT_SYSTEM.trigger(:keyup)
+    when :ctrl_n
+      PROMPT_SYSTEM.trigger(:keydown)
+    end
+  end
+
   def self.run
     wid = 60
     mon = " /M/O/N/A/D/I/C/"
