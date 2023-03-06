@@ -10,11 +10,11 @@ RSpec.describe "MonadicChat::Translate" do
 
   translate = MonadicChat::Translate.new(COMPLETION, replacements: replacements, research_mode: true, stream: true)
   translate.fulfill_placeholders
-  input1 = "ワタシは猫なんですけどね。"
+  input1 = "面白く読みやすい(readable)文章を書くことはとても難しい。"
   translate.wait.bind_research_mode(input1, num_retry: num_retry)
-  input2 = "名前はまだないんですよ。"
+  input2 = "それでも鍛錬(practice)を続けるよりほかはない。"
   translate.wait.bind_research_mode(input2, num_retry: num_retry)
-  input3 = "誰か良い名前を付けてくれませんかね。"
+  input3 = "いつか熟練した(proficient)書き手になる日を夢見て。"
   translate.wait.bind_research_mode(input3, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do

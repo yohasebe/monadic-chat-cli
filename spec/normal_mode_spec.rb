@@ -10,11 +10,11 @@ RSpec.describe "MonadicChat::Translate" do
 
   translate = MonadicChat::Translate.new(COMPLETION, replacements: replacements, research_mode: false)
   translate.fulfill_placeholders
-  input1 = "ワタシは猫なんですけどね。"
+  input1 = "ワタシは猫なんですけどね(as you see)。"
   translate.bind_normal_mode(input1, num_retry: num_retry)
-  input2 = "名前はまだないんですよ。"
+  input2 = "名前はまだ(yet)ないんですよ。"
   translate.bind_normal_mode(input2, num_retry: num_retry)
-  input3 = "誰か良い名前を付けてくれませんかね。"
+  input3 = "誰か良い(special)名前を付けてくれませんかね。"
   translate.bind_normal_mode(input3, num_retry: num_retry)
 
   it "gives as many responses as the number of prompts given" do
