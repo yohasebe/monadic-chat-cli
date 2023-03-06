@@ -2,6 +2,21 @@
 
 Highly configurable CLI app for OpenAI's chat/text completion API
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [System-Wide Features](#system-wide-features)
+- [Apps](#apps)
+- [Creating New Apps](#creating-new-apps)
+- [Modes](#modes)
+- [Controlling Discourse](#controlling-discourse)
+- [Contributing](#contributing)
+- [Author](#author)
+- [License](#license)
+
 ## Introduction
 
 **Monadic Chat** is a command-line client application program that uses OpenAI's Text Completion API and Chat API to enjoy chat-style conversations with OpenAI's artificial intelligence system in a ChatGPT-like style.
@@ -83,6 +98,7 @@ Selecting `Readme` will take you to the README on the Github repository (which i
 <img src="./doc/img/select-app-menu.png" width="760px"/>
 
 In the app menu, you can use the cursor keys to make a selection and the enter key to make a decision. You can also narrow down the choices each time you type a letter.
+
 ## System-Wide Features
 
 Each utterance in the conversation that unfolds in each app is labeled with one of three roles: `User`, `GPT`, or `System`.
