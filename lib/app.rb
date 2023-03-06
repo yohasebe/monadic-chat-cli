@@ -11,7 +11,6 @@ module MonadicChat
     def initialize(params, template, placeholders, prop_accumulated, prop_newdata, update_proc)
       @threads = Thread::Queue.new
       @responses = Thread::Queue.new
-      @cursor = TTY::Cursor
       @placeholders = placeholders
       @prop_accumulated = prop_accumulated
       @prop_newdata = prop_newdata
@@ -85,7 +84,7 @@ module MonadicChat
     def wait
       return self if @threads.empty?
 
-      print @cursor.save
+      print TTY::Cursor.save
       message = PASTEL.red " Processing contextual data ... "
       print message
       MonadicChat::TIMEOUT_SEC.times do |i|
@@ -95,8 +94,8 @@ module MonadicChat
 
         sleep 1
       end
-      print @cursor.restore
-      print @cursor.clear_char(message.size)
+      print TTY::Cursor.restore
+      print TTY::Cursor.clear_char(message.size)
 
       self
     end
@@ -176,37 +175,23 @@ module MonadicChat
 
     def show_data
       print MonadicChat.prompt_system
-      unless @threads.empty?
-        print @cursor.save
-        print " Building contextual data ..."
-        loop do
-          break if @threads.empty?
 
-          sleep 1
-        end
-        print @cursor.restore
-        print @cursor.clear_line_after
-      end
+      wait
+
       res = format_data
       print "\n#{TTY::Markdown.parse(res, indent: 0).strip}\n"
+      MonadicChat.clear_region_below
     end
 
     def set_html
       print MonadicChat.prompt_system
-      unless @threads.empty?
-        print @cursor.save
-        print " Building contextual data ..."
-        loop do
-          break if @threads.empty?
 
-          sleep 1
-        end
-        print @cursor.restore
-        print @cursor.clear_line_after
-      end
+      wait
+
       print " HTML rendering is enabled"
       @show_html = true
       show_html
+      MonadicChat.clear_region_below
     end
 
     def show_html
@@ -223,14 +208,15 @@ module MonadicChat
     ########################################
 
     def textbox(text = nil)
+      MonadicChat.ask_clear
       print "\n"
       res = if text
               PROMPT_USER.ask(text)
             else
               PROMPT_USER.ask
             end
-      @cursor.up
-      @cursor.clear_screen_down
+      MonadicChat.clear_region_below
+
       res
     end
 
@@ -250,8 +236,8 @@ module MonadicChat
     end
 
     def show_help
-      print @cursor.save
-      parameter = PROMPT_SYSTEM.select(" Select app:",
+      print TTY::Cursor.save
+      parameter = PROMPT_SYSTEM.select(" Select function:",
                                        per_page: 10,
                                        cycle: true,
                                        filter: true,
@@ -269,9 +255,9 @@ module MonadicChat
         menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("exit/bye/quit")}          go back to main menu", "exit"
       end
 
-      @cursor.clear_line
-      print @cursor.restore
-      print @cursor.clear_screen_down
+      TTY::Cursor.clear_line
+      print TTY::Cursor.restore
+      print TTY::Cursor.clear_screen_down
 
       case parameter
       when "cancel"
@@ -290,7 +276,7 @@ module MonadicChat
         load_data
       when "clear"
         MonadicChat.clear_screen
-        print @cursor.clear_screen_down
+        print TTY::Cursor.clear_screen_down
       when "readme"
         MonadicChat.open_readme
       when "exit"
@@ -339,8 +325,8 @@ module MonadicChat
     end
 
     def save_data
-      input = PROMPT_SYSTEM.ask(" Enter the path and file name of the saved data:\n")
-      return if input.to_s == ""
+      input = PROMPT_SYSTEM.ask(" Enter the path to the save file (press Enter to cancel): ")
+      return if input.to_s.strip == ""
 
       filepath = File.expand_path(input)
       dirname = File.dirname(filepath)
@@ -378,8 +364,8 @@ module MonadicChat
     end
 
     def load_data
-      input = PROMPT_SYSTEM.ask(" Enter the path and file name of the saved data:\n")
-      return false if input.to_s == ""
+      input = PROMPT_SYSTEM.ask(" Enter the path to the save file (press Enter to cancel): ")
+      return if input.to_s.strip == ""
 
       filepath = File.expand_path(input)
       unless File.exist? filepath
@@ -402,12 +388,10 @@ module MonadicChat
           @template["messages"] = data["messages"]
         end
       rescue StandardError
-        print "The data structure is not valid for this app\n"
-        return false
+        print "The data structure is not valid for this app"
       end
 
-      print "Data has been loaded successfully\n"
-      true
+      print "Data has been loaded successfully"
     end
 
     ########################################
@@ -526,12 +510,12 @@ module MonadicChat
 
     def bind_normal_mode(input, num_retry: 0)
       print MonadicChat.prompt_assistant, " "
-      print @cursor.save
+      print TTY::Cursor.save
 
       wait
 
       params = prepare_params(input)
-      print @cursor.save
+      print TTY::Cursor.save
 
       escaping = +""
       last_chunk = +""
@@ -561,8 +545,8 @@ module MonadicChat
         last_chunk = chunk
       end
 
-      print @cursor.restore
-      print @cursor.clear_screen_down
+      print TTY::Cursor.restore
+      print TTY::Cursor.clear_screen_down
 
       text = response.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "{{NEWLINE}}\n" }
       text = text.gsub(/```(.+?)```/m) do
@@ -587,8 +571,9 @@ module MonadicChat
       wait
 
       params = prepare_params(input)
-      print @cursor.save
+      print TTY::Cursor.save
 
+      @threads << true
       Thread.new do
         response_all_shown = false
         key_start = /"#{@prop_newdata}":\s*"/
@@ -604,8 +589,8 @@ module MonadicChat
             response_all_shown = true
             @responses << response.sub(/\s+###\s*".*/m, "")
             if spinning
-              @cursor.backword(" ▹▹▹▹▹ ".size)
-              @cursor.clear_char(" ▹▹▹▹▹ ".size)
+              TTY::Cursor.backword(" ▹▹▹▹▹ ".size)
+              TTY::Cursor.clear_char(" ▹▹▹▹▹ ".size)
             end
           end
 
@@ -644,8 +629,8 @@ module MonadicChat
 
         unless response_all_shown
           if spinning
-            @cursor.backword(" ... ".size)
-            @cursor.clear_char(" ... ".size)
+            TTY::Cursor.backword(" ... ".size)
+            TTY::Cursor.clear_char(" ... ".size)
           end
           @responses << response.sub(/\s+###\s*".*/m, "")
         end
@@ -663,8 +648,8 @@ module MonadicChat
         if @responses.empty?
           sleep 1
         else
-          print @cursor.restore
-          print @cursor.clear_screen_down
+          print TTY::Cursor.restore
+          print TTY::Cursor.clear_screen_down
           text = @responses.pop
 
           text = text.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "{{NEWLINE}}\n" }
@@ -713,22 +698,25 @@ module MonadicChat
         when /\A\s*(?:params?|parameters?|config|configuration)\s*\z/i
           change_parameter
         else
-          input = textbox unless input && MonadicChat.confirm_query(input)
-          next if input.to_s == ""
-
-          begin
-            case @method
-            when "completions"
-              bind_research_mode(input, num_retry: NUM_RETRY)
-            when "chat/completions"
-              bind_normal_mode(input, num_retry: NUM_RETRY)
+          if input && MonadicChat.confirm_query(input)
+            begin
+              case @method
+              when "completions"
+                bind_research_mode(input, num_retry: NUM_RETRY)
+              when "chat/completions"
+                bind_normal_mode(input, num_retry: NUM_RETRY)
+              end
+            rescue StandardError => e
+              input = ask_retrial(input, e.message)
+              next
             end
-          rescue StandardError => e
-            input = ask_retrial(input, e.message)
-            next
           end
         end
         input = textbox
+        if input.to_s == ""
+          input = false
+          MonadicChat.clear_region_below
+        end
       end
     rescue StandardError
       false

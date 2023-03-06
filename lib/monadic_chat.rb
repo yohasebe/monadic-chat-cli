@@ -121,10 +121,25 @@ module MonadicChat
   end
 
   def self.authenticate(overwrite: false)
+    check = lambda do |token|
+      print "Checking configuration ▹▹▹▹▹ "
+      begin
+        raise if OpenAI.models(token).empty?
+
+        print "success.\n"
+        OpenAI::Completion.new(token)
+      rescue StandardError
+        print "failure.\n"
+        authenticate(overwrite: true)
+      end
+    end
+
     access_token = ENV["OPENAI_API_KEY"]
     if overwrite
       access_token = nil
       access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
+
+      check.call(access_token)
 
       File.open(CONFIG, "w") do |f|
         config = { "access_token" => access_token }
@@ -135,24 +150,15 @@ module MonadicChat
       json = File.read(CONFIG)
       config = JSON.parse(json)
       access_token = config["access_token"]
+      check.call(access_token)
     else
       access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
+      check.call(access_token)
       File.open(CONFIG, "w") do |f|
         config = { "access_token" => access_token }
         f.write(JSON.pretty_generate(config))
         print "Access token has been saved to #{CONFIG}\n"
       end
-    end
-
-    print "Checking configuration ▹▹▹▹▹ "
-    begin
-      raise if OpenAI.models(access_token).empty?
-
-      print "success.\n"
-      OpenAI::Completion.new(access_token)
-    rescue StandardError
-      print "failure.\n"
-      authenticate(overwrite: true)
     end
   end
 
@@ -255,5 +261,15 @@ module MonadicChat
     else
       true
     end
+  end
+
+  def self.clear_region_below
+    sleep 0.2
+    TTY::Cursor.up
+    TTY::Cursor.clear_screen_down
+  end
+
+  def self.ask_clear
+    MonadicChat.clear_screen if MonadicChat.count_lines_below < 5 && PROMPT_SYSTEM.yes?(" Clear the screen?")
   end
 end
