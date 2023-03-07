@@ -41,16 +41,22 @@ module MonadicChat
   MIN_LENGTH = 5
   TIMEOUT_SEC = 120
 
-  template_dir = File.join(__dir__, "..", "templates")
-  templates = Dir.glob ["#{template_dir}/normal/*.json", "#{template_dir}/research/*.md"]
-  template_map = {}
-  templates.each do |template|
-    absolute_path = File.absolute_path(template)
-    template_label = "#{File.dirname(absolute_path).split("/").last}/#{File.basename(absolute_path, ".*")}"
-    template_map[template_label] = absolute_path
+  APPS_DIR = File.absolute_path(File.join(__dir__, "..", "apps"))
+  APPS_DIR_LIST = Dir.entries(APPS_DIR)
+                     .reject { |entry| /\A\./ =~ entry || /\A_/ =~ entry.split("/").last }
+                     .map { |entry| File.join(APPS_DIR, entry) }
+  templates = {}
+  APPS_DIR_LIST.each do |app|
+    basename = File.basename(app, ".*")
+    normal_mode_template = File.absolute_path(File.join(app, "#{basename}.json"))
+    templates["normal/#{basename}"] = normal_mode_template if File.exist? normal_mode_template
+    research_mode_template = File.absolute_path(File.join(app, "#{basename}.md"))
+    templates["research/#{basename}"] = research_mode_template if File.exist? research_mode_template
   end
+  APPS = APPS_DIR_LIST.map { |dir| File.basename(dir, ".*") }
 
-  TEMPLATES = template_map
+  TEMPLATES = templates
+
   PASTEL = Pastel.new
 
   interrupt = proc do
@@ -101,6 +107,13 @@ module MonadicChat
     }
   CSS
   GITHUB_STYLE = style
+
+  def self.require_apps
+    MonadicChat::APPS_DIR_LIST.each do |app_dir|
+      basename = app_dir.split("/").last
+      require "#{app_dir}/#{basename}"
+    end
+  end
 
   def self.open_readme
     url = "https://github.com/yohasebe/monadic-chat/"

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "monadic_chat"
+require_relative "./monadic_chat"
 
 Thread.abort_on_exception = true
 
@@ -162,7 +162,7 @@ module MonadicChat
           end
           accumulated << val.join("\n\n")
         else
-          contextual << "- **#{key.to_s.capitalize}**: #{val.to_s.strip}"
+          contextual << "- **#{key.split("_").map(&:capitalize).join(" ")}**: #{val.to_s.strip}"
         end
       end
 

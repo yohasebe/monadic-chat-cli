@@ -2,11 +2,8 @@
 
 # frozen_string_literal: true
 
-# require_relative "../lib/monadic_chat"
-require_relative "../lib/apps/chat"
-require_relative "../lib/apps/code"
-require_relative "../lib/apps/novel"
-require_relative "../lib/apps/translate"
+require_relative "../lib/monadic_chat"
+MonadicChat.require_apps
 
 module MonadicApp
   include MonadicChat
@@ -46,7 +43,7 @@ module MonadicApp
       #{PASTEL.on_blue(vpad)}
     BANNER
 
-    research_mode = false
+    mode = "normal"
     openai_completion = nil
     parameter = ""
 
@@ -58,40 +55,33 @@ module MonadicApp
       openai_completion ||= MonadicChat.authenticate
 
       parameter = PROMPT_SYSTEM.select(" Select app:",
-                                       per_page: 7,
+                                       per_page: 10,
                                        cycle: true,
                                        filter: true,
                                        default: 1,
                                        show_help: :never) do |menu|
-        menu.choice "#{BULLET} #{PASTEL.bold("Chat")}      #{Chat::DESC}", "chat"
-        menu.choice "#{BULLET} #{PASTEL.bold("Code")}      #{Code::DESC}", "code"
-        menu.choice "#{BULLET} #{PASTEL.bold("Novel")}     #{Novel::DESC}", "novel"
-        menu.choice "#{BULLET} #{PASTEL.bold("Translate")} #{Translate::DESC}", "translate"
-        if research_mode
-          menu.choice "#{BULLET} #{PASTEL.bold("Mode")}      Switch from #{PASTEL.bold.red("Research")} (current) to #{PASTEL.bold.green("Normal")}", "mode"
-        else
-          menu.choice "#{BULLET} #{PASTEL.bold("Mode")}      Switch from #{PASTEL.bold.green("Normal")} (current) to #{PASTEL.bold.red("Research")}", "mode"
+        APPS.each do |app|
+          next unless TEMPLATES["#{mode}/#{app}"]
+
+          desc = eval("#{app.capitalize}::DESC", binding, __FILE__, __LINE__)
+          menu.choice "#{BULLET} #{PASTEL.bold(app.capitalize)} #{desc}", app
         end
-        menu.choice "#{BULLET} #{PASTEL.bold("Readme")}    Open Readme/Documentation", "readme"
-        menu.choice "#{BULLET} #{PASTEL.bold("Quit")}      Quit/Exit/Bye", "exit"
+
+        case mode
+        when "research"
+          menu.choice "#{BULLET} #{PASTEL.bold("Mode")} Switch from #{PASTEL.bold.red("Research")} (current) to #{PASTEL.bold.green("Normal")}", "mode"
+        when "normal"
+          menu.choice "#{BULLET} #{PASTEL.bold("Mode")} Switch from #{PASTEL.bold.green("Normal")} (current) to #{PASTEL.bold.red("Research")}", "mode"
+        end
+
+        menu.choice "#{BULLET} #{PASTEL.bold("Readme")} Open Readme/Documentation", "readme"
+        menu.choice "#{BULLET} #{PASTEL.bold("Quit")} Quit/Exit/Bye", "exit"
       end
 
       begin
         case parameter
-        when "chat"
-          MonadicChat.clear_screen
-          Chat.new(openai_completion, research_mode: research_mode).run
-        when "code"
-          MonadicChat.clear_screen
-          Code.new(openai_completion, research_mode: research_mode).run
-        when "novel"
-          MonadicChat.clear_screen
-          Novel.new(openai_completion, research_mode: research_mode).run
-        when "translate"
-          MonadicChat.clear_screen
-          Translate.new(openai_completion, research_mode: research_mode).run
         when "mode"
-          research_mode = research_mode ? false : true
+          mode = mode == "normal" ? "research" : "normal"
           next
         when "readme"
           MonadicChat.open_readme
@@ -100,6 +90,9 @@ module MonadicApp
           MonadicChat.clear_screen
           print "#{PASTEL.bold("Bye!")}\n"
           exit
+        else
+          MonadicChat.clear_screen
+          eval(parameter.capitalize, binding, __FILE__, __LINE__).new(openai_completion, research_mode: mode == "research").run
         end
       rescue StandardError
         next

@@ -32,7 +32,5 @@ Make sure the following requirements are all fulfilled:
 - update the value of "tokens" with the number of tokens of the resulting JSON object"
 - escape double quotes and other special characters in the text values in the resulting JSON object
 - increment the value of "turns" by 1 and update the property so that the value of "turns" equals the number of the items in the "messages" of the resulting JSON object
-
-Add "\n\n###\n\n" at the end of the "response" value.
-
-Wrap the JSON object with "<JSON>\n" and "\n</JSON>".
+- add "\n\n###\n\n" at the end of the "response" value.
+- wrap the JSON object with "<JSON>\n" and "\n</JSON>".

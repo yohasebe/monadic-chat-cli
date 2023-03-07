@@ -1,20 +1,20 @@
 # frozen_string_literal: true
 
-require_relative "../app"
+require_relative "../../lib/app"
 
 module MonadicChat
-  class Code < App
-    DESC = "Interactive Program Code Generator"
+  class Chat < App
+    DESC = "Natural Language Chat Agent"
 
     attr_accessor :template, :config, :params, :completion
 
     def initialize(openai_completion, research_mode: false, stream: true)
       @num_retained_turns = 10
       params = {
-        "temperature" => 0.0,
+        "temperature" => 0.3,
         "top_p" => 1.0,
-        "presence_penalty" => 0.0,
-        "frequency_penalty" => 0.0,
+        "presence_penalty" => 0.2,
+        "frequency_penalty" => 0.2,
         "model" => OpenAI.model_name(research_mode: research_mode),
         "max_tokens" => 2000,
         "stream" => stream,
@@ -23,9 +23,9 @@ module MonadicChat
       method = OpenAI.model_to_method(params["model"])
       template = case method
                  when "completions"
-                   TEMPLATES["research/code"]
+                   TEMPLATES["research/chat"]
                  when "chat/completions"
-                   TEMPLATES["normal/code"]
+                   TEMPLATES["normal/chat"]
                  end
       super(params,
             template,
@@ -42,8 +42,12 @@ module MonadicChat
                 res
               when "chat/completions"
                 if res.size > @num_retained_turns * 2 + 1
-                  res.delete_at 1
-                  res.delete_at 1
+                  res.each_with_index do |ele, i|
+                    if ele["role"] != "system"
+                      res.delete_at i
+                      break
+                    end
+                  end
                 end
                 res
               end

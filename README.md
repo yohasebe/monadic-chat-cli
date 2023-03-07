@@ -1,21 +1,42 @@
 <img src="./doc/img/monadicchat.png" width="480px"/>
 
-Highly configurable CLI app for OpenAI's chat/text completion API
+Highly configurable CLI client app for OpenAI's chat/text-completion API
 
 ## Table of Contents
+
+<!-- vim-markdown-toc GFM -->
 
 - [Introduction](#introduction)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
+  - [Using RubyGems](#using-rubygems)
+  - [Clone the GitHub repository](#clone-the-github-repository)
 - [Usage](#usage)
+  - [Authentication](#authentication)
+  - [Select App](#select-app)
 - [System-Wide Features](#system-wide-features)
 - [Apps](#apps)
-- [Creating New Apps](#creating-new-apps)
+  - [Chat](#chat)
+  - [Code](#code)
+  - [Novel](#novel)
+  - [Translation](#translation)
 - [Modes](#modes)
-- [Controlling Discourse](#controlling-discourse)
+  - [Normal Mode](#normal-mode)
+  - [Research Mode](#research-mode)
+- [How Research Mode Works](#how-research-mode-works)
+  - [Accumulator](#accumulator)
+  - [Implementation of Reducer](#implementation-of-reducer)
+- [Creating New Apps](#creating-new-apps)
+  - [Folder/File Structure](#folderfile-structure)
+  - [Case Study: `Parsing` App](#case-study-parsing-app)
+- [What is Monadic about Monadic Chat?](#what-is-monadic-about-monadic-chat)
+- [Todo](#todo)
+- [References](#references)
 - [Contributing](#contributing)
 - [Author](#author)
 - [License](#license)
+
+<!-- vim-markdown-toc -->
 
 ## Introduction
 
@@ -23,7 +44,7 @@ Highly configurable CLI app for OpenAI's chat/text completion API
 
 The conversation with the AI can be saved in a JSON file, and the saved JSON file can be loaded later to continue the conversation. The conversation data can also be converted to HTML format and displayed in a web browser.
 
-Monadic Chat comes with four apps (`Chat`, `Code`, `Novel`, and `Translate`). Each can generate a different kind of text through interactive interaction between the user and OpenAI's large-scale language model. Users can also create their own apps (documentation in preparation).
+Monadic Chat comes with four apps (`Chat`, `Code`, `Novel`, and `Translate`). Each can generate a different kind of text through interactive interaction between the user and OpenAI's large-scale language model. Users can also create their own apps.
 
 ## Prerequisites
 
@@ -128,9 +149,13 @@ You can set parameters to be sent to OpenAI's text completion AI and chat API. T
 
 In `normal` mode, running this function only displays the history of conversation so far between User and GPT. In `research` mode, meta-information (e.g. topics, language being used, number of turns)values are presented.
 
+In `research` mode, it may take several seconds to several minutes after the `data/context` command is executed before the actual data is displayed. This is because in `research` mode, even after displaying a direct response to user input, there may be a process running in the background that retrieves the context data and reconstructs it as needed, requiring the system to wait for it to finish.
+
 **html**
 
 All the information retrieved by running `data/context` function is presented in an HTML format. The HTML file is automatically opened in the default web browser.
+
+In `research` mode, it may take several seconds to several minutes after the `html` command is executed before the acutal HTML is displayed. This is because in `research` mode, even after displaying a direct response to user input, there may be a process running in the background that retrieves the context data and reconstructs it as needed, requiring the system to wait for it to finish.
 
 **reset**
 
@@ -182,13 +207,9 @@ Monadic Chat's `Translation` is an app that assists in translating text written 
 - The JSON instructions for this app's behavior in `normal` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/templates/normal/translation.json).
 - The Markdown instructions for this app's behavior in `research` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/templates/research/translation.md).
 
-## Creating New Apps
-
-*In preparation*
-
 ## Modes
 
-Monadic Chat has two modes. The `normal` mode utilizes OpenAI's chat API to achieve ChatGPT-like functionality and is suitable for using a large language model as a competent companion to achieve various goals. On the other hand, the `research` mode utilizes OpenAI's text-completion API. Since this mode allows for the acquisition of various metadata at each turn of the conversation, it can be used as a platform for the linguistic (especially pragmatic) examination of how the natural language dialogues unfold
+Monadic Chat has two modes. The `normal` mode utilizes OpenAI's chat API to achieve ChatGPT-like functionality and is suitable for using a large language model as a competent companion to achieve various goals. On the other hand, `research` mode utilizes OpenAI's text-completion API. Since this mode allows for the acquisition of various metadata at each turn of the conversation, it can be used as a platform for the linguistic (especially pragmatic) examination of how the natural language dialogues unfold
 
 ### Normal Mode
 
@@ -202,21 +223,127 @@ If you wish to specify how contextual inheritance is to be performed in a dialog
 
 In `research` mode, Open AI's text-completion API is used. The default language model is `text-davinci-003`.
 
-Although the text-completion API is not a system optimized for chat-style dialogue, it can be used in conjunction with a mechanism for inputting and outputting contextual information in a monadic structure to realize an interactive dialogue system. Such a mechanism also has the advantage that various metadata can be obtained at each turn of the dialogue.
+Although the text-completion API is not a system optimized for chat-style dialogue, it can be used in conjunction with a mechanism for inputting and outputting contextual information in a monad structure to realize an interactive dialogue system. Such a mechanism also has the advantage that various metadata can be obtained at each turn of the dialogue.
 
 In the default configuration, when the number of tokens in the response from the GPT (which includes contextual information and thus increases with each turn) reaches a certain value, the oldest messages are deleted.
 
 If you wish to specify how contextual inheritance is to be performed in a dialog between USER and GPT, you can do so by writing a Proc object that encapsulates a Ruby function. Since various meta-information is available in this mode, finer-grained control is possible (documentation in progress).
 
-## Controlling Discourse
+## How Research Mode Works
 
-### Design of Accumulator
+Monadic Chat's `research` mode has the following drawbacks
+
+- It uses OpenAI's `text-davinci-003` model and the response from the AI is not as detailed as in the `normal` mode that uses `gpt-3.5-turbo`
+- After displaying a direct response to user input, contextual information is processed in the background, which can cause lag when referring to conversation history and the like
+- Templates are larger and more complex in `research` mode and it requires more efort to create and fine-tun.
+- Compared to `normal` mode, `research` mode has larger input/output and consumes more tokens
+- Compared to the chat API used in `normal` mode, the text-completion API used in `research` mode is more expensive.
+
+However, Monadic Chat has `research` mode for the following reasons
+
+- 会話のターンごとにメインのレスポンスだけでなく、メタデータを取得することができる
+- 会話の履歴だけでなく取得したメタデータにも基づいた会話の流れのコントロールができる
+- 自然言語による談話のモナド的性質を模した構造を実現できる
+
+- in `research` mode, each turn of the conversation can capture metadata as well as the main responses
+- can control the flow of the conversation based on the captured metadata as well as the conversation history
+- has an overall structure that mimics the monadic nature of natural language discourse
+
+- 会話の各ターンで主な応答だけでなく、メタデータを取り込むことが可能 ・会話の履歴だけでなく、取り込んだメタデータに基づいて会話の流れを制御することが可能 ・自然言語談話のモナド性を模倣した構造
+
+
+<img src="./doc/img/how-research-mode-works.svg" width="900px"/>
+
+### Accumulator
 
 *In preparation*
 
 ### Implementation of Reducer
 
 *In preparation*
+
+## Creating New Apps
+
+This section describes how users can create their own original Monadic Chat app.
+
+### Folder/File Structure
+
+Monadic Chat apps are placed in the `apps` folder. The folders and files for default apps `chat`, `code`, `novel` and `translate` are also placed in this folder. To create a new app, create a new folder inside `apps`.
+
+```
+apps
+├── chat
+│   ├── chat.json
+│   ├── chat.md
+│   └── chat.rb
+├── code
+│   ├── code.json
+│   ├── code.md
+│   └── code.rb
+├── novel
+│   ├── novel.json
+│   ├── novel.md
+│   └── novel.rb
+└─── translate
+    ├── translate.json
+    ├── translate.md
+    └── translate.rb
+```
+
+Notice in the figure above that three files with the same name but different extensions (`.rb`, `.json`, and `.md`) are stored under their respective folders. Similarly, when creating a new app, you create these three types of files under a folder with the same name as the app name, as shown below.
+
+```
+apps
+└─── app_name
+    ├── app_name.json
+    ├── app_name.md
+    └── app_name.rb
+```
+
+The purpose of each file is as follows.
+
+- `app_name.rb`: Ruby code to control the conversation log and flow of the dialog
+- `app_name.json`:JSON template file describing GPT behavior in `normal` mode
+- `app_name.md`:Markdown template file describing GPT behavior in `research` mode
+
+The `.rb` file is required, but you may create both `.json` and `.md` files, or only one of them. See the next section on how to write these files.
+
+Folders beginning with `_` and their contents are ignored. Template files with a name beginning with `_` are also ignored.
+
+### Case Study: `Parsing` App
+
+*In preparation*
+
+## What is Monadic about Monadic Chat?
+
+A monad is a type of data structure in functional programming (leaving aside for the moment the notion of monad in mathematical category theory). An element with a monadic structure can be manipulated in a certain way to change its internal data. However, no matter how much the internal data changes, the external structure of the monadic element remains the same and can be manipulated in exactly the same way as it was at first.
+
+We are surrounded by many such monadic entities, and natural language discourse is one of them. A "chat" between a human user and an AI can be thought of as a form of natural language discourse, which is monadic in nature. If so, an application that provides an interactive interface to a large-scale language model, such as ChatGPT, would most naturally be designed in a "functional" way, taking into account the monadic nature of natural language discourse.
+
+There are many "functional" programming languages, such as Haskell, that have monads as a core feature. However, Monadic Chat was developed using the Ruby programming language. This is because with Ruby, it would be easier for users to write their own apps (in the author's rather subjective opinion). It is true that Ruby, which incorporates some features of functional languages, is not classified as a "functional language." Monadic Chat has the following three features required of a monad, and in this sense, it can be considered "monadic."
+
+- ***unit*** : a monad framework has a means of taking data and enclosing it in a monad structure 
+- ***bind*** : a monadic framework has a means of performing some operation on the data and enclosing the result in a monad structure
+- ***join*** : a monad framework has a means of flattening a structure with multiple monad layers into a single layer 
+
+## Todo
+
+- Improved error handling mechanisms
+- Development of DSL to define GPT behavior
+- Scafolding feature to quickly build new apps
+
+## References
+
+I would appreciate it if you would use one of the following Bibtex entries when referring to Monadic Chat.
+
+```
+@misc{rsyntaxtree_2023,
+  author = {Yoichiro Hasebe},
+  title = { Highly configurable CLI client app for OpenAI’s chat/text-completion API }
+  url = {https://github.com/yohasebe/monadic-chat},
+  year = {2023}
+}
+```
 
 ## Contributing
 
