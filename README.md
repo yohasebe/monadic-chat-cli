@@ -241,16 +241,9 @@ Monadic Chat's `research` mode has the following drawbacks
 
 However, Monadic Chat has `research` mode for the following reasons
 
-- 会話のターンごとにメインのレスポンスだけでなく、メタデータを取得することができる
-- 会話の履歴だけでなく取得したメタデータにも基づいた会話の流れのコントロールができる
-- 自然言語による談話のモナド的性質を模した構造を実現できる
-
 - in `research` mode, each turn of the conversation can capture metadata as well as the main responses
 - can control the flow of the conversation based on the captured metadata as well as the conversation history
 - has an overall structure that mimics the monadic nature of natural language discourse
-
-- 会話の各ターンで主な応答だけでなく、メタデータを取り込むことが可能 ・会話の履歴だけでなく、取り込んだメタデータに基づいて会話の流れを制御することが可能 ・自然言語談話のモナド性を模倣した構造
-
 
 <img src="./doc/img/how-research-mode-works.svg" width="900px"/>
 
