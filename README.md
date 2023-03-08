@@ -476,11 +476,7 @@ Make sure the following formal requirements are all fulfilled:
 - wrap the JSON object with "<JSON>\n" and "\n</JSON>".
 ```
 
-ここでは、APIを通じて返されるレスポンスの形式の詳細についての指示を行っています。JSONは実質的にはテキストデータであり、一部の文字については適切にエスケープされている必要があります。また、OpenAIのtext-completion APIで利用できる言語モデルは（`temperature`パラメターが`0.0`の場合であっても）若干の不確実性をもつため、Monadic Chatがなるべく確実にJSONオブジェクトを受け取れるように、`<JSON>...</JSON>`タグで全体を囲むことを指示しています。
-
-また、現時点では、ユーザーからの入力に対するGPTからのメインのレスポンスの文字列の末尾には `\n\n###\n\n`という文字列をつけることを要請しています。これは、ストリーミングAPIで送られてくる文字列を処理する際に、レスポンス文字列が末尾に到達したことを検知して、ユーザーにレスポンスをできるだけ早いタイミングで表示するための仕組みです。
-
-Included here are the details on the format of the response returned through the API. JSON is essentially text data, and some characters must be properly escaped. Also, since the language model available in OpenAI's text-completion API is subject to some indeterminancy (even when the `temperature` parameter is `0.0`), to ensure that Monadic Chat receives the JSON object as reliably as possible, Monadic Chat requires `< JSON>... </JSON>` tags to enclose the whole JSON data.
+It contains the details on the format of the response returned through the API. JSON is essentially text data, and some characters must be properly escaped. Also, since the language model available in OpenAI's text-completion API is subject to some indeterminancy (even when the `temperature` parameter is `0.0`), to ensure that Monadic Chat receives the JSON object as reliably as possible, Monadic Chat requires `< JSON>... </JSON>` tags to enclose the whole JSON data.
 
 Currently, Monadic Chat requires that the main response to user input end with the string `\n\n####\n\n`. This is part of the mechanism to detect when the response string sent by the streaming API reaches the end and display the response to the user as soon as possible. (The boundary string may be changed in the future.)
 
