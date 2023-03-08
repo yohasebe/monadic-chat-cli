@@ -286,15 +286,15 @@ module MonadicChat
   end
 
   def self.ask_clear
-    return unless MonadicChat.count_lines_below < 5
+    screen_height = TTY::Screen.height
+    lines_below = MonadicChat.count_lines_below
+    gap = screen_height - (lines_below + 1)
+    return if lines_below < 5
 
-    print TTY::Cursor.save
-    res = PROMPT_SYSTEM.yes?(" Clear the screen?")
-    if res
-      MonadicChat.clear_screen
-    else
-      print TTY::Cursor.restore
-      MonadicChat.clear_region_below
+    gap.times do
+      print TTY::Cursor.scroll_down
+      sleep 0.01
     end
+    print TTY::Cursor.move_to(0, 0)
   end
 end
