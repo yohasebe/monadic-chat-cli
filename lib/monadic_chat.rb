@@ -288,13 +288,14 @@ module MonadicChat
   def self.check_lines_below
     screen_height = TTY::Screen.height
     lines_below = MonadicChat.count_lines_below
-    gap = screen_height - (lines_below + 1)
+    quarter_screen = screen_height / 4
+    gap = screen_height - (lines_below + 1 + quarter_screen)
     return unless lines_below < 3
 
     gap.times do
       print TTY::Cursor.scroll_down
       sleep 0.01
     end
-    print TTY::Cursor.move_to(0, 0)
+    print TTY::Cursor.move_to(0, quarter_screen)
   end
 end
