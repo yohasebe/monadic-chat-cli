@@ -50,7 +50,8 @@ module MonadicApp
     loop do
       MonadicChat.clear_screen
       TTY::Cursor.clear_screen_down
-      print TTY::Box.frame banner.strip
+      # print TTY::Box.frame banner.strip
+      print "\n", banner.strip, "\n\n"
 
       openai_completion ||= MonadicChat.authenticate
 
@@ -78,7 +79,7 @@ module MonadicApp
         menu.choice "#{BULLET} #{PASTEL.bold("Quit")} Quit/Exit/Bye", "exit"
       end
 
-      begin
+      # begin
         case parameter
         when "mode"
           mode = mode == "normal" ? "research" : "normal"
@@ -94,9 +95,9 @@ module MonadicApp
           MonadicChat.clear_screen
           eval(parameter.capitalize, binding, __FILE__, __LINE__).new(openai_completion, research_mode: mode == "research").run
         end
-      rescue StandardError
-        next
-      end
+      # rescue StandardError
+      #   next
+      # end
     end
   end
 end

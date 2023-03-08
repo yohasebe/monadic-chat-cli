@@ -5,6 +5,7 @@ require_relative "../../lib/app"
 module MonadicChat
   class Code < App
     DESC = "Interactive Program Code Generator"
+    COLOR = "blue"
 
     attr_accessor :template, :config, :params, :completion
 

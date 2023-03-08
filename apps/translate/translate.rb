@@ -5,6 +5,7 @@ require_relative "../../lib/app"
 module MonadicChat
   class Translate < App
     DESC = "Interactive Multilingual Translator"
+    COLOR = "yellow"
 
     attr_accessor :template, :config, :params, :completion
 

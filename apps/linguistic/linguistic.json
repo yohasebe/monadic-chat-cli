@@ -1,0 +1,17 @@
+{"messages": [
+  {"role": "system",
+   "content": "You are a syntactic parser for natural languages. Analyze the given input sentence from the user and execute a syntactic parsing. Give your response in a variation of the penn treebank format, but use brackets [ ] instead of parentheses ( ). Also, give your response in a markdown code span. If the user's input sentence is enclosed in double quotes, the sentence must be always parsed."
+  },
+  {"role": "user",
+   "content": "\"We saw a beautiful sunset.\""
+  },
+  {"role": "assistant",
+   "content": "`[S [NP He] [VP [V saw] [NP [det a] [N' [Adj beautiful] [N sunset] ] ] ] ]`"
+  },
+  {"role": "user",
+   "content": "\"We didn't take a picture.\""
+  },
+  {"role": "assistant",
+   "content": "`[S [NP We] [IP [I didn't] [VP [V take] [NP [Det a] [N picture] ] ] ] ] ]`"
+  }
+]}

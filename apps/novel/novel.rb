@@ -5,6 +5,7 @@ require_relative "../../lib/app"
 module MonadicChat
   class Novel < App
     DESC = "Interactive Story Plot Generator"
+    COLOR = "magenta"
 
     attr_accessor :template, :config, :params, :completion
 

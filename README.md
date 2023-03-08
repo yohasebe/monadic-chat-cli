@@ -2,39 +2,47 @@
 
 Highly configurable CLI client app for OpenAI's chat/text-completion API
 
+> **Note**  
+> This software is *under active development* and the latest version may behave slightly differently than this documentation. Also, the specifications may change in the future. Please use this software with these in mind.
+
 ## Table of Contents
 
 <!-- vim-markdown-toc GFM -->
 
-- [Introduction](#introduction)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-  - [Using RubyGems](#using-rubygems)
-  - [Clone the GitHub repository](#clone-the-github-repository)
-- [Usage](#usage)
-  - [Authentication](#authentication)
-  - [Select App](#select-app)
-- [System-Wide Features](#system-wide-features)
-- [Apps](#apps)
-  - [Chat](#chat)
-  - [Code](#code)
-  - [Novel](#novel)
-  - [Translation](#translation)
-- [Modes](#modes)
-  - [Normal Mode](#normal-mode)
-  - [Research Mode](#research-mode)
-- [How Research Mode Works](#how-research-mode-works)
-  - [Accumulator](#accumulator)
-  - [Implementation of Reducer](#implementation-of-reducer)
-- [Creating New Apps](#creating-new-apps)
-  - [Folder/File Structure](#folderfile-structure)
-  - [Case Study: `Parsing` App](#case-study-parsing-app)
-- [What is Monadic about Monadic Chat?](#what-is-monadic-about-monadic-chat)
-- [Todo](#todo)
-- [References](#references)
-- [Contributing](#contributing)
-- [Author](#author)
-- [License](#license)
+* [Introduction](#introduction)
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+  * [Using RubyGems](#using-rubygems)
+  * [Clone the GitHub repository](#clone-the-github-repository)
+* [Usage](#usage)
+  * [Authentication](#authentication)
+  * [Select App](#select-app)
+* [System-Wide Features](#system-wide-features)
+* [Apps](#apps)
+  * [Chat](#chat)
+  * [Code](#code)
+  * [Novel](#novel)
+  * [Translation](#translation)
+* [Modes](#modes)
+  * [Normal Mode](#normal-mode)
+  * [Research Mode](#research-mode)
+* [What is Research Mode?](#what-is-research-mode)
+  * [How Research Mode Works](#how-research-mode-works)
+  * [Accumulator](#accumulator)
+  * [Reducer](#reducer)
+* [Creating New Apps](#creating-new-apps)
+  * [Folder/File Structure](#folderfile-structure)
+  * [Reducer Code](#reducer-code)
+  * [Template for `Normal` Mode](#template-for-normal-mode)
+  * [Template for `Research` Mode](#template-for-research-mode)
+* [What is Monadic about Monadic Chat?](#what-is-monadic-about-monadic-chat)
+  * [Unit, Bind, and Join](#unit-bind-and-join)
+  * [Discourse Management Object](#discourse-management-object)
+* [Future Plans](#future-plans)
+* [References](#references)
+* [Contributing](#contributing)
+* [Author](#author)
+* [License](#license)
 
 <!-- vim-markdown-toc -->
 
@@ -62,7 +70,7 @@ Monadic Chat comes with four apps (`Chat`, `Code`, `Novel`, and `Translate`). Ea
 
 Execute the following command in an environment where Ruby 2.6 or higher is installed.
 
-```
+```text
 gem install monadic_chat
 ```
 
@@ -72,26 +80,26 @@ Alternatively, clone the code from the GitHub repository and follow the steps be
 
 1. Clone the repo
 
-```
+```text
 git clone https://github.com/yohasebe/monadic-chat.git
 ```
 
 2. Install dependencies
 
-```
+```text
 cd monadic-chat
 bundle update
 ```
 
 3. Grant permission to the executable file
 
-```
+```text
 chmod +x ./bin/monadic
 ```
 
 4. Run the executable file
 
-```
+```text
 ./bin/monadic
 ```
 
@@ -183,29 +191,30 @@ Exits the Monadic Chat app.
 
 Monadic Chat's `Chat` is the most basic and generic app among others offered by default. As with ChatGPT, there can be many variations in the content of the conversation. In the `Chat` app, OpenAI's large-scale language model acts as a competent assistant that can do anything. It can write computer code, create fiction and poetry texts, and translate texts from one language into another. Of course, it can also engage in casual or academic discussions on specific topics.
 
-- The JSON instructions for this app's behavior in `normal` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/templates/normal/chat.json).
-- The Markdown instructions for this app's behavior in `research` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/templates/research/chat.md).
+- The JSON instructions for this app's behavior in `normal` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/apps/chat/chat.json).
+- The Markdown instructions for this app's behavior in `research` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/apps/chat/chat.md).
+
 
 ### Code
 
 Monadic Chat's `Code` is designed to be an app that has artificial intelligence write computer programs. In the `Code` app, OpenAI's large language model behaves as a competent software engineer. The main difference from the `Chat` app is that the `temperature` parameter is set to `0.0`, so that as less randomness as possible is introduced to the responses. Syntax highlighting is applied (where possible) to the program code contained in the GPT responses. The same is true for the output via the `html` command available from the functions menu.
 
-- The JSON instructions for this app's behavior in `normal` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/templates/normal/code.json).
-- The Markdown instructions for this app's behavior in `research` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/templates/research/code.md).
+- The JSON instructions for this app's behavior in `normal` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/apps/code/code.json).
+- The Markdown instructions for this app's behavior in `research` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/apps/code/code.md).
 
 ### Novel
 
 Monadic Chat's `Novel` is designed to have artificial intelligence create novels; the `Novel` application instructs OpenAI's large-scale language model to create more detailed sentences based on a topic, theme, or brief description of an event indicated by the user. GPT is instructed to create a new response based on what it generated in previous responses. The app allows the user to interact with GPT and control the plot, rather than having the AI create a new novel all at once.
 
-- The JSON instructions for this app's behavior in `normal` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/templates/normal/novel.json).
-- The Markdown instructions for this app's behavior in `research` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/templates/research/novel.md).
+- The JSON instructions for this app's behavior in `normal` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/apps/novel/novel.json).
+- The Markdown instructions for this app's behavior in `research` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/apps/novel/novel.md).
 
 ### Translation
 
 Monadic Chat's `Translation` is an app that assists in translating text written in one language into another. Rather than translating the entire text at once, the app allows users to translate in stages and make any necessary adjustments. Users can specify the expressions they would like GPT to use in parentheses ( ) in the source text. For problematic translations, the user can "save" the set of source and target texts and make the necessary corrections. By giving the app the corrected translation data, similar unwanted expressions can be prevented or avoided.
 
-- The JSON instructions for this app's behavior in `normal` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/templates/normal/translation.json).
-- The Markdown instructions for this app's behavior in `research` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/templates/research/translation.md).
+- The JSON instructions for this app's behavior in `normal` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/apps/translation/translation.json).
+- The Markdown instructions for this app's behavior in `research` mode can be found [here](https://github.com/yohasebe/monadic-chat/blob/main/apps/translation/translation.md).
 
 ## Modes
 
@@ -229,7 +238,7 @@ In the default configuration, when the number of tokens in the response from the
 
 If you wish to specify how contextual inheritance is to be performed in a dialog between USER and GPT, you can do so by writing a Proc object that encapsulates a Ruby function. Since various meta-information is available in this mode, finer-grained control is possible (documentation in progress).
 
-## How Research Mode Works
+## What is Research Mode?
 
 Monadic Chat's `research` mode has the following drawbacks
 
@@ -239,31 +248,90 @@ Monadic Chat's `research` mode has the following drawbacks
 - Compared to `normal` mode, `research` mode has larger input/output and consumes more tokens
 - Compared to the chat API used in `normal` mode, the text-completion API used in `research` mode is more expensive.
 
-However, Monadic Chat has `research` mode for the following reasons
+However, Monadic Chat has `research` mode for the following reasons:
 
-- in `research` mode, each turn of the conversation can capture metadata as well as the main responses
-- can control the flow of the conversation based on the captured metadata as well as the conversation history
-- has an overall structure that mimics the monadic nature of natural language discourse
+- In `research` mode, each turn of the conversation can capture **metadata** as well as the **main responses**
+- You can define the **accumulator** and **reducer** mechanism and control the **flow** of the conversation
+- It has an overall structure that mimics the **monadic** nature of natural language discourse
+
+### How Research Mode Works
+
+Below is a schematic illustration of the interaction with the API in `research` mode.
 
 <img src="./doc/img/how-research-mode-works.svg" width="900px"/>
 
+The terms shown in bold in the figure are explained below.
+
+- **Input** is a string entered by the user on the command line. The input is sent to the API as a replacement for the `{{NEW PROMPT}}` placeholder in the template.
+- The **template** contains conversation data in JSON format and instructions on how this data should be updated by the text-completion API. More details are given in the [Creating New Apps]("#creating-new-apps") section below.
+- **prompt** can be used in two different ways: in one sense, it means text input from the user. In the figure above, however, "prompt" refers to the contents of the template as a whole, which is sent to the API.
+- The text-completion API returns a JSON object in the format specified in the template. The response to the user's **input** is referred to as **output**, both of which are contained in the returned JSON object. The result data from the text-completion API consists of an updated version of the given JSON object, one that is modified according to the instruction and the user's input contained in the template.
+- The JSON object contains a list of the conversation history, which is referred to as the **accum** (accumulator) in the figure. Each turn of the conversation accumulates the exchange stored in the accumulator.
+- To prevent the accumulator from swelling excessivly, a **reducer** must be defined in the Monadic Chat app. For example, The reducer will delete old exchanges when the number of turns exceeds a certain number, for instance.
+
 ### Accumulator
 
-*In preparation*
+The `normal` mode uses OpenAI's chat API, where the following structure must be used for conversation history management.
 
-### Implementation of Reducer
+```json
+{"messages": [
+  {"role": "system", "content": "You are a friendly but professional consultant who answers various questions ... "},
+  {"role": "user", "content": "Can I ask something?"},
+  {"role": "assistant", "content": "Sure!"}
+]}
+```
+The `research` mode accumulator is similar to this in form. 
 
-*In preparation*
+### Reducer
+
+Currently the reducer mechanism must be implemented in Ruby code for each app. In many cases, it would be sufficient to keep the size of the accumulator within a certain range by deleting old messages when a certain number of conversation turns are reached. Other possible implementations include the following.
+
+**Example 1**
+
+- Retrieve the current conversation topic as metadata at each turn and delete old exchanges if the conversation topic has changed.
+- Even if the old exchange is deleted, the metadata about the conversation topic should be retained in list form.
+
+**Example 2**
+
+- At the end of a given turn, the reducer writes the history of the conversation up to that point to an external file and delete it from the accumulator. - A summary of the deleted content is put back into the accumulator as an annotation with the `system` role, and the conversation continues.
+
+**Example 2** 
+
+- After a certain number of turns, the reducer writes the history of the conversation up to that point to an external file and delete it from the accumulator.
+- A summary of the deleted content is returned to the accumulator as an annotation message by the `system`, and the conversation continues with that summary information as context.
+
+The Ruby implementation of "reducer" mechanism for each default app can be found below:
+
+- [Chat](https://github.com/yohasebe/monadic-chat/blob/main/apps/chat/chat.rb)
+- [Code](https://github.com/yohasebe/monadic-chat/blob/main/apps/code/code.rb)
+- [Novel](https://github.com/yohasebe/monadic-chat/blob/main/apps/novel/novel.rb)
+- [Translation](https://github.com/yohasebe/monadic-chat/blob/main/apps/translation/translation.rb)
 
 ## Creating New Apps
 
-This section describes how users can create their own original Monadic Chat app.
+This section describes how users can create their own original Monadic Chat app. 
+
+As an example, we create an app named `linguistic`. It will do the following for the input sentence from the user *all at the same time* :
+
+- Display the results of syntactic analysis as a main response
+- Classify syntactic types ("declarative", "interrogative", "imperative", "exclamatory", etc.)
+- Perform sentiment analysis ("happy", "sad", "troubled", "sad ", etc.)
+- Write a piece of text summarizing the user's input up to the point
+
+The specifications for the command line user interface are as follows
+
+- Sentences to be parsed must be enclosed in double quotes so that the AI does not take the input as some kind of direction
+- How to process inputs that are not enclosed in double quotes is left to the AI
+- Syntactically analyzed data shall be formatted in Penn Treebank format. However, square brackets [ ] are used instead of parentheses ( ).
+- Syntactically analyzed data will be returned in the form of Markdown inline code
+
+The use of square brackets in the notation of syntactic analysis here is to conform to the format of [RSyntaxTree](https://yohasebe.com/rsyntaxtree), a tree-drawing program for linguistic research developed by the author of Monadic Chat.
 
 ### Folder/File Structure
 
 Monadic Chat apps are placed in the `apps` folder. The folders and files for default apps `chat`, `code`, `novel` and `translate` are also placed in this folder. To create a new app, create a new folder inside `apps`.
 
-```
+```text
 apps
 ├── chat
 │   ├── chat.json
@@ -283,29 +351,138 @@ apps
     └── translate.rb
 ```
 
-Notice in the figure above that three files with the same name but different extensions (`.rb`, `.json`, and `.md`) are stored under their respective folders. Similarly, when creating a new app, you create these three types of files under a folder with the same name as the app name, as shown below.
+Notice in the figure above that three files with the same name but different extensions (`.rb`, `.json`, and `.md`) are stored under their respective folders. Similarly, when creating a new app, you create these three types of files under a folder with the same name as the app name.
 
-```
+```text
 apps
-└─── app_name
-    ├── app_name.json
-    ├── app_name.md
-    └── app_name.rb
+└─── linguistic
+    ├── linguistic.json
+    ├── linguistic.md
+    └── linguistic.rb
 ```
 
 The purpose of each file is as follows.
 
-- `app_name.rb`: Ruby code to control the conversation log and flow of the dialog
-- `app_name.json`:JSON template file describing GPT behavior in `normal` mode
-- `app_name.md`:Markdown template file describing GPT behavior in `research` mode
+- `linguistic.rb`: Ruby code to define the "reducer"
+- `linguistic.json`:JSON template file describing GPT behavior in `normal` mode
+- `linguistic.md`:Markdown template file describing GPT behavior in `research` mode
 
-The `.rb` file is required, but you may create both `.json` and `.md` files, or only one of them. See the next section on how to write these files.
+The `.rb` file is required, but you may create both `.json` and `.md` files, or only one of them. See the next section on how to write these files. Folders beginning with `_` and their contents are ignored. Template files with a name beginning with `_` are also ignored.
 
-Folders beginning with `_` and their contents are ignored. Template files with a name beginning with `_` are also ignored.
+### Reducer Code
 
-### Case Study: `Parsing` App
+For our purposes, we do not need to make the reducer do anything special. So, copy the code from the default `Chat` app, make a small modification such as changing the class name, and save it as `apps/linguistic/linguistic.rb`.
 
-*In preparation*
+### Template for `Normal` Mode
+
+In `normal` mode, it is difficult to achieve all the necessary functions shown earlier. However, it is possible to define requirements for the user interface and display the results of syntactic analysis. Create a JSON file `apps/linguistic/linguistic.rb` and save it with the following contents:
+
+```json
+{"messages": [
+  {"role": "system",
+   "content": "You are a syntactic parser for natural languages. Analyze the given input sentence from the user and execute a syntactic parsing. Give your response in a variation of the penn treebank format, but use brackets [ ] instead of parentheses ( ). Also, give your response in a markdown code span. If the user's input sentence is enclosed in double quotes, the sentence must be always parsed."},
+  {"role": "user", "content": "\"We saw a beautiful sunset.\""},
+  {"role": "assistant",
+   "content": "`[S [NP He] [VP [V saw] [NP [det a] [N' [Adj beautiful] [N sunset] ] ] ] ]`"},
+  {"role": "user", "content": "\"We didn't take a picture.\"" },
+  {"role": "assistant",
+   "content": "`[S [NP We] [IP [I didn't] [VP [V take] [NP [Det a] [N picture] ] ] ] ] ]`"}
+]}
+```
+
+This is exactly the specification specified in [OpenAI's chat API](https://platform.openai.com/docs/guides/chat). In fact, Monadic Chat's `normal` mode is just a client application that uses this API to achieve ChatGPT-like functionality on the command line.
+
+### Template for `Research` Mode
+
+The template in `research` mode is a Markdown file consisting of five sections. The role and content of each section is shown in the following figure.
+
+<img src="./doc/img/research-mode-template.svg" width="500px"/>
+
+Below we will look at the `research` mode template for the `linguistic` app, section by section.
+
+**Main Section**
+
+```markdown
+You are a natural language syntactic/semantic/pragmatic analyzer. Analyze the new prompt from the user below and execute a syntactic parsing. Give your response in a variation of the penn treebank format, but use brackets [ ] instead of parentheses ( ). Also, give your response in a markdown code span. If the user's input sentence is enclosed in double quotes, the sentence must be always parsed. Create a response to the following new prompt from the user and set your response to the "response" property of the JSON object shown below. All prompts by "user" in the "messages" property are continuous in content. 
+```
+
+The text content here is essentially the same as the text included in the template for the `normal` mode in an instruction message by `system`. However, note that it contains an instruction that the response from GPT through the API should be presented in the form of a JSON object as shown below.
+
+**New Prompt**
+
+```markdown
+NEW PROMPT: {{PROMPT}}
+```
+
+Monadic ChatはテンプレートをAPIを通じて送るときに`{{PROMPT}}`をユーザーからの入力で置き換えます。
+
+**JSON Object**
+
+```json
+{
+  "prompt": "\"We didn't have a camera.\"",
+  "response": "`[S [NP We] [VP [V didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`\n\n###\n\n",
+  "mode": "parsing",
+  "turns": 2,
+  "sentence_type": ["declarative"],
+  "sentiment": ["sad"],
+  "summary": "The user saw a beautiful sunset, but did not take a picture because the user did not have a camera.",
+  "tokens": 351,
+  "messages": [{"user": "\"We saw a beautiful sunset.\"", "assistant": "`[S [NP He] [VP [V saw] [NP [det a] [N' [Adj beautiful] [N sunset] ] ] ] ]`\n\n###\n\n" },
+               {"user": "\"We didn't take a picture.\"", "assistant": "`[S [NP We] [IP [I didn't] [VP [V take] [NP [Det a] [N picture] ] ] ] ] ]`\n\n###\n\n" },
+               {"user": "\"We didn't have a camera.\"", "assistant": "`[S [NP We] [IP [I didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`\n\n###\n\n" }
+              ]
+}
+```
+
+This is the core part of the `research` mode template. Note that the entire `research` mode template is written in Markdown format, so the above JSON object is actually separated from the rest of the template by a code fence as shown below.
+
+    ```json
+    {
+      "prompt": . . .
+      . . .
+      "messages": . . .
+    }
+    ```  
+
+The required properties of this JSON object are `prompt`, `response`, and `messages`. Other properties are optional. The format of the `messages` property is similar to that of the `normal` mode (i.e., OpenAI's chat API), but it is structured as a list of objects whose keys are `user` and `assistant` to make it easier to describe.
+
+**Content Requirements**
+
+```markdown
+Make sure the following content requirements are all fulfilled:
+
+- keep the value of the "mode" property at "parsing"
+- set the new prompt to the "prompt" property
+- create your response to the new prompt in accordance with the "messages" and set it to "response"
+- insert both the new prompt and the response after all the existing items in the "messages"
+- analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
+- analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
+- summarize the user's messages so far and update the "summary" property with a text less than 100 words.
+- update the value of "tokens" with the number of tokens of the resulting JSON object"
+- increment the value of "turns" by 1 and update the property so that the value of "turns" equals the number of the items in the "messages" of the resulting JSON object
+```
+
+Note that all the properties of the JSON object above are mentioned here and how GPT should update them is clearly specified.
+
+**Formal Requirements**
+
+```markdown
+Make sure the following formal requirements are all fulfilled:
+
+- do not use invalid characters in the JSON object
+- escape double quotes and other special characters in the text values in the resulting JSON object
+- add "\n\n###\n\n" at the end of the "response" value.
+- wrap the JSON object with "<JSON>\n" and "\n</JSON>".
+```
+
+ここでは、APIを通じて返されるレスポンスの形式の詳細についての指示を行っています。JSONは実質的にはテキストデータであり、一部の文字については適切にエスケープされている必要があります。また、OpenAIのtext-completion APIで利用できる言語モデルは（`temperature`パラメターが`0.0`の場合であっても）若干の不確実性をもつため、Monadic Chatがなるべく確実にJSONオブジェクトを受け取れるように、`<JSON>...</JSON>`タグで全体を囲むことを指示しています。
+
+また、現時点では、ユーザーからの入力に対するGPTからのメインのレスポンスの文字列の末尾には `\n\n###\n\n`という文字列をつけることを要請しています。これは、ストリーミングAPIで送られてくる文字列を処理する際に、レスポンス文字列が末尾に到達したことを検知して、ユーザーにレスポンスをできるだけ早いタイミングで表示するための仕組みです。
+
+Included here are the details on the format of the response returned through the API. JSON is essentially text data, and some characters must be properly escaped. Also, since the language model available in OpenAI's text-completion API is subject to some indeterminancy (even when the `temperature` parameter is `0.0`), to ensure that Monadic Chat receives the JSON object as reliably as possible, Monadic Chat requires `< JSON>... </JSON>` tags to enclose the whole JSON data.
+
+Currently, Monadic Chat requires that the main response to user input end with the string `\n\n####\n\n`. This is part of the mechanism to detect when the response string sent by the streaming API reaches the end and display the response to the user as soon as possible. (The boundary string may be changed in the future.)
 
 ## What is Monadic about Monadic Chat?
 
@@ -313,17 +490,27 @@ A monad is a type of data structure in functional programming (leaving aside for
 
 We are surrounded by many such monadic entities, and natural language discourse is one of them. A "chat" between a human user and an AI can be thought of as a form of natural language discourse, which is monadic in nature. If so, an application that provides an interactive interface to a large-scale language model, such as ChatGPT, would most naturally be designed in a "functional" way, taking into account the monadic nature of natural language discourse.
 
+### Unit, Bind, and Join
+
 There are many "functional" programming languages, such as Haskell, that have monads as a core feature. However, Monadic Chat was developed using the Ruby programming language. This is because with Ruby, it would be easier for users to write their own apps (in the author's rather subjective opinion). It is true that Ruby, which incorporates some features of functional languages, is not classified as a "functional language." Monadic Chat has the following three features required of a monad, and in this sense, it can be considered "monadic."
 
 - ***unit*** : a monad framework has a means of taking data and enclosing it in a monad structure 
 - ***bind*** : a monadic framework has a means of performing some operation on the data and enclosing the result in a monad structure
 - ***join*** : a monad framework has a means of flattening a structure with multiple monad layers into a single layer 
 
-## Todo
+### Discourse Management Object
 
-- Improved error handling mechanisms
-- Development of DSL to define GPT behavior
-- Scafolding feature to quickly build new apps
+In Monadic Chat's `research` mode, a discourse management object described in JSON serves as an environment for managing and unfolding a conversation between the user and the large language model. Any sample data of user-AI interaction can be wrapped inside the JSON environment (***unit***).
+
+The interaction between the user and the AI can be interpreted as a kind of operation on the *discourse world* built by the previous conversational exchanges. Monadic Chat updates the discourse worldby retrieving the dialogue data embedded in the template and performing operations in response to user input (***bind***).
+
+Responses from OpenAI's language model APIs (chat API and text-completion API) are also returned in the same JSON format. The main conversational response content is wrapped within this environment. If the whole object were treated as the conversational response to the user input, the discourse management object would involve a nested structure and the same could continue inifinitively. Therefore, Monadic Chat extract only the necessary values from the response object reassemble the (single-layered) discourse management object using them (***join***).
+
+## Future Plans
+
+- Improve error handling mechanism
+- Develop a DSL to define templates in an easier, more tasteful fashion.
+- Develop scaffolding capabilities to quickly build new apps
 
 ## References
 

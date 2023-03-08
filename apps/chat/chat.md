@@ -12,12 +12,12 @@ NEW PROMPT: {{PROMPT}}
   "turns": 1,
   "language": "English",
   "topics": [],
-  "tokens": 115,
+  "tokens": 109,
   "messages": [{"user": "Can I ask something?", "assistant": "Sure!\n\n###\n\n"}]
 }
 ```
 
-Make sure the following requirements are all fulfilled:
+Make sure the following content requirements are all fulfilled:
 
 - keep the value of the "mode" property at "chat"
 - set the new prompt to the "prompt" property
@@ -28,8 +28,11 @@ Make sure the following requirements are all fulfilled:
 - analyze the topic of the new prompt and insert it at the end of the value list of the "topics" property
 - avoid giving a response that is the same or similar to one of the previous responses in "messages"
 - program code in the response must be embedded in a code block in the markdown text
-- do not use invalid characters in the JSON object
 - update the value of "tokens" with the number of tokens of the resulting JSON object"
+
+Make sure the following formal requirements are all fulfilled:
+
+- do not use invalid characters in the JSON object
 - escape double quotes and other special characters in the text values in the resulting JSON object
 - increment the value of "turns" by 1 and update the property so that the value of "turns" equals the number of the items in the "messages" of the resulting JSON object
 - add "\n\n###\n\n" at the end of the "response" value.

@@ -179,8 +179,7 @@ module MonadicChat
       wait
 
       res = format_data
-      print "\n#{TTY::Markdown.parse(res, indent: 0).strip}\n"
-      MonadicChat.clear_region_below
+      print "\n#{TTY::Markdown.parse(res, indent: 0)}"
     end
 
     def set_html
@@ -191,7 +190,6 @@ module MonadicChat
       print " HTML rendering is enabled"
       @show_html = true
       show_html
-      MonadicChat.clear_region_below
     end
 
     def show_html
@@ -215,8 +213,8 @@ module MonadicChat
             else
               PROMPT_USER.ask
             end
-      MonadicChat.clear_region_below
-
+      print MonadicChat.prompt_user, " "
+      print res, "\n"
       res
     end
 
@@ -387,11 +385,11 @@ module MonadicChat
 
           @template["messages"] = data["messages"]
         end
-      rescue StandardError
-        print "The data structure is not valid for this app"
-      end
 
-      print "Data has been loaded successfully"
+        print "Data has been loaded successfully\n"
+      rescue StandardError
+        print "The data structure is not valid for this app\n"
+      end
     end
 
     ########################################
@@ -712,18 +710,18 @@ module MonadicChat
             end
           end
         end
-        input = textbox
         if input.to_s == ""
           input = false
           MonadicChat.clear_region_below
         end
+        input = textbox
       end
     rescue StandardError
       false
     end
 
     def run
-      MonadicChat.banner(self.class.name, self.class::DESC, "cyan", "blue")
+      MonadicChat.banner(self.class.name, self.class::DESC, self.class::COLOR)
       show_greet
 
       if @placeholders.empty?
@@ -731,7 +729,7 @@ module MonadicChat
       else
         print "\n"
         print MonadicChat.prompt_system
-        loadfile = PROMPT_SYSTEM.select(" Load saved file?",
+        loadfile = PROMPT_SYSTEM.select(" Load saved file? (Make sure the file is saved by the same app))",
                                         default: 2,
                                         show_help: :never) do |menu|
           menu.choice "Yes", "yes"

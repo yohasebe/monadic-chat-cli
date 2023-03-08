@@ -3,8 +3,9 @@
 require_relative "../../lib/app"
 
 module MonadicChat
-  class Parsing < App
-    DESC = "Natural Language Parsing Agent"
+  class Linguistic < App
+    DESC = "Natural Language Syntatic/Semantic/Pragmatic Analyzer"
+    COLOR = "red"
 
     attr_accessor :template, :config, :params, :completion
 
@@ -23,9 +24,9 @@ module MonadicChat
       method = OpenAI.model_to_method(params["model"])
       template = case method
                  when "completions"
-                   TEMPLATES["research/parsing"]
+                   TEMPLATES["research/linguistic"]
                  when "chat/completions"
-                   TEMPLATES["normal/parsing"]
+                   TEMPLATES["normal/linguistic"]
                  end
       super(params,
             template,

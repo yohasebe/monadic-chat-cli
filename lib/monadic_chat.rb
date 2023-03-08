@@ -139,7 +139,7 @@ module MonadicChat
       begin
         raise if OpenAI.models(token).empty?
 
-        print "success.\n"
+        print "success\n"
         OpenAI::Completion.new(token)
       rescue StandardError
         print "failure.\n"
@@ -196,28 +196,28 @@ module MonadicChat
     "\n#{PASTEL.send(:"on_#{color}", name)}"
   end
 
-  def self.banner(title, desc, color1, color2)
+  def self.banner(title, desc, color)
     title = title.center(60, " ")
     desc = desc.center(60, " ")
     padding = "".center(60, " ")
     banner = <<~BANNER
-      #{PASTEL.send(:"on_#{color2}", padding)}
-      #{PASTEL.send(:"on_#{color1}", padding)}
-      #{PASTEL.send(:"on_#{color1}").bold(title)}
-      #{PASTEL.send(:"on_#{color1}", desc)}
-      #{PASTEL.send(:"on_#{color1}", padding)}
-      #{PASTEL.send(:"on_#{color2}", padding)}
+      #{PASTEL.send(:"on_#{color}", padding)}
+      #{PASTEL.send(:"on_#{color}").bold(title)}
+      #{PASTEL.send(:"on_#{color}", desc)}
+      #{PASTEL.send(:"on_#{color}", padding)}
     BANNER
-    print TTY::Box.frame banner.strip
+    # print TTY::Box.frame banner.strip
+    print "\n", banner.strip, "\n\n"
   end
 
-  PROMPT_USER = TTY::Prompt.new(active_color: :blue, prefix: prompt_user, interrupt: interrupt)
+  PROMPT_USER = TTY::Prompt.new(active_color: :blue, prefix: prompt_user, interrupt: interrupt, quiet: true)
   PROMPT_SYSTEM = TTY::Prompt.new(active_color: :blue, prefix: prompt_system, interrupt: interrupt)
 
   BULLET = "\e[33m●\e[0m"
 
   def self.clear_screen
     print "\e[2J\e[f"
+    MonadicChat.clear_region_below
   end
 
   def self.add_to_html(text, filepath)
@@ -269,20 +269,32 @@ module MonadicChat
 
   def self.confirm_query(input)
     if input.size < MIN_LENGTH
-      print MonadicChat.prompt_system
-      PROMPT_SYSTEM.yes?(" Would you like to proceed with this (very short) prompt?")
+      print TTY::Cursor.save
+      res = PROMPT_SYSTEM.yes?(" Would you like to proceed with this (very short) prompt?")
+      print TTY::Cursor.restore
+      MonadicChat.clear_region_below
+      res
     else
       true
     end
   end
 
   def self.clear_region_below
-    sleep 0.2
-    TTY::Cursor.up
-    TTY::Cursor.clear_screen_down
+    print TTY::Cursor.up(2)
+    print TTY::Cursor.clear_screen_down
+    print TTY::Cursor.up(1)
   end
 
   def self.ask_clear
-    MonadicChat.clear_screen if MonadicChat.count_lines_below < 5 && PROMPT_SYSTEM.yes?(" Clear the screen?")
+    return unless MonadicChat.count_lines_below < 5
+
+    print TTY::Cursor.save
+    res = PROMPT_SYSTEM.yes?(" Clear the screen?")
+    if res
+      MonadicChat.clear_screen
+    else
+      print TTY::Cursor.restore
+      MonadicChat.clear_region_below
+    end
   end
 end

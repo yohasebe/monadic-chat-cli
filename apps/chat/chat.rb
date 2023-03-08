@@ -5,6 +5,7 @@ require_relative "../../lib/app"
 module MonadicChat
   class Chat < App
     DESC = "Natural Language Chat Agent"
+    COLOR = "green"
 
     attr_accessor :template, :config, :params, :completion
 
@@ -35,10 +36,19 @@ module MonadicChat
             proc do |res|
               case method
               when "completions"
-                if res["messages"].size > 1 && res["tokens"].to_i > params["max_tokens"].to_i / 2
+                obj = objectify
+                ############################################################
+                # Research mode recuder defined here                       #
+                # obj: old Hash object                                     #
+                # res: new response Hash object to be modified             #
+                ############################################################
+                if res["messages"].size > 1 &&
+                   (res["tokens"].to_i > params["max_tokens"].to_i / 2 ||
+                    res["topics"] != obj["topics"])
                   res["messages"].shift(1)
                   res["turns"] = res["turns"].to_i - 1
                 end
+                ############################################################
                 res
               when "chat/completions"
                 if res.size > @num_retained_turns * 2 + 1
