@@ -285,11 +285,11 @@ module MonadicChat
     print TTY::Cursor.up(1)
   end
 
-  def self.ask_clear
+  def self.check_lines_below
     screen_height = TTY::Screen.height
     lines_below = MonadicChat.count_lines_below
     gap = screen_height - (lines_below + 1)
-    return if lines_below < 5
+    return unless lines_below < 3
 
     gap.times do
       print TTY::Cursor.scroll_down

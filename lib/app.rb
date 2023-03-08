@@ -206,7 +206,7 @@ module MonadicChat
     ########################################
 
     def textbox(text = nil)
-      MonadicChat.ask_clear
+      MonadicChat.check_lines_below
       print "\n"
       res = if text
               PROMPT_USER.ask(text)
