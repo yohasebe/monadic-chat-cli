@@ -12,32 +12,32 @@ Highly configurable CLI client app for OpenAI's chat/text-completion API
 * [Introduction](#introduction)
 * [Prerequisites](#prerequisites)
 * [Installation](#installation)
-    * [Using RubyGems](#using-rubygems)
-    * [Clone the GitHub repository](#clone-the-github-repository)
+  * [Using RubyGems](#using-rubygems)
+  * [Clone the GitHub repository](#clone-the-github-repository)
 * [Usage](#usage)
-    * [Authentication](#authentication)
-    * [Select App](#select-app)
+  * [Authentication](#authentication)
+  * [Select App](#select-app)
 * [System-Wide Features](#system-wide-features)
 * [Apps](#apps)
-    * [Chat](#chat)
-    * [Code](#code)
-    * [Novel](#novel)
-    * [Translation](#translation)
+  * [Chat](#chat)
+  * [Code](#code)
+  * [Novel](#novel)
+  * [Translation](#translation)
 * [Modes](#modes)
-    * [Normal Mode](#normal-mode)
-    * [Research Mode](#research-mode)
+  * [Normal Mode](#normal-mode)
+  * [Research Mode](#research-mode)
 * [What is Research Mode?](#what-is-research-mode)
-    * [How Research Mode Works](#how-research-mode-works)
-    * [Accumulator](#accumulator)
-    * [Reducer](#reducer)
+  * [How Research Mode Works](#how-research-mode-works)
+  * [Accumulator](#accumulator)
+  * [Reducer](#reducer)
 * [Creating New Apps](#creating-new-apps)
-    * [Folder/File Structure](#folderfile-structure)
-    * [Reducer Code](#reducer-code)
-    * [Template for `Normal` Mode](#template-for-normal-mode)
-    * [Template for `Research` Mode](#template-for-research-mode)
+  * [Folder/File Structure](#folderfile-structure)
+  * [Reducer Code](#reducer-code)
+  * [Template for `Normal` Mode](#template-for-normal-mode)
+  * [Template for `Research` Mode](#template-for-research-mode)
 * [What is Monadic about Monadic Chat?](#what-is-monadic-about-monadic-chat)
-    * [Unit, Bind, and Join](#unit-bind-and-join)
-    * [Discourse Management Object](#discourse-management-object)
+  * [Unit, Bind, and Join](#unit-bind-and-join)
+  * [Discourse Management Object](#discourse-management-object)
 * [Future Plans](#future-plans)
 * [References](#references)
 * [Contributing](#contributing)
@@ -503,8 +503,9 @@ Responses from OpenAI's language model APIs (chat API and text-completion API) a
 
 ## Future Plans
 
+- More test cases to verify command line user interaction behavior
 - Improved error handling mechanism to catch incorrect responses from GPT
-- Develop a DSL to define templates in a more efficient and systematic manner.
+- Develop a DSL to define templates in a more efficient and systematic manner
 - Develop scaffolding capabilities to quickly build new apps
 
 ## References
