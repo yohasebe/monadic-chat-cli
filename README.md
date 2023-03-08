@@ -1,4 +1,4 @@
-<img src="./doc/img/monadicchat.png" width="480px"/>
+<img src="./doc/img/monadic-chat.svg" width="480px"/>
 
 Highly configurable CLI client app for OpenAI's chat/text-completion API
 
@@ -12,32 +12,32 @@ Highly configurable CLI client app for OpenAI's chat/text-completion API
 * [Introduction](#introduction)
 * [Prerequisites](#prerequisites)
 * [Installation](#installation)
-  * [Using RubyGems](#using-rubygems)
-  * [Clone the GitHub repository](#clone-the-github-repository)
+    * [Using RubyGems](#using-rubygems)
+    * [Clone the GitHub repository](#clone-the-github-repository)
 * [Usage](#usage)
-  * [Authentication](#authentication)
-  * [Select App](#select-app)
+    * [Authentication](#authentication)
+    * [Select App](#select-app)
 * [System-Wide Features](#system-wide-features)
 * [Apps](#apps)
-  * [Chat](#chat)
-  * [Code](#code)
-  * [Novel](#novel)
-  * [Translation](#translation)
+    * [Chat](#chat)
+    * [Code](#code)
+    * [Novel](#novel)
+    * [Translation](#translation)
 * [Modes](#modes)
-  * [Normal Mode](#normal-mode)
-  * [Research Mode](#research-mode)
+    * [Normal Mode](#normal-mode)
+    * [Research Mode](#research-mode)
 * [What is Research Mode?](#what-is-research-mode)
-  * [How Research Mode Works](#how-research-mode-works)
-  * [Accumulator](#accumulator)
-  * [Reducer](#reducer)
+    * [How Research Mode Works](#how-research-mode-works)
+    * [Accumulator](#accumulator)
+    * [Reducer](#reducer)
 * [Creating New Apps](#creating-new-apps)
-  * [Folder/File Structure](#folderfile-structure)
-  * [Reducer Code](#reducer-code)
-  * [Template for `Normal` Mode](#template-for-normal-mode)
-  * [Template for `Research` Mode](#template-for-research-mode)
+    * [Folder/File Structure](#folderfile-structure)
+    * [Reducer Code](#reducer-code)
+    * [Template for `Normal` Mode](#template-for-normal-mode)
+    * [Template for `Research` Mode](#template-for-research-mode)
 * [What is Monadic about Monadic Chat?](#what-is-monadic-about-monadic-chat)
-  * [Unit, Bind, and Join](#unit-bind-and-join)
-  * [Discourse Management Object](#discourse-management-object)
+    * [Unit, Bind, and Join](#unit-bind-and-join)
+    * [Discourse Management Object](#discourse-management-object)
 * [Future Plans](#future-plans)
 * [References](#references)
 * [Contributing](#contributing)
@@ -396,15 +396,14 @@ This is exactly the specification specified in [OpenAI's chat API](https://platf
 
 The template in `research` mode is a Markdown file consisting of five sections. The role and content of each section is shown in the following figure.
 
-<img src="./doc/img/research-mode-template.svg" width="500px"/>
+<img src="./doc/img/research-mode-template.svg" width="600px"/>
 
 Below we will look at the `research` mode template for the `linguistic` app, section by section.
 
 **Main Section**
 
-```markdown
-You are a natural language syntactic/semantic/pragmatic analyzer. Analyze the new prompt from the user below and execute a syntactic parsing. Give your response in a variation of the penn treebank format, but use brackets [ ] instead of parentheses ( ). Also, give your response in a markdown code span. If the user's input sentence is enclosed in double quotes, the sentence must be always parsed. Create a response to the following new prompt from the user and set your response to the "response" property of the JSON object shown below. All prompts by "user" in the "messages" property are continuous in content. 
-```
+<div style="highlight highlight-source-gfm"><pre style="white-space : pre-wrap !important;">You are a natural language syntactic/semantic/pragmatic analyzer. Analyze the new prompt from the user below and execute a syntactic parsing. Give your response in a variation of the penn treebank format, but use brackets [ ] instead of parentheses ( ). Also, give your response in a markdown code span. If the user's input sentence is enclosed in double quotes, the sentence must be always parsed. Create a response to the following new prompt from the user and set your response to the "response" property of the JSON object shown below. All prompts by "user" in the "messages" property are continuous in content. 
+</pre></div>
 
 The text content here is essentially the same as the text included in the template for the `normal` mode in an instruction message by `system`. However, note that it contains an instruction that the response from GPT through the API should be presented in the form of a JSON object as shown below.
 
@@ -439,9 +438,9 @@ This is the core part of the `research` mode template. Note that the entire `res
 
     ```json
     {
-      "prompt": . . .
-      . . .
-      "messages": . . .
+      "prompt": ...
+      ...
+      "messages": ...
     }
     ```  
 
@@ -504,8 +503,8 @@ Responses from OpenAI's language model APIs (chat API and text-completion API) a
 
 ## Future Plans
 
-- Improve error handling mechanism
-- Develop a DSL to define templates in an easier, more tasteful fashion.
+- Improved error handling mechanism to catch incorrect responses from GPT
+- Develop a DSL to define templates in a more efficient and systematic manner.
 - Develop scaffolding capabilities to quickly build new apps
 
 ## References
@@ -513,11 +512,22 @@ Responses from OpenAI's language model APIs (chat API and text-completion API) a
 I would appreciate it if you would use one of the following Bibtex entries when referring to Monadic Chat.
 
 ```
-@misc{rsyntaxtree_2023,
+@misc{hasebe_2023a,
   author = {Yoichiro Hasebe},
-  title = { Highly configurable CLI client app for OpenAI’s chat/text-completion API }
+  title = {Highly configurable CLI client app for OpenAI's chat/text-completion API},
   url = {https://github.com/yohasebe/monadic-chat},
   year = {2023}
+}
+```
+
+```
+@inproceedings{hasebe_2023b,
+  author = {長谷部陽一郎},
+  title = {Monadic Chat：テキスト補完APIで文脈を保持するためのフレームワーク},
+  booktitle = {言語処理学会第29回年次大会発表論文集},
+  url = {https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/Q12-9.pdf},
+  year = {2023},
+  pages = {3138--3143}
 }
 ```
 
