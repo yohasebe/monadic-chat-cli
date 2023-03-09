@@ -210,14 +210,14 @@ module MonadicChat
     print "\n", banner.strip, "\n\n"
   end
 
-  PROMPT_USER = TTY::Prompt.new(active_color: :blue, prefix: prompt_user, interrupt: interrupt, quiet: true)
+  PROMPT_USER = TTY::Prompt.new(active_color: :blue, prefix: prompt_user, interrupt: interrupt)
   PROMPT_SYSTEM = TTY::Prompt.new(active_color: :blue, prefix: prompt_system, interrupt: interrupt)
 
   BULLET = "\e[33m●\e[0m"
 
   def self.clear_screen
-    print "\e[2J\e[f"
     MonadicChat.clear_region_below
+    print "\e[2J\e[f"
   end
 
   def self.add_to_html(text, filepath)
@@ -285,17 +285,20 @@ module MonadicChat
     print TTY::Cursor.up(1)
   end
 
-  def self.check_lines_below
+  def self.adjust_line(line)
     screen_height = TTY::Screen.height
     lines_below = MonadicChat.count_lines_below
-    quarter_screen = screen_height / 4
-    gap = screen_height - (lines_below + 1 + quarter_screen)
+    gap = screen_height - (lines_below + line + 1)
     return unless lines_below < 3
 
     gap.times do
       print TTY::Cursor.scroll_down
       sleep 0.01
     end
-    print TTY::Cursor.move_to(0, quarter_screen)
+    print TTY::Cursor.move_to(0, line)
+  end
+
+  def self.current_line
+    Cursor.pos[:row]
   end
 end

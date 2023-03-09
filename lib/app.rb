@@ -11,6 +11,7 @@ module MonadicChat
     def initialize(params, template, placeholders, prop_accumulated, prop_newdata, update_proc)
       @threads = Thread::Queue.new
       @responses = Thread::Queue.new
+      @current_line = 0
       @placeholders = placeholders
       @prop_accumulated = prop_accumulated
       @prop_newdata = prop_newdata
@@ -206,15 +207,13 @@ module MonadicChat
     ########################################
 
     def textbox(text = nil)
-      MonadicChat.check_lines_below
       print "\n"
       res = if text
               PROMPT_USER.ask(text)
             else
               PROMPT_USER.ask
             end
-      print MonadicChat.prompt_user, " "
-      print res, "\n"
+      TTY::Cursor.clear_line
       res
     end
 
@@ -254,8 +253,8 @@ module MonadicChat
       end
 
       TTY::Cursor.clear_line
-      print TTY::Cursor.restore
       print TTY::Cursor.clear_screen_down
+      print TTY::Cursor.restore
 
       case parameter
       when "cancel"
@@ -507,6 +506,8 @@ module MonadicChat
     ########################################
 
     def bind_normal_mode(input, num_retry: 0)
+      line = MonadicChat.current_line
+
       print MonadicChat.prompt_assistant, " "
       print TTY::Cursor.save
 
@@ -558,12 +559,14 @@ module MonadicChat
 
       # text = text.gsub(/(?!\\\\)\\/) { "" }
       print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
+      MonadicChat.adjust_line(line)
 
       update_template(res)
       show_html if @show_html
     end
 
     def bind_research_mode(input, num_retry: 0)
+      line = MonadicChat.current_line
       print MonadicChat.prompt_assistant, " "
 
       wait
@@ -662,6 +665,7 @@ module MonadicChat
 
           # text = text.gsub(/(?!\\\\)\\/) { "" }
           print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
+          MonadicChat.adjust_line(line)
           break
         end
       end
@@ -712,7 +716,7 @@ module MonadicChat
         end
         if input.to_s == ""
           input = false
-          MonadicChat.clear_region_below
+          MonadicChat.clear_screen
         end
         input = textbox
       end

@@ -17,7 +17,7 @@ module TTY
         content = inner(ell, opts)
 
         # result << content.join
-        result << content.join.gsub("\n") { "" }
+        result << content.join.gsub("\n") { " " }.gsub(/ +/) { " " }
         result << NEWLINE unless result.last.to_s.end_with?(NEWLINE)
         result
       end
