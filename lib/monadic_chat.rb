@@ -280,25 +280,8 @@ module MonadicChat
   end
 
   def self.clear_region_below
-    print TTY::Cursor.up(2)
+    print TTY::Cursor.up
     print TTY::Cursor.clear_screen_down
-    print TTY::Cursor.up(1)
-  end
-
-  def self.adjust_line(line)
-    screen_height = TTY::Screen.height
-    lines_below = MonadicChat.count_lines_below
-    gap = screen_height - (lines_below + line + 1)
-    return unless lines_below < 3
-
-    gap.times do
-      print TTY::Cursor.scroll_down
-      sleep 0.01
-    end
-    print TTY::Cursor.move_to(0, line)
-  end
-
-  def self.current_line
-    Cursor.pos[:row]
+    print TTY::Cursor.up
   end
 end

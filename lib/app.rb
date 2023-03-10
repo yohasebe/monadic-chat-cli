@@ -11,7 +11,6 @@ module MonadicChat
     def initialize(params, template, placeholders, prop_accumulated, prop_newdata, update_proc)
       @threads = Thread::Queue.new
       @responses = Thread::Queue.new
-      @current_line = 0
       @placeholders = placeholders
       @prop_accumulated = prop_accumulated
       @prop_newdata = prop_newdata
@@ -188,7 +187,7 @@ module MonadicChat
 
       wait
 
-      print " HTML rendering is enabled"
+      print " HTML rendering is enabled\n"
       @show_html = true
       show_html
     end
@@ -207,13 +206,13 @@ module MonadicChat
     ########################################
 
     def textbox(text = nil)
-      print "\n"
+      text = !text && MonadicChat.count_lines_below < 1 ? PASTEL.send(:blue, " Press enter to clear the screen ") : nil
       res = if text
               PROMPT_USER.ask(text)
             else
               PROMPT_USER.ask
             end
-      TTY::Cursor.clear_line
+      print TTY::Cursor.clear_line_after
       res
     end
 
@@ -229,10 +228,11 @@ module MonadicChat
         - Type **help** or **CTRL-L** to see available commands
       GREET
       print MonadicChat.prompt_system
-      print "\n#{TTY::Markdown.parse(greet_md, indent: 0).strip}"
+      print "\n#{TTY::Markdown.parse(greet_md, indent: 0).strip}\n"
     end
 
     def show_help
+      print TTY::Cursor.clear_line_after
       print TTY::Cursor.save
       parameter = PROMPT_SYSTEM.select(" Select function:",
                                        per_page: 10,
@@ -252,9 +252,8 @@ module MonadicChat
         menu.choice "#{MonadicChat::BULLET} #{MonadicChat::PASTEL.bold("exit/bye/quit")}          go back to main menu", "exit"
       end
 
-      TTY::Cursor.clear_line
-      print TTY::Cursor.clear_screen_down
       print TTY::Cursor.restore
+      print TTY::Cursor.clear_screen_down
 
       case parameter
       when "cancel"
@@ -506,8 +505,6 @@ module MonadicChat
     ########################################
 
     def bind_normal_mode(input, num_retry: 0)
-      line = MonadicChat.current_line
-
       print MonadicChat.prompt_assistant, " "
       print TTY::Cursor.save
 
@@ -559,14 +556,13 @@ module MonadicChat
 
       # text = text.gsub(/(?!\\\\)\\/) { "" }
       print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
-      MonadicChat.adjust_line(line)
+      print "\n"
 
       update_template(res)
       show_html if @show_html
     end
 
     def bind_research_mode(input, num_retry: 0)
-      line = MonadicChat.current_line
       print MonadicChat.prompt_assistant, " "
 
       wait
@@ -665,7 +661,7 @@ module MonadicChat
 
           # text = text.gsub(/(?!\\\\)\\/) { "" }
           print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
-          MonadicChat.adjust_line(line)
+          print "\n"
           break
         end
       end
