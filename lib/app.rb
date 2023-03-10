@@ -29,13 +29,13 @@ module MonadicChat
         @template = JSON.parse @template_original
       end
 
-      PROMPT_USER.on(:keypress) do |event|
-        case event.key.name
-        when :ctrl_l
-          PROMPT_USER.trigger(:keyenter)
-          raise unless show_help
-        end
-      end
+      # PROMPT_USER.on(:keypress) do |event|
+      #   case event.key.name
+      #   when :ctrl_l
+      #     # PROMPT_USER.trigger(:keyenter)
+      #     raise unless show_help
+      #   end
+      # end
     end
 
     ########################################
@@ -205,15 +205,11 @@ module MonadicChat
     # methods for user interaction
     ########################################
 
-    def textbox(text = nil)
-      text = !text && MonadicChat.count_lines_below < 1 ? PASTEL.send(:blue, " Press enter to clear the screen ") : nil
-      res = if text
-              PROMPT_USER.ask(text, input_encoding: "utf-8")
-            else
-              PROMPT_USER.ask(input_encoding: "utf-8")
-            end
+    def textbox
+      text = !text && MonadicChat.count_lines_below < 1 ? PASTEL.send(:red, ">> ") + PASTEL.send(:blue, "Press enter to clear the screen ") : ""
+      res = PROMPT_USER.ask(text)
       print TTY::Cursor.clear_line_after
-      res
+      res == "" ? nil : res
     end
 
     def show_greet
@@ -225,14 +221,14 @@ module MonadicChat
                      end
       greet_md = <<~GREET
         - You are currently in **#{current_mode}** mode
-        - Type **help** or **CTRL-L** to see available commands
+        - Type **help** or **menu** to see available commands
       GREET
       print MonadicChat.prompt_system
       print "\n#{TTY::Markdown.parse(greet_md, indent: 0).strip}\n"
     end
 
     def show_help
-      print TTY::Cursor.clear_line_after
+      # print TTY::Cursor.clear_line_after
       print TTY::Cursor.save
       parameter = PROMPT_SYSTEM.select(" Select function:",
                                        per_page: 10,
@@ -516,7 +512,7 @@ module MonadicChat
     ########################################
 
     def bind_normal_mode(input, num_retry: 0)
-      print MonadicChat.prompt_assistant, " "
+      print MonadicChat.prompt_assistant, "\n"
       print TTY::Cursor.save
 
       wait
@@ -574,7 +570,7 @@ module MonadicChat
     end
 
     def bind_research_mode(input, num_retry: 0)
-      print MonadicChat.prompt_assistant, " "
+      print MonadicChat.prompt_assistant, "\n"
 
       wait
 

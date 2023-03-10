@@ -143,7 +143,7 @@ Each message in the conversation is labeled with one of three roles: `User`, `GP
 
 ### System-Wide Functions
 
-You can call up the function menu anytime. To invoke the function menu, type `help` at the prompt or press `CTRL-L`.
+You can call up the function menu anytime. To invoke the function menu, type `help` or `menu`
 
 <img src="./doc/img/select-feature-menu.png" width="700px"/>
 

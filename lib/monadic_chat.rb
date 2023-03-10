@@ -11,6 +11,7 @@ require "kramdown"
 require "rouge"
 require "launchy"
 require "io/console"
+require "readline"
 
 require_relative "./monadic_chat/version"
 require_relative "./monadic_chat/tty_markdown_no_br"
@@ -31,6 +32,21 @@ class Cursor
       end
       m = res.match(/(?<row>\d+);(?<column>\d+)/)
       { row: Integer(m[:row]), column: Integer(m[:column]) }
+    end
+  end
+end
+
+module TTY
+  class PromptX < Prompt
+    def initialize(active_color:, prefix:, interrupt:, history: true)
+      super(active_color: active_color, prefix: prefix, interrupt: interrupt)
+      @history = history
+      @prefix = prefix
+    end
+
+    def ask(text = "")
+      puts @prefix
+      Readline.readline(text, @history)
     end
   end
 end
@@ -210,8 +226,8 @@ module MonadicChat
     print "\n", banner.strip, "\n\n"
   end
 
-  PROMPT_USER = TTY::Prompt.new(active_color: :blue, prefix: prompt_user, interrupt: interrupt)
-  PROMPT_SYSTEM = TTY::Prompt.new(active_color: :blue, prefix: prompt_system, interrupt: interrupt)
+  PROMPT_USER = TTY::PromptX.new(active_color: :blue, prefix: prompt_user, interrupt: interrupt)
+  PROMPT_SYSTEM = TTY::PromptX.new(active_color: :blue, prefix: prompt_system, interrupt: interrupt)
 
   BULLET = "\e[33m●\e[0m"
 

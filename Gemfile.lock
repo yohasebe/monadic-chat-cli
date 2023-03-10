@@ -14,6 +14,7 @@ PATH
       tty-markdown
       tty-progressbar
       tty-prompt
+      tty-reader
       tty-screen
       tty-spinner
 
@@ -58,7 +59,7 @@ GEM
       racc (~> 1.4)
     oj (3.14.2)
     parallel (1.22.1)
-    parser (3.2.1.0)
+    parser (3.2.1.1)
       ast (~> 2.4.1)
     pastel (0.8.0)
       tty-color (~> 0.5)
