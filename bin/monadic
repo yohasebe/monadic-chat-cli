@@ -27,7 +27,7 @@ module MonadicApp
     chattitle = PASTEL.on_green.bold(chat)
     title = "#{hpad}#{montitle}#{cpad}#{chattitle}#{hpad}"
     title += ((wid - (mon.size + chat.size)) % 2).zero? ? "" : " "
-    subtitle = PASTEL.bold("Command Line Interface for NLP Completion API".center(wid, " "))
+    subtitle = PASTEL.bold("Command Line Interface for OpenAI chat/text-completion API".center(wid, " "))
     version = "Version: #{VERSION}".center(wid, " ")
     vpad = " " * wid
 
@@ -47,15 +47,23 @@ module MonadicApp
     openai_completion = nil
     parameter = ""
 
+    print_mode = lambda do |m|
+      case m
+      when "normal"
+        PASTEL.bold.green("Normal")
+      when "research"
+        PASTEL.bold.red("Research")
+      end
+    end
+
     loop do
       MonadicChat.clear_screen
       TTY::Cursor.clear_screen_down
-      # print TTY::Box.frame banner.strip
       print "\n", banner.strip, "\n\n"
 
       openai_completion ||= MonadicChat.authenticate
 
-      parameter = PROMPT_SYSTEM.select(" Select app:",
+      parameter = PROMPT_SYSTEM.select(" Current mode: #{print_mode.call(mode)}\n\nSelect item:",
                                        per_page: 10,
                                        cycle: true,
                                        filter: true,

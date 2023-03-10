@@ -208,9 +208,9 @@ module MonadicChat
     def textbox(text = nil)
       text = !text && MonadicChat.count_lines_below < 1 ? PASTEL.send(:blue, " Press enter to clear the screen ") : nil
       res = if text
-              PROMPT_USER.ask(text)
+              PROMPT_USER.ask(text, input_encoding: "utf-8")
             else
-              PROMPT_USER.ask
+              PROMPT_USER.ask(input_encoding: "utf-8")
             end
       print TTY::Cursor.clear_line_after
       res
@@ -254,6 +254,7 @@ module MonadicChat
 
       print TTY::Cursor.restore
       print TTY::Cursor.clear_screen_down
+      print TTY::Cursor.restore
 
       case parameter
       when "cancel"
@@ -321,16 +322,17 @@ module MonadicChat
     end
 
     def save_data
-      input = PROMPT_SYSTEM.ask(" Enter the path to the save file (press Enter to cancel): ")
-      return if input.to_s.strip == ""
-
-      filepath = File.expand_path(input)
-      dirname = File.dirname(filepath)
-
-      unless Dir.exist? dirname
-        print "Directory does not exist\n"
-        save_data
+      input = PROMPT_SYSTEM.ask(" Enter the file path for the JSON file (including the file name and .json extension): ") do |q|
+        q.validate(lambda do |r|
+          dirname = File.dirname(File.expand_path(r))
+          r == "" || (/\.json\z/ =~ r.to_s.strip && Dir.exist?(dirname))
+        end)
+        q.messages[:valid?] = "Invalid file path"
       end
+
+      return if input.to_s == ""
+
+      filepath = File.expand_path(input.strip)
 
       if File.exist? filepath
         overwrite = PROMPT_SYSTEM.select(" #{filepath} already exists.\nOverwrite?",
@@ -346,30 +348,38 @@ module MonadicChat
         print "File cannot be created\n"
         save_data
       end
-      File.open(filepath, "w") do |f|
-        case @method
-        when "completions"
-          m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
-          f.write JSON.pretty_generate(JSON.parse(m[1]))
-        when "chat/completions"
-          f.write JSON.pretty_generate(@template)
-        end
 
-        print "Data has been saved successfully\n"
+      begin
+        File.open(filepath, "w") do |f|
+          case @method
+          when "completions"
+            m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
+            f.write JSON.pretty_generate(JSON.parse(m[1]))
+          when "chat/completions"
+            f.write JSON.pretty_generate(@template)
+          end
+
+          print "Data has been saved successfully\n"
+        end
+        true
+      rescue StandardError
+        print "Error: Something went wrong"
+        false
       end
     end
 
     def load_data
-      input = PROMPT_SYSTEM.ask(" Enter the path to the save file (press Enter to cancel): ")
-      return if input.to_s.strip == ""
-
-      filepath = File.expand_path(input)
-      unless File.exist? filepath
-        print "File does not exit\n"
-        load_data
+      input = PROMPT_SYSTEM.ask(" Enter the path to the save file (press Enter to cancel): ") do |q|
+        q.validate(lambda do |r|
+          r == "" || /\.json\z/ =~ r.to_s.strip && File.exist?(File.expand_path(r.strip))
+        end)
+        q.messages[:valid?] = "Invalid file path"
       end
 
+      return if input.to_s == ""
+
       begin
+        filepath = File.expand_path(input.strip)
         json = File.read(filepath)
         data = JSON.parse(json)
         case @method
@@ -383,10 +393,11 @@ module MonadicChat
 
           @template["messages"] = data["messages"]
         end
-
         print "Data has been loaded successfully\n"
+        true
       rescue StandardError
         print "The data structure is not valid for this app\n"
+        false
       end
     end
 
@@ -659,7 +670,6 @@ module MonadicChat
             "`#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}`"
           end
 
-          # text = text.gsub(/(?!\\\\)\\/) { "" }
           print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
           print "\n"
           break

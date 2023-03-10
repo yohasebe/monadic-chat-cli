@@ -23,7 +23,7 @@ module MonadicChat
       }
       replacements ||= {
         "mode" => :interactive,
-        "{{TARGET_LANG}}" => "Input target language"
+        "{{TARGET_LANG}}" => "Enter target language"
       }
       method = OpenAI.model_to_method(params["model"])
       template = case method

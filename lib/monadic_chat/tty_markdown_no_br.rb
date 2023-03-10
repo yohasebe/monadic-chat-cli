@@ -16,9 +16,8 @@ module TTY
 
         content = inner(ell, opts)
 
-        # result << content.join
         symbols = %q{[-!$%^&*()_+|~=`{}\[\]:";'<>?,.\/]}
-        result << content.join.gsub(/(?<=#{symbols})\n(?!#{symbols})/m) { "" }
+        result << content.join.gsub(/(?<!#{symbols})\n(?!#{symbols})/m) { " " }.gsub(/ +/) { " " }
         result << NEWLINE unless result.last.to_s.end_with?(NEWLINE)
         result
       end

@@ -24,7 +24,7 @@ Make sure the following content requirements are all fulfilled:
 - insert both the new prompt and the response after all the existing items in the "messages"
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
-- summarize the user's messages so far and update the "summary" property with a text less than 100 words.
+- summarize the user's messages so far and update the "summary" property with a text less than 100 words using as many discourse markers such as "because", "therefore", "but", "so" to show the logical connection between the events.
 - update the value of "tokens" with the number of tokens of the resulting JSON object"
 
 Make sure the following formal requirements are all fulfilled:
