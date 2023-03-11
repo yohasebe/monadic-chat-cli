@@ -28,14 +28,6 @@ module MonadicChat
       when "chat/completions"
         @template = JSON.parse @template_original
       end
-
-      # PROMPT_USER.on(:keypress) do |event|
-      #   case event.key.name
-      #   when :ctrl_l
-      #     # PROMPT_USER.trigger(:keyenter)
-      #     raise unless show_help
-      #   end
-      # end
     end
 
     ########################################
@@ -85,8 +77,9 @@ module MonadicChat
       return self if @threads.empty?
 
       print TTY::Cursor.save
-      message = PASTEL.red " Processing contextual data ... "
+      message = PASTEL.red " Processing contextual data #{MonadicChat::SPINNER} "
       print message
+
       MonadicChat::TIMEOUT_SEC.times do |i|
         raise "Error: something went wrong" if i + 1 == MonadicChat::TIMEOUT_SEC
 
@@ -207,9 +200,15 @@ module MonadicChat
 
     def textbox
       text = !text && MonadicChat.count_lines_below < 1 ? PASTEL.send(:red, ">> ") + PASTEL.send(:blue, "Press enter to clear the screen ") : ""
-      res = PROMPT_USER.ask(text)
-      print TTY::Cursor.clear_line_after
-      res == "" ? nil : res
+      begin
+        res = PROMPT_USER.ask(text)
+        print TTY::Cursor.clear_line_after
+        res == "" ? nil : res
+      rescue Interrupt
+        MonadicChat.clear_screen
+        res = TTY::Prompt.new.yes?("Quit the app?")
+        exit if res
+      end
     end
 
     def show_greet
@@ -541,7 +540,7 @@ module MonadicChat
         if MonadicChat.count_lines_below > 3
           print MonadicChat::PASTEL.magenta(last_chunk)
         elsif !spinning
-          print PASTEL.red " ... "
+          print PASTEL.red MonadicChat::SPINNER
           spinning = true
         end
 
@@ -561,7 +560,7 @@ module MonadicChat
         "`#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}`"
       end
 
-      # text = text.gsub(/(?!\\\\)\\/) { "" }
+      text = text.gsub(/(?!\\\\)\\/) { "" }
       print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
       print "\n"
 
@@ -619,7 +618,7 @@ module MonadicChat
                 if MonadicChat.count_lines_below > 3
                   print MonadicChat::PASTEL.magenta(last_chunk)
                 elsif !spinning
-                  print PASTEL.red " ... "
+                  print PASTEL.red MonadicChat::SPINNER
                   spinning = true
                 end
                 last_chunk = chunk
@@ -633,8 +632,8 @@ module MonadicChat
 
         unless response_all_shown
           if spinning
-            TTY::Cursor.backword(" ... ".size)
-            TTY::Cursor.clear_char(" ... ".size)
+            TTY::Cursor.backword(MonadicChat::SPINNER.size)
+            TTY::Cursor.clear_char(MonadicChat::SPINNER.size)
           end
           @responses << response.sub(/\s+###\s*".*/m, "")
         end
@@ -666,6 +665,7 @@ module MonadicChat
             "`#{m[1].gsub("{{NEWLINE}}\n") { "\n" }}`"
           end
 
+          text = text.gsub(/(?!\\\\)\\/) { "" }
           print TTY::Markdown.parse(text).gsub("{{NEWLINE}}") { "\n" }.strip
           print "\n"
           break

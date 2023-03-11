@@ -38,8 +38,8 @@ end
 
 module TTY
   class PromptX < Prompt
-    def initialize(active_color:, prefix:, interrupt:, history: true)
-      super(active_color: active_color, prefix: prefix, interrupt: interrupt)
+    def initialize(active_color:, prefix:, history: true)
+      super(active_color: active_color, prefix: prefix, interrupt: false)
       @history = history
       @prefix = prefix
     end
@@ -74,12 +74,6 @@ module MonadicChat
   TEMPLATES = templates
 
   PASTEL = Pastel.new
-
-  interrupt = proc do
-    MonadicChat.clear_screen
-    res = TTY::Prompt.new.yes?("Quit the app?")
-    exit if res
-  end
 
   TEMP_HTML = File.join(Dir.home, "monadic_chat.html")
   style = +File.read(File.join(__dir__, "..", "assets", "github.css")).gsub(".markdown-") { "" }
@@ -151,7 +145,7 @@ module MonadicChat
 
   def self.authenticate(overwrite: false)
     check = lambda do |token|
-      print "Checking configuration ▹▹▹▹▹ "
+      print "Checking configuration #{SPINNER} "
       begin
         raise if OpenAI.models(token).empty?
 
@@ -222,13 +216,12 @@ module MonadicChat
       #{PASTEL.send(:"on_#{color}", desc)}
       #{PASTEL.send(:"on_#{color}", padding)}
     BANNER
-    # print TTY::Box.frame banner.strip
     print "\n", banner.strip, "\n\n"
   end
 
-  PROMPT_USER = TTY::PromptX.new(active_color: :blue, prefix: prompt_user, interrupt: interrupt)
-  PROMPT_SYSTEM = TTY::PromptX.new(active_color: :blue, prefix: prompt_system, interrupt: interrupt)
-
+  PROMPT_USER = TTY::PromptX.new(active_color: :blue, prefix: prompt_user)
+  PROMPT_SYSTEM = TTY::PromptX.new(active_color: :blue, prefix: prompt_system)
+  SPINNER = "▹▹▹▹"
   BULLET = "\e[33m●\e[0m"
 
   def self.clear_screen
