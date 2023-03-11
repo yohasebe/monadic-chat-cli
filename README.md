@@ -1,6 +1,6 @@
 <p align="center"><img src="./doc/img/monadic-chat.svg" width="500px"/></p>
 
-Highly configurable CLI client app for OpenAI chat/text-completion API
+<p align="center">Highly configurable CLI client app for OpenAI chat/text-completion API</p>
 
 <p align="center"><img src="./doc/img/monadic-chat-main-menu.png" width="500px"/></p>
 
@@ -174,7 +174,7 @@ In `research` mode, it may take a while (usually several seconds) after the `dat
 All the information retrievable by running the `data/context` function can be presented in HTML. The HTML file is automatically opened in the default web browser.
 
 
-<img src="./doc/img/linguistic-html.png" width="700px" style="box-shadow: 0 0 4px darkgray;"/>
+<img src="./doc/img/linguistic-html.png" width="700px" style="border: thin solid darkgray;"/>
 
 In `research` mode, it may take several seconds to several minutes after the `html` command is executed before the acutual HTML is displayed. This is because in `research` mode, even after displaying a direct response to user input, there may be a process running in the background that retrieves and reconstructs the context data, requiring the system to wait for it to finish.
 
@@ -204,8 +204,8 @@ Selecting this will exit the current app and return to the main menu.
 
 Monadic Chat's `chat` app is the most basic and generic app among others offered by default.
 
-<img src="./doc/img/readme-example-beatles.png" width="700px" style="box-shadow: 0 0 4px darkgray;"/>
-<img src="./doc/img/readme-example-beatles-html.png" width="700px" style="box-shadow: 0 0 4px darkgray;"/>
+<img src="./doc/img/readme-example-beatles.png" width="700px" style="border: thin solid darkgray;"/>
+<img src="./doc/img/readme-example-beatles-html.png" width="700px" style="border: thin solid darkgray;"/>
 
 In the `chat` app, OpenAI's large-scale language model acts as a competent assistant that can do anything. It can write computer code, create fiction and poetry texts, and translate texts from one language into another. Of course, it can also engage in casual or academic discussions on specific topics. As with ChatGPT, there can be many variations in the content of the conversation. 
 
@@ -217,8 +217,8 @@ In the `chat` app, OpenAI's large-scale language model acts as a competent assis
 
 Monadic Chat's `code` is designed to be an app that can write computer code for you.
 
-<img src="./doc/img/code-example-time.png" width="700px" style="box-shadow: 0 0 4px darkgray;"/>
-<img src="./doc/img/code-example-time-html.png" width="700px" style="box-shadow: 0 0 4px darkgray;"/>
+<img src="./doc/img/code-example-time.png" width="700px" style="border: thin solid darkgray;"/>
+<img src="./doc/img/code-example-time-html.png" width="700px" style="border: thin solid darkgray;"/>
 
 In the `code` app, OpenAI's GPT behaves as a competent software engineer. The main difference from the `chat` app is that the `temperature` parameter is set to `0.0` so that as less randomness as possible is introduced to the responses. Syntax highlighting is applied (where possible) to the program code in the result message. The same applies to the output via the `html` command available from the functions menu.
 
@@ -238,7 +238,7 @@ Monadic Chat's `translate` is an app that helps translate text written in one la
 
 The preferred translation for a given expression is specified in a pair of parentheses ( ) right after the original expression in question in a pair of brackets [ ] in the source text.
 
-<img src="./doc/img/example-translation.png" width="700px" style="box-shadow: 0 0 4px darkgray;"/>
+<img src="./doc/img/example-translation.png" width="700px" style="border: thin solid darkgray;"/>
 
 Sometimes, however, problematic translations are created. The user can "save" the set of source and target texts and make any necessary corrections. The same unwanted expressions can be prevented or avoided later by providing the corrected translation data to the app.
 
