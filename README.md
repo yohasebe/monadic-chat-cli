@@ -2,11 +2,9 @@
 
 <p align="center"><b>Highly configurable CLI client app for OpenAI chat/text-completion API</b></p>
 
-<br />
-
-<p align="center"><kbd><img src="./doc/img/monadic-chat-main-menu.png" width="500px"/></kbd></p>
-
-<br />
+<p align="center">
+<img src="https://user-images.githubusercontent.com/18207/224493072-9720b341-c70d-43b9-b996-ba7e9a7a6806.gif" width="700" />
+</p>
 
 > **Note**
 > This software is *under active development*, and the latest version may behave slightly differently than this documentation. The specifications may change in the future.
