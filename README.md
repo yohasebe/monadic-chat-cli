@@ -1,9 +1,12 @@
 <p align="center"><img src="./doc/img/monadic-chat.svg" width="500px"/></p>
 
-<p align="center">Highly configurable CLI client app for OpenAI chat/text-completion API</p>
+<p align="center">**Highly configurable CLI client app for OpenAI chat/text-completion API**</p>
 
-<p align="center"><img src="./doc/img/monadic-chat-main-menu.png" width="500px"/></p>
+<br />
 
+<p align="center"><kbd><img src="./doc/img/monadic-chat-main-menu.png" width="500px"/></kbd></p>
+
+<br />
 
 > **Note**
 > This software is *under active development*, and the latest version may behave slightly differently than this documentation. The specifications may change in the future.
@@ -116,7 +119,11 @@ When you start Monadic Chat with the `monadic` command for the first time, you w
 
 If the environment variable `OPENAI_API_KEY` is set in the system, its value will be used automatically.
 
-<img src="./doc/img/input-acess-token.png" width="700px"/>
+<br />
+
+<kbd><img src="./doc/img/input-acess-token.png" width="700px" style="border: thin solid darkgray;"/></kbd>
+
+<br />
 
 Once the correct access token is verified, the access token is saved in the configuration file below and will automatically be used the next time the app is started.
 
@@ -130,7 +137,11 @@ Selecting the `mode` menu item allows you to change the [modes](#modes) from `no
 
 Selecting `readme` will take you to the README on the GitHub repository (the document you are looking at now). Selecting `quit` will exit Monadic Chat.
 
-<img src="./doc/img/select-app-menu.png" width="700px"/>
+<br />
+
+<kbd><img src="./doc/img/select-app-menu.png" width="700px" style="border: thin solid darkgray;"/></kbd>
+
+<br />
 
 In the main menu, you can use the cursor keys and the enter key to make a selection. You can also narrow down the choices each time you type a letter.
 
@@ -146,7 +157,11 @@ Each message in the conversation is labeled with one of three roles: `User`, `GP
 
 You can call up the function menu anytime. To invoke the function menu, type `help` or `menu`.
 
-<img src="./doc/img/select-feature-menu.png" width="700px"/>
+<br />
+
+<kbd><img src="./doc/img/select-feature-menu.png" width="700px" style="border: thin solid darkgray;"/></kbd>
+
+<br />
 
 In the function menu, you can use the cursor keys and the enter key to make a selection. You can also narrow down the choices each time you type a letter. Some functions are given multiple names, so typing on the keyboard quickly locates the necessary function.
 
@@ -173,8 +188,11 @@ In `research` mode, it may take a while (usually several seconds) after the `dat
 
 All the information retrievable by running the `data/context` function can be presented in HTML. The HTML file is automatically opened in the default web browser.
 
+<br />
 
-<kbd><img src="./doc/img/linguistic-html.png" width="700px" /></kbd>
+<kbd><img src="./doc/img/linguistic-html.png" width="700px" style="border: thin solid darkgray;"/></kbd>
+
+<br />
 
 In `research` mode, it may take several seconds to several minutes after the `html` command is executed before the acutual HTML is displayed. This is because in `research` mode, even after displaying a direct response to user input, there may be a process running in the background that retrieves and reconstructs the context data, requiring the system to wait for it to finish.
 
@@ -204,8 +222,13 @@ Selecting this will exit the current app and return to the main menu.
 
 Monadic Chat's `chat` app is the most basic and generic app among others offered by default.
 
-<img src="./doc/img/readme-example-beatles.png" width="700px" />
+<br />
+
+<kbd><img src="./doc/img/readme-example-beatles.png" width="700px" /></kbd>
+
 <kbd><img src="./doc/img/readme-example-beatles-html.png" width="700px" /></kbd>
+
+<br />
 
 In the `chat` app, OpenAI's large-scale language model acts as a competent assistant that can do anything. It can write computer code, create fiction and poetry texts, and translate texts from one language into another. Of course, it can also engage in casual or academic discussions on specific topics. As with ChatGPT, there can be many variations in the content of the conversation. 
 
@@ -217,8 +240,13 @@ In the `chat` app, OpenAI's large-scale language model acts as a competent assis
 
 Monadic Chat's `code` is designed to be an app that can write computer code for you.
 
-<img src="./doc/img/code-example-time.png" width="700px" />
+<br />
+
+<kbd><img src="./doc/img/code-example-time.png" width="700px" /></kbd>
+
 <kbd><img src="./doc/img/code-example-time-html.png" width="700px" /></kbd>
+
+<br />
 
 In the `code` app, OpenAI's GPT behaves as a competent software engineer. The main difference from the `chat` app is that the `temperature` parameter is set to `0.0` so that as less randomness as possible is introduced to the responses. Syntax highlighting is applied (where possible) to the program code in the result message. The same applies to the output via the `html` command available from the functions menu.
 
@@ -238,7 +266,11 @@ Monadic Chat's `translate` is an app that helps translate text written in one la
 
 The preferred translation for a given expression is specified in a pair of parentheses ( ) right after the original expression in question in a pair of brackets [ ] in the source text.
 
+<br />
+
 <kbd><img src="./doc/img/example-translation.png" width="700px" /></kbd>
+
+<br />
 
 Sometimes, however, problematic translations are created. The user can "save" the set of source and target texts and make any necessary corrections. The same unwanted expressions can be prevented or avoided later by providing the corrected translation data to the app.
 
@@ -287,7 +319,11 @@ For these reasons, `normal` mode is recommended for casual use as an alternative
 
 The following is a schematic of the process flow in the `research` mode.
 
+<br />
+
 <img src="./doc/img/how-research-mode-works.svg" width="900px"/>
+
+<br />
 
 Terms in bold in it may require more explanation.
 
@@ -425,7 +461,11 @@ The data structure here is no different from that specified in [OpenAI Chat API]
 
 The template in `research` mode is a Markdown file consisting of five sections. The role and content of each section are shown in the following figure.
 
+<br />
+
 <img src="./doc/img/research-mode-template.svg" width="500px"/>
+
+<br />
 
 Below we will look at the `research` mode template for the `linguistic` app, section by section.
 
@@ -531,6 +571,12 @@ In Monadic Chat's `research` mode, the discourse management object described in 
 The interaction between the user and the AI can be interpreted as an operation on the *discourse world* built in the previous conversational exchanges. Monadic Chat updates the discourse world by retrieving the conversation history embedded in the template and performing operations responding to user input (***map***).
 
 Responses from OpenAI's language model APIs (chat API and text-completion API) are also returned in the same JSON format. The main conversational response content is wrapped within this environment. If the whole object were treated as the conversational response to the user input, the discourse management object would involve a nested structure, which could continue inifinitely. Therefore, Monadic Chat extracts only the necessary values from the response object and reassembles the (single-layered) discourse management object using them (***join***).
+
+<br />
+
+<img src="./doc/img/state-monad.svg" width="900px" />
+
+<br />
 
 The architecture of the `research` mode of Monadic Chat--with its capability of generating and managing metadata properties inside a monadic structure--is parallel to the architecture of natural language discourse in general: They both can be seen as a kind of "state monad" (Hasebe 2021).
 
