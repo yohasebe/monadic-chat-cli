@@ -1,6 +1,6 @@
 <p align="center"><img src="./doc/img/monadic-chat.svg" width="500px"/></p>
 
-<p align="center">**Highly configurable CLI client app for OpenAI chat/text-completion API**</p>
+<p align="center"><b>Highly configurable CLI client app for OpenAI chat/text-completion API</b></p>
 
 <br />
 
@@ -574,7 +574,7 @@ Responses from OpenAI's language model APIs (chat API and text-completion API) a
 
 <br />
 
-<img src="./doc/img/state-monad.svg" width="900px" />
+<img src="./doc/img/state-monad.svg" width="700px" />
 
 <br />
 
