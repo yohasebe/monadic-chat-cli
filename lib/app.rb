@@ -77,7 +77,7 @@ module MonadicChat
       return self if @threads.empty?
 
       print TTY::Cursor.save
-      message = PASTEL.red " Processing contextual data #{MonadicChat::SPINNER} "
+      message = PASTEL.red "Processing contextual data #{MonadicChat::SPINNER} "
       print message
 
       MonadicChat::TIMEOUT_SEC.times do |i|
@@ -200,15 +200,9 @@ module MonadicChat
 
     def textbox
       text = !text && MonadicChat.count_lines_below < 1 ? PASTEL.send(:red, ">> ") + PASTEL.send(:blue, "Press enter to clear the screen ") : ""
-      begin
-        res = PROMPT_USER.ask(text)
-        print TTY::Cursor.clear_line_after
-        res == "" ? nil : res
-      rescue Interrupt
-        MonadicChat.clear_screen
-        res = TTY::Prompt.new.yes?("Quit the app?")
-        exit if res
-      end
+      res = PROMPT_USER.ask(text)
+      print TTY::Cursor.clear_line_after
+      res == "" ? nil : res
     end
 
     def show_greet

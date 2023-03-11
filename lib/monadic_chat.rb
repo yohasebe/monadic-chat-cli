@@ -46,7 +46,13 @@ module TTY
 
     def ask(text = "")
       puts @prefix
-      Readline.readline(text, @history)
+      begin
+        Readline.readline(text, @history)
+      rescue Interrupt
+        MonadicChat.clear_screen
+        res = TTY::Prompt.new.yes?("Quit the app?")
+        exit if res
+      end
     end
   end
 end
