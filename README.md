@@ -3,7 +3,7 @@
 <p align="center"><b>Highly configurable CLI client app for OpenAI chat/text-completion API</b></p>
 
 <p align="center">
-<img src="https://user-images.githubusercontent.com/18207/224493072-9720b341-c70d-43b9-b996-ba7e9a7a6806.gif" width="700" />
+<img src="https://user-images.githubusercontent.com/18207/224493072-9720b341-c70d-43b9-b996-ba7e9a7a6806.gif" width="900" />
 </p>
 
 > **Note**
