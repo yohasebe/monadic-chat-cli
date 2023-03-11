@@ -44,7 +44,7 @@ module TTY
       @prefix = prefix
     end
 
-    def ask(text = "")
+    def readline(text = "")
       puts @prefix
       begin
         Readline.readline(text, @history)
@@ -62,6 +62,7 @@ module MonadicChat
   NUM_RETRY = 1
   MIN_LENGTH = 5
   TIMEOUT_SEC = 120
+  TITLE_WIDTH = 72
 
   APPS_DIR = File.absolute_path(File.join(__dir__, "..", "apps"))
   APPS_DIR_LIST = Dir.entries(APPS_DIR)
@@ -213,16 +214,13 @@ module MonadicChat
   end
 
   def self.banner(title, desc, color)
-    title = title.center(60, " ")
-    desc = desc.center(60, " ")
-    padding = "".center(60, " ")
-    banner = <<~BANNER
-      #{PASTEL.send(:"on_#{color}", padding)}
-      #{PASTEL.send(:"on_#{color}").bold(title)}
-      #{PASTEL.send(:"on_#{color}", desc)}
-      #{PASTEL.send(:"on_#{color}", padding)}
-    BANNER
-    print "\n", banner.strip, "\n\n"
+    screen_width = TTY::Screen.width - 2
+    width = screen_width < TITLE_WIDTH ? screen_width : TITLE_WIDTH
+    title = PASTEL.bold.send(color.to_sym, title.center(width, " "))
+    desc = desc.center(width, " ")
+    padding = "".center(width, " ")
+    banner = TTY::Box.frame "#{padding}\n#{title}\n#{desc}\n#{padding}"
+    print "\n", banner.strip, "\n"
   end
 
   PROMPT_USER = TTY::PromptX.new(active_color: :blue, prefix: prompt_user)

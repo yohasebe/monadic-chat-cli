@@ -48,8 +48,7 @@ module MonadicChat
         input = if mode == :replace
                   val
                 else
-                  print "\n"
-                  PROMPT_SYSTEM.ask(" #{val}:")
+                  PROMPT_SYSTEM.readline("#{val}: ")
                 end
 
         unless input
@@ -200,7 +199,7 @@ module MonadicChat
 
     def textbox
       text = !text && MonadicChat.count_lines_below < 1 ? PASTEL.send(:red, ">> ") + PASTEL.send(:blue, "Press enter to clear the screen ") : ""
-      res = PROMPT_USER.ask(text)
+      res = PROMPT_USER.readline(text)
       print TTY::Cursor.clear_line_after
       res == "" ? nil : res
     end
@@ -220,7 +219,7 @@ module MonadicChat
       print "\n#{TTY::Markdown.parse(greet_md, indent: 0).strip}\n"
     end
 
-    def show_help
+    def show_menu
       # print TTY::Cursor.clear_line_after
       print TTY::Cursor.save
       parameter = PROMPT_SYSTEM.select(" Select function:",
@@ -311,7 +310,7 @@ module MonadicChat
     end
 
     def save_data
-      input = PROMPT_SYSTEM.ask(" Enter the file path for the JSON file (including the file name and .json extension): ") do |q|
+      input = PROMPT_SYSTEM.readline("Enter the file path for the JSON file (including the file name and .json extension): ") do |q|
         q.validate(lambda do |r|
           dirname = File.dirname(File.expand_path(r))
           r == "" || (/\.json\z/ =~ r.to_s.strip && Dir.exist?(dirname))
@@ -358,7 +357,7 @@ module MonadicChat
     end
 
     def load_data
-      input = PROMPT_SYSTEM.ask(" Enter the path to the save file (press Enter to cancel): ") do |q|
+      input = PROMPT_SYSTEM.readline("Enter the path to the save file (press Enter to cancel): ") do |q|
         q.validate(lambda do |r|
           r == "" || /\.json\z/ =~ r.to_s.strip && File.exist?(File.expand_path(r.strip))
         end)
@@ -436,35 +435,35 @@ module MonadicChat
     end
 
     def change_max_tokens
-      PROMPT_SYSTEM.ask(" Set value of max tokens [1000 to 8000]", convert: :int) do |q|
+      PROMPT_SYSTEM.ask("Set value of max tokens [1000 to 8000]", convert: :int) do |q|
         q.in "1000-8000"
         q.messages[:range?] = "Value out of expected range [1000 to 2048]"
       end
     end
 
     def change_temperature
-      PROMPT_SYSTEM.ask(" Set value of temperature [0.0 to 1.0]", convert: :float) do |q|
+      PROMPT_SYSTEM.ask("Set value of temperature [0.0 to 1.0]", convert: :float) do |q|
         q.in "0.0-1.0"
         q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
       end
     end
 
     def change_top_p
-      PROMPT_SYSTEM.ask(" Set value of top_p [0.0 to 1.0]", convert: :float) do |q|
+      PROMPT_SYSTEM.ask("Set value of top_p [0.0 to 1.0]", convert: :float) do |q|
         q.in "0.0-1.0"
         q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
       end
     end
 
     def change_frequency_penalty
-      PROMPT_SYSTEM.ask(" Set value of frequency penalty [-2.0 to 2.0]", convert: :float) do |q|
+      PROMPT_SYSTEM.ask("Set value of frequency penalty [-2.0 to 2.0]", convert: :float) do |q|
         q.in "-2.0-2.0"
         q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
       end
     end
 
     def change_presence_penalty
-      PROMPT_SYSTEM.ask(" Set value of presence penalty [-2.0 to 2.0]", convert: :float) do |q|
+      PROMPT_SYSTEM.ask("Set value of presence penalty [-2.0 to 2.0]", convert: :float) do |q|
         q.in "-2.0-2.0"
         q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
       end
@@ -678,7 +677,7 @@ module MonadicChat
           input = textbox
           next
         when /\A\s*(?:help|menu|commands?|\?|h)\s*\z/i
-          show_help
+          return true unless show_menu
         when /\A\s*(?:bye|exit|quit)\s*\z/i
           break
         when /\A\s*(?:reset)\s*\z/i
@@ -716,8 +715,8 @@ module MonadicChat
         end
         input = textbox
       end
-    rescue StandardError
-      false
+    # rescue StandardError
+    #   false
     end
 
     def run
@@ -727,9 +726,7 @@ module MonadicChat
       if @placeholders.empty?
         parse(textbox)
       else
-        print "\n"
-        print MonadicChat.prompt_system
-        loadfile = PROMPT_SYSTEM.select(" Load saved file? (Make sure the file is saved by the same app))",
+        loadfile = PROMPT_SYSTEM.select("\nLoad saved file? (Make sure the file is saved by the same app)",
                                         default: 2,
                                         show_help: :never) do |menu|
           menu.choice "Yes", "yes"

@@ -18,30 +18,19 @@ module MonadicApp
   end
 
   def self.run
-    wid = 60
-    mon = " /M/O/N/A/D/I/C/"
-    chat = " /C/H/A/T/ "
-    hpad = " " * ((wid - (mon.size + chat.size) - 1) / 2).to_i
-    cpad = ""
-    montitle = PASTEL.on_green.bold(mon)
-    chattitle = PASTEL.on_green.bold(chat)
-    title = "#{hpad}#{montitle}#{cpad}#{chattitle}#{hpad}"
-    title += ((wid - (mon.size + chat.size)) % 2).zero? ? "" : " "
-    subtitle = PASTEL.bold("Command Line Interface for OpenAI chat/text-completion API".center(wid, " "))
-    version = "Version: #{VERSION}".center(wid, " ")
-    vpad = " " * wid
+    screen_width = TTY::Screen.width - 2
+    width = screen_width < TITLE_WIDTH ? screen_width : TITLE_WIDTH
 
-    banner = <<~BANNER
-      #{PASTEL.on_blue(vpad)}
-      #{PASTEL.on_cyan(vpad)}
-      #{PASTEL.on_cyan(title)}
-      #{PASTEL.on_cyan(vpad)}
-      #{PASTEL.on_cyan(subtitle)}
-      #{PASTEL.on_cyan(vpad)}
-      #{PASTEL.on_cyan(version)}
-      #{PASTEL.on_cyan(vpad)}
-      #{PASTEL.on_blue(vpad)}
-    BANNER
+    mon = " M O N A D I C "
+    dots = "::"
+    chat = " C H A T "
+    hpad = " " * ((width - (mon.size + dots.size + chat.size)) / 2).to_i
+    title = "#{hpad}#{PASTEL.bold(mon + dots + chat)}#{hpad}"
+    subtitle = "OpenAI chat/text-completion API client".center(width, " ")
+    version = "Version: #{VERSION}".center(width, " ")
+    vpad = " " * width
+
+    banner = TTY::Box.frame "#{vpad}\n#{title}\n#{subtitle}\n#{version}\n#{vpad}"
 
     mode = "normal"
     openai_completion = nil
@@ -59,7 +48,7 @@ module MonadicApp
     loop do
       MonadicChat.clear_screen
       TTY::Cursor.clear_screen_down
-      print "\n", banner.strip, "\n\n"
+      print "\n", banner.strip, "\n"
 
       openai_completion ||= MonadicChat.authenticate
 
@@ -103,8 +92,8 @@ module MonadicApp
           MonadicChat.clear_screen
           eval(parameter.capitalize, binding, __FILE__, __LINE__).new(openai_completion, research_mode: mode == "research").run
         end
-      rescue StandardError
-        next
+      # rescue StandardError
+      #   next
       end
     end
   end

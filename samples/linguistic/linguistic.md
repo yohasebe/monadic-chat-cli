@@ -6,7 +6,7 @@ NEW PROMPT: {{PROMPT}}
 {
   "prompt": "\"We didn't have a camera.\"",
   "response": "`[S [NP We] [VP [V didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`\n\n###\n\n",
-  "mode": "parsing",
+  "mode": "linguistic",
   "turns": 2,
   "sentence_type": ["declarative"],
   "sentiment": ["sad"],
@@ -18,7 +18,7 @@ NEW PROMPT: {{PROMPT}}
 
 Make sure the following content requirements are all fulfilled:
 
-- keep the value of the "mode" property at "parsing"
+- keep the value of the "mode" property at "linguistic"
 - set the new prompt to the "prompt" property
 - create your response to the new prompt in accordance with the "messages" and set it to "response"
 - insert both the new prompt and the response after all the existing items in the "messages"
