@@ -16,6 +16,8 @@ RSpec.describe "Translate" do
   translate.wait.bind_research_mode(input2, num_retry: num_retry)
   input3 = "いつか熟練した(proficient)書き手になる日を夢見て。"
   translate.wait.bind_research_mode(input3, num_retry: num_retry)
+  input4 = "読みやすく、面白い文章をたくさん読んで勉強するんだ。"
+  translate.wait.bind_research_mode(input4, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
     expect(translate.wait.objectify.keys).to include "mode", "turns", "prompt", "response", "messages", "target_lang"
@@ -34,6 +36,8 @@ RSpec.describe "Chat" do
   chat.wait.bind_research_mode(input2, num_retry: num_retry)
   input3 = "How can I go there from Kansai, Japan?"
   chat.wait.bind_research_mode(input3, num_retry: num_retry)
+  input4 = "By the way, are there any cities in Japan that have a sister city relationship with Texas cities?"
+  chat.wait.bind_research_mode(input4, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
     expect(chat.wait.objectify.keys).to include "mode", "turns", "response", "messages", "language", "topics"
@@ -52,6 +56,8 @@ RSpec.describe "MonadicChat:Novel" do
   novel.wait.bind_research_mode(input2, num_retry: num_retry)
   input3 = "the voice of the person the other end was an unfamilier one."
   novel.wait.bind_research_mode(input3, num_retry: num_retry)
+  input4 = "it turned out that the person was my friend's son"
+  novel.wait.bind_research_mode(input4, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
     expect(novel.wait.objectify.keys).to include "mode", "turns", "response", "messages", "prompt"
@@ -70,6 +76,8 @@ RSpec.describe "Code" do
   code.wait.bind_research_mode(input2, num_retry: num_retry)
   input3 = "Add a usage example and a sample output to this code."
   code.wait.bind_research_mode(input3, num_retry: num_retry)
+  input4 = "Write the same program using Python."
+  code.wait.bind_research_mode(input4, num_retry: num_retry)
 
   it "gives responses in json having certain properties" do
     expect(code.wait.objectify.keys).to include "mode", "turns", "prompt", "response", "messages"
