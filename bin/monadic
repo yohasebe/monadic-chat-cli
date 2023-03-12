@@ -30,7 +30,7 @@ module MonadicMenu
     dots = "::"
     chat = " C H A T "
     hpad = " " * ((width - (mon.size + dots.size + chat.size)) / 2).to_i
-    title = "#{hpad}#{PASTEL.bold(mon + dots + chat)}#{hpad}"
+    title = "#{hpad}#{PASTEL.red.bold(mon + dots + chat)}#{hpad}"
     subtitle = "OpenAI chat/text-completion API client".center(width, " ")
     version = "Version: #{VERSION}".center(width, " ")
     vpad = " " * width
