@@ -2,9 +2,9 @@
 
 require_relative "../../lib/monadic_app"
 
-class Code < MonadicApp
-  DESC = "Interactive Program Code Generator"
-  COLOR = "blue"
+class Linguistic < MonadicApp
+  DESC = "Syntatic/Semantic/Pragmatic Analyzer"
+  COLOR = "red"
 
   attr_accessor :template, :config, :params, :completion
 
@@ -23,9 +23,9 @@ class Code < MonadicApp
     method = OpenAI.model_to_method(params["model"])
     template = case method
                when "completions"
-                 TEMPLATES["research/code"]
+                 TEMPLATES["research/linguistic"]
                when "chat/completions"
-                 TEMPLATES["normal/code"]
+                 TEMPLATES["normal/linguistic"]
                end
     super(params,
           template,
@@ -46,7 +46,6 @@ class Code < MonadicApp
                 res["messages"].shift(1)
                 res["turns"] = res["turns"].to_i - 1
               end
-              ############################################################
               res
             when "chat/completions"
               if res.size > @num_retained_turns * 2 + 1

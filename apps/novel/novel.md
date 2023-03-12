@@ -29,5 +29,5 @@ Make sure the following formal requirements are all fulfilled:
 - do not use invalid characters in the JSON object
 - escape double quotes and other special characters in the text values in the resulting JSON object
 - increment the value of "turns" by 1 and update the property so that the value of "turns" equals the number of the items in the "messages" of the resulting JSON object
-- add "\n\n###\n\n" at the end of the "response" value
-- wrap the JSON object with "<JSON>\n" and "\n</JSON>"
+- add "\n\n###\n\n" at the end of the "response" value (IMPORTANT)
+- wrap the JSON object with "<JSON>\n" and "\n</JSON>" (IMPORTANT)

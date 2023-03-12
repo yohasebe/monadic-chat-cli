@@ -5,7 +5,7 @@
 require_relative "../lib/monadic_chat"
 MonadicChat.require_apps
 
-module MonadicApp
+module MonadicMenu
   include MonadicChat
 
   PROMPT_SYSTEM.on(:keypress) do |event|
@@ -15,6 +15,11 @@ module MonadicApp
     when :ctrl_n
       PROMPT_SYSTEM.trigger(:keydown)
     end
+  end
+
+  def self.clear_screen
+    print TTY::Cursor.clear_screen_down
+    print "\e[2J\e[f"
   end
 
   def self.run
@@ -46,8 +51,7 @@ module MonadicApp
     end
 
     loop do
-      MonadicChat.clear_screen
-      TTY::Cursor.clear_screen_down
+      clear_screen
       print "\n", banner.strip, "\n"
 
       openai_completion ||= MonadicChat.authenticate
@@ -85,19 +89,34 @@ module MonadicApp
           MonadicChat.open_readme
           next
         when "exit"
-          MonadicChat.clear_screen
+          clear_screen
           print "#{PASTEL.bold("Bye!")}\n"
           exit
         else
-          MonadicChat.clear_screen
+          clear_screen
           eval(parameter.capitalize, binding, __FILE__, __LINE__).new(openai_completion, research_mode: mode == "research").run
         end
-      # rescue StandardError
-      #   next
+      rescue MonadicError
+        next
+      rescue StandardError => e
+        clear_screen
+        choice = PROMPT_SYSTEM.select("Error: Something went wrong", default: 2, show_help: :never) do |menu|
+          menu.choice "Return to main menu", "menu"
+          menu.choice "Show error message and exit", "debug"
+        end
+
+        case choice
+        when "menu"
+          next
+        when "debug"
+          puts "Error: #{e.message}"
+          puts e.backtrace
+          break
+        end
       end
     end
   end
 end
 
-MonadicChat.clear_screen
-MonadicApp.run
+MonadicMenu.clear_screen
+MonadicMenu.run

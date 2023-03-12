@@ -14,48 +14,10 @@ require "io/console"
 require "readline"
 
 require_relative "./monadic_chat/version"
-require_relative "./monadic_chat/tty_markdown_no_br"
 require_relative "./monadic_chat/open_ai"
+require_relative "./monadic_chat/helper"
 
 Oj.mimic_JSON
-
-class Cursor
-  class << self
-    def pos
-      res = +""
-      $stdin.raw do |stdin|
-        $stdout << "\e[6n"
-        $stdout.flush
-        while (c = stdin.getc) != "R"
-          res << c if c
-        end
-      end
-      m = res.match(/(?<row>\d+);(?<column>\d+)/)
-      { row: Integer(m[:row]), column: Integer(m[:column]) }
-    end
-  end
-end
-
-module TTY
-  class PromptX < Prompt
-    def initialize(active_color:, prefix:, history: true)
-      super(active_color: active_color, prefix: prefix, interrupt: false)
-      @history = history
-      @prefix = prefix
-    end
-
-    def readline(text = "")
-      puts @prefix
-      begin
-        Readline.readline(text, @history)
-      rescue Interrupt
-        MonadicChat.clear_screen
-        res = TTY::Prompt.new.yes?("Quit the app?")
-        exit if res
-      end
-    end
-  end
-end
 
 module MonadicChat
   CONFIG = File.join(Dir.home, "monadic_chat.conf")
@@ -213,88 +175,9 @@ module MonadicChat
     "\n#{PASTEL.send(:"on_#{color}", name)}"
   end
 
-  def self.banner(title, desc, color)
-    screen_width = TTY::Screen.width - 2
-    width = screen_width < TITLE_WIDTH ? screen_width : TITLE_WIDTH
-    title = PASTEL.bold.send(color.to_sym, title.center(width, " "))
-    desc = desc.center(width, " ")
-    padding = "".center(width, " ")
-    banner = TTY::Box.frame "#{padding}\n#{title}\n#{desc}\n#{padding}"
-    print "\n", banner.strip, "\n"
-  end
-
   PROMPT_USER = TTY::PromptX.new(active_color: :blue, prefix: prompt_user)
-  PROMPT_SYSTEM = TTY::PromptX.new(active_color: :blue, prefix: prompt_system)
+  PROMPT_SYSTEM = TTY::PromptX.new(active_color: :blue, prefix: "#{prompt_system} ")
+  PROMPT_ASSISTANT = TTY::PromptX.new(active_color: :red, prefix: "#{prompt_assistant} ")
   SPINNER = "▹▹▹▹"
   BULLET = "\e[33m●\e[0m"
-
-  def self.clear_screen
-    MonadicChat.clear_region_below
-    print "\e[2J\e[f"
-  end
-
-  def self.add_to_html(text, filepath)
-    text = text.gsub(/(?<![\\>\s])(?!\n[\n<])\n/m) { "<br/>\n" }
-    text = text.gsub(/~~~(.+?)~~~/m) do
-      m = Regexp.last_match
-      "~~~#{m[1].gsub("<br/>\n") { "\n" }}~~~"
-    end
-    text = text.gsub(/`(.+?)`/) do
-      m = Regexp.last_match
-      "`#{m[1].gsub("<br/>\n") { "\n" }}`"
-    end
-
-    `touch #{filepath}` unless File.exist?(filepath)
-    File.open(filepath, "w") do |f|
-      html = <<~HTML
-        <!doctype html>
-        <html lang="en">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style type="text/css">
-              #{GITHUB_STYLE}
-            </style>
-            <title>Monadic Chat</title>
-          </head>
-          <body>
-              #{Kramdown::Document.new(text, syntax_highlighter: :rouge, syntax_highlighter_ops: {}).to_html}
-          </body>
-          <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
-          <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-          <script>
-            $(window).on("load", function() {
-              $("html, body").animate({ scrollTop: $(document).height() }, 500);
-            });
-          </script>
-        </html>
-      HTML
-      f.write html
-    end
-    Launchy.open(filepath)
-  end
-
-  def self.count_lines_below
-    screen_height = TTY::Screen.height
-    vpos = Cursor.pos[:row]
-    screen_height - vpos
-  end
-
-  def self.confirm_query(input)
-    if input.size < MIN_LENGTH
-      print TTY::Cursor.save
-      res = PROMPT_SYSTEM.yes?(" Would you like to proceed with this (very short) prompt?")
-      print TTY::Cursor.restore
-      MonadicChat.clear_region_below
-      res
-    else
-      true
-    end
-  end
-
-  def self.clear_region_below
-    print TTY::Cursor.up
-    print TTY::Cursor.clear_screen_down
-    print TTY::Cursor.up
-  end
 end

@@ -2,13 +2,13 @@
 
 num_retry = 3
 
-RSpec.describe "MonadicChat::Translate" do
+RSpec.describe "Translate" do
   replacements = {
     "mode" => :replace,
     "{{TARGET_LANG}}" => "English"
   }
 
-  translate = MonadicChat::Translate.new(COMPLETION, replacements: replacements, research_mode: true, stream: true)
+  translate = Translate.new(COMPLETION, replacements: replacements, research_mode: true, stream: true)
   translate.fulfill_placeholders
   input1 = "面白く読みやすい(readable)文章を書くことはとても難しい。"
   translate.wait.bind_research_mode(input1, num_retry: num_retry)
@@ -26,8 +26,8 @@ RSpec.describe "MonadicChat::Translate" do
   end
 end
 
-RSpec.describe "MonadicChat::Chat" do
-  chat = MonadicChat::Chat.new(COMPLETION, research_mode: true, stream: true)
+RSpec.describe "Chat" do
+  chat = Chat.new(COMPLETION, research_mode: true, stream: true)
   input1 = "What is the best place to visit in Texas?"
   chat.bind_research_mode(input1, num_retry: num_retry)
   input2 = "What do people say about the place?"
@@ -45,7 +45,7 @@ RSpec.describe "MonadicChat::Chat" do
 end
 
 RSpec.describe "MonadicChat:Novel" do
-  novel = MonadicChat::Novel.new(COMPLETION, research_mode: true, stream: true)
+  novel = Novel.new(COMPLETION, research_mode: true, stream: true)
   input1 = "Tom woke up to the sound of pouring rain."
   novel.bind_research_mode(input1, num_retry: num_retry)
   input2 = "he decided to call his old friend first time in many years."
@@ -62,8 +62,8 @@ RSpec.describe "MonadicChat:Novel" do
   end
 end
 
-RSpec.describe "MonadicChat::Code" do
-  code = MonadicChat::Code.new(COMPLETION, research_mode: true, stream: true)
+RSpec.describe "Code" do
+  code = Code.new(COMPLETION, research_mode: true, stream: true)
   input1 = "Write a command line app that shows the current global IP in Ruby."
   code.bind_research_mode(input1, num_retry: num_retry)
   input2 = "Make the code capable of showing the approximate geographical locatioin."
