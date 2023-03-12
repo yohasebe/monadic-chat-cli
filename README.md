@@ -80,7 +80,7 @@ Execute the following command in an environment where Ruby 2.6.10 or higher is i
 gem install monadic-chat
 ```
 
-To update the `monadic-chat` gem installed:
+To update:
 
 ```text
 gem update monadic-chat
