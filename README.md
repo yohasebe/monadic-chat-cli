@@ -192,6 +192,8 @@ All the information retrievable by running the `data/context` function can be pr
 
 <br />
 
+The generated HTML is saved in the user's home directory (`$HOME`) with the file name `monadic_chat.html`. Once the `html` command is executed, the file contents will continue to be updated until you `reset` or quit the running app. HTML data is written to this file regardless of the app.
+
 In `research` mode, it may take several seconds to several minutes after the `html` command is executed before the acutual HTML is displayed. This is because in `research` mode, even after displaying a direct response to user input, there may be a process running in the background that retrieves and reconstructs the context data, requiring the system to wait for it to finish.
 
 **reset**
@@ -520,6 +522,8 @@ Note that the entire `research` mode template is written in Markdown format, so 
 
 The required properties of this JSON object are `prompt`, `response`, and `messages`. Other properties are optional. The format of the `messages` property is similar to that of the `normal` mode (i.e., OpenAI's chat API. The only difference is that it is structured as a list of objects whose keys are user and assistant to make it easier to describe.)
 
+The JSON object in the `research` mode template is saved in the user’s home directory (`$HOME`) with the file `monadic_chat.json`. The content is overwritten every time the JSON object is updated. Note that this JSON file is created for testing purposes. Modifying its content does not affect the processes carried out by the app.
+
 **Content Requirements**
 
 ```markdown
@@ -528,7 +532,6 @@ Make sure the following content requirements are all fulfilled:
 - keep the value of the "mode" property at "linguistic"
 - set the new prompt to the "prompt" property
 - create your response to the new prompt in accordance with the "messages" and set it to "response"
-- add "\n\n###\n\n" at the end of the "response" value (IMPORTANT)
 - insert both the new prompt and the response after all the existing items in the "messages"
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
@@ -546,12 +549,18 @@ Make sure the following formal requirements are all fulfilled:
 
 - do not use invalid characters in the JSON object
 - escape double quotes and other special characters in the text values in the resulting JSON object
-- wrap the JSON object with "<JSON>\n" and "\n</JSON>" (IMPORTANT)
+
+Add "\n\n###\n\n" at the end of the "response" value.
+
+Wrap the JSON object with "<JSON>\n" and "\n</JSON>".
 ```
 
-This section details the format of the response returned through the API. JSON is essentially text data, and some characters must be escaped appropriately. Also, since the language model available in OpenAI's text-completion API is subject to some indeterminacy (even when the `temperature` parameter is `0.0`), to ensure that a valid JSON object is retrieved, Monadic Chat requires `< JSON>... </JSON>` tags to enclose the whole JSON data.
+This section details the format of the response returned through the API. JSON is essentially text data, and some characters must be escaped appropriately.
 
-Currently, Monadic Chat requires that the primary response from GPT end with the string `\n\n####\n\n`. This is part of the mechanism to detect when the response string has reached the end so that it can be displayed on the terminal as soon as possible.
+Due to their importance, two formal requirements are described as independent sentences rather than in list form. It is necessary since the language model available in OpenAI’s text-completion API is subject to some indeterminacy (even when the `temperature` parameter is `0.0`).
+
+- To ensure that a valid JSON object is retrieved, Monadic Chat requires `< JSON>... </JSON>` tags to enclose the whole JSON data.
+- Monadic Chat requires that the primary response from GPT end with the string `\n\n####\n\n`. This is part of the mechanism to detect when the response string has reached the end so that it can be displayed on the terminal as soon as possible.
 
 ## What is Monadic about Monadic Chat?
 
