@@ -129,36 +129,42 @@ module MonadicChat
         OpenAI::Completion.new(token, tmp_file: TEMP_JSON)
       rescue StandardError
         print "failure.\n"
-        authenticate(overwrite: true)
+        false
       end
     end
 
-    access_token = ENV["OPENAI_API_KEY"]
+    completion = nil
+
     if overwrite
-      access_token = nil
-      access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
+      access_token = PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
+      return false if access_token.to_s == ""
 
-      check.call(access_token)
+      completion = check.call(access_token)
 
-      File.open(CONFIG, "w") do |f|
-        config = { "access_token" => access_token }
-        f.write(JSON.pretty_generate(config))
-        print "New access token has been saved to #{CONFIG}\n"
+      if completion
+        File.open(CONFIG, "w") do |f|
+          config = { "access_token" => access_token }
+          f.write(JSON.pretty_generate(config))
+          print "New access token has been saved to #{CONFIG}\n"
+        end
       end
     elsif File.exist?(CONFIG)
       json = File.read(CONFIG)
       config = JSON.parse(json)
       access_token = config["access_token"]
-      check.call(access_token)
+      completion = check.call(access_token)
     else
       access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
-      check.call(access_token)
-      File.open(CONFIG, "w") do |f|
-        config = { "access_token" => access_token }
-        f.write(JSON.pretty_generate(config))
+      completion = check.call(access_token)
+      if completion
+        File.open(CONFIG, "w") do |f|
+          config = { "access_token" => access_token }
+          f.write(JSON.pretty_generate(config))
+        end
         print "Access token has been saved to #{CONFIG}\n"
       end
     end
+    completion || authenticate(overwrite: true)
   end
 
   def self.prompt_system
