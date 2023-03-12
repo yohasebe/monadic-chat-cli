@@ -54,7 +54,7 @@ module MonadicMenu
       clear_screen
       print "\n", banner.strip, "\n"
 
-      openai_completion = MonadicChat.authenticate
+      openai_completion ||= MonadicChat.authenticate
       exit unless openai_completion
 
       parameter = PROMPT_SYSTEM.select(" Current mode: #{print_mode.call(mode)}\n\nSelect item:",

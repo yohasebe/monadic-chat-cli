@@ -4,10 +4,7 @@
 
 - Initial commit (private)
 
-## [0.1.1] - 2023-03-12
+## [0.1.3] - 2023-03-12
 
 - Public release
-
-## [0.1.2] - 2023-03-12
-
 - Authentication problem fixed

@@ -74,10 +74,16 @@ Monadic Chat comes with four apps (`Chat`, `Code`, `Novel`, and `Translate`). Ea
 
 ### Using RubyGems
 
-Execute the following command in an environment where Ruby 2.6 or higher is installed.
+Execute the following command in an environment where Ruby 2.6.10 or higher is installed.
 
 ```text
 gem install monadic-chat
+```
+
+To update the `monadic-chat` gem installed:
+
+```text
+gem update monadic-chat
 ```
 
 ### Clone the GitHub Repository
