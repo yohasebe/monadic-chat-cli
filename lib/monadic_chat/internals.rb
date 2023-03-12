@@ -158,7 +158,6 @@ class MonadicApp
     print "\n"
 
     update_template(res)
-    show_html
   end
 
   def bind_research_mode(input, num_retry: 0)

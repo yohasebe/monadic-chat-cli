@@ -31,11 +31,11 @@ class MonadicApp
       end
     end
 
-    h1 = "# #{self.class.name}\n\n"
+    h1 = "# Monadic :: Chat / #{self.class.name}"
     contextual.map!(&:strip).unshift "## Contextual Data\n" unless contextual.empty?
     accum_label = @prop_accumulated.split("_").map(&:capitalize).join(" ")
     accumulated.map!(&:strip).unshift "## #{accum_label}\n" unless accumulated.empty?
-    "#{h1}#{contextual.join("\n")}\n\n#{accumulated.join("\n")}"
+    "#{h1}\n\n#{contextual.join("\n")}\n\n#{accumulated.join("\n")}"
   end
 
   def show_data
@@ -98,11 +98,13 @@ class MonadicApp
   end
 
   def show_html
-    res = format_data.sub(/::(.+)?\b/) { " <span class='monadic_gray'>::</span> <span class='monadic_app'>#{Regexp.last_match(1)}</span>" }
-                     .gsub("```") { "~~~" }
-                     .gsub(/^(system):/i) { "<span class='monadic_system'> #{Regexp.last_match(1)} </span><br />" }
-                     .gsub(/^(user):/i) { "<span class='monadic_user'> #{Regexp.last_match(1)} </span><br />" }
-                     .gsub(/^(assistant|gpt):/i) { "<span class='monadic_chat'> #{Regexp.last_match(1)} </span><br />" }
+    res = format_data.sub(%r{::(.+?)/(.+?)\b}) do
+      " <span class='monadic_gray'>::</span> <span class='monadic_app'>#{Regexp.last_match(1)}</span> <span class='monadic_gray'>/</span> #{Regexp.last_match(2)}"
+    end
+    res = res.gsub("```") { "~~~" }
+             .gsub(/^(system):/i) { "<span class='monadic_system'> #{Regexp.last_match(1)} </span><br />" }
+             .gsub(/^(user):/i) { "<span class='monadic_user'> #{Regexp.last_match(1)} </span><br />" }
+             .gsub(/^(assistant|gpt):/i) { "<span class='monadic_chat'> #{Regexp.last_match(1)} </span><br />" }
     add_to_html(res, TEMP_HTML)
   end
 end

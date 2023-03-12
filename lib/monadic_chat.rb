@@ -61,6 +61,7 @@ module MonadicChat
       padding-right: 0.5em;
       font-weight: bold;
       background-color: #c8e5ff;
+      margin-bottom: 0.5em;
     }
     .monadic_chat {
       display:inline-block;
@@ -68,6 +69,7 @@ module MonadicChat
       padding-right: 0.5em;
       font-weight: bold;
       background-color: #ffcaca;
+      margin-bottom: 0.5em;
     }
     .monadic_system {
       display:inline-block;
@@ -75,16 +77,19 @@ module MonadicChat
       padding-right: 0.5em;
       font-weight: bold;
       background-color: #c4ffcb;
+      margin-bottom: 0.5em;
     }
     .monadic_gray {
       display:inline-block;
       font-weight: bold;
       color: #999;
+      margin-bottom: 0.5em;
     }
     .monadic_app {
       display:inline-block;
       font-weight: bold;
       color: #EB742B;
+      margin-bottom: 0.5em;
     }
   CSS
   GITHUB_STYLE = style

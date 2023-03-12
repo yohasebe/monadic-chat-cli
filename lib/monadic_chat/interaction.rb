@@ -33,12 +33,7 @@ class MonadicApp
 
   def confirm_query(input)
     if input.size < MIN_LENGTH
-      print TTY::Cursor.save
-      res = PROMPT_SYSTEM.yes?("Would you like to proceed with this (very short) prompt?")
-      print TTY::Cursor.restore
-      print TTY::Cursor.up unless res
-      go_up_and_clear
-      res
+      PROMPT_SYSTEM.yes?("Would you like to proceed with this (very short) prompt?")
     else
       true
     end
