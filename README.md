@@ -36,7 +36,7 @@
   * [Accumulator](#accumulator)
   * [Reducer](#reducer)
 * [Creating New App](#creating-new-app)
-  * [Folder/File Structure](#folderfile-structure)
+  * [File Structure](#file-structure)
   * [Reducer Code](#reducer-code)
   * [Template for `Normal` Mode](#template-for-normal-mode)
   * [Template for `Research` Mode](#template-for-research-mode)
@@ -396,7 +396,7 @@ The specifications for Monadic Chat's command-line user interface for this app a
 
 The sample app we create in this section is stored in the [`sample_app`](https://github.com/yohasebe/monadic-chat/tree/main/sample_app) folder in the repository.
 
-### Folder/File Structure
+### File Structure
 
 New Monadic Chat apps must be placed inside the `apps` folder. The folders and files for default apps `chat`, `code`, `novel`, and `translate` are also in this folder.
 
