@@ -192,7 +192,7 @@ All the information retrievable by running the `data/context` function can be pr
 
 <br />
 
-The generated HTML is saved in the user's home directory (`$HOME`) with the file name `monadic_chat.html`. Once the `html` command is executed, the file contents will continue to be updated until you `reset` or quit the running app. HTML data is written to this file regardless of the app.
+The generated HTML is saved in the user's home directory (`$HOME`) with the file name `monadic_chat.html`. The file contents does not automatically updated. Run `html` command every time when you need it. HTML data is written to this file regardless of the app.
 
 In `research` mode, it may take several seconds to several minutes after the `html` command is executed before the acutual HTML is displayed. This is because in `research` mode, even after displaying a direct response to user input, there may be a process running in the background that retrieves and reconstructs the context data, requiring the system to wait for it to finish.
 
@@ -522,7 +522,7 @@ Note that the entire `research` mode template is written in Markdown format, so 
 
 The required properties of this JSON object are `prompt`, `response`, and `messages`. Other properties are optional. The format of the `messages` property is similar to that of the `normal` mode (i.e., OpenAI's chat API. The only difference is that it is structured as a list of objects whose keys are user and assistant to make it easier to describe.)
 
-The JSON object in the `research` mode template is saved in the user’s home directory (`$HOME`) with the file `monadic_chat.json`. The content is overwritten every time the JSON object is updated. Note that this JSON file is created for testing purposes. Modifying its content does not affect the processes carried out by the app.
+The JSON object in the `research` mode template is saved in the user’s home directory (`$HOME`) with the file `monadic_chat.json`. The content is overwritten every time the JSON object is updated. Note that this JSON file is created for logging purposes (so the data is not pretty printed). Modifying its content does not affect the processes carried out by the app.
 
 **Content Requirements**
 

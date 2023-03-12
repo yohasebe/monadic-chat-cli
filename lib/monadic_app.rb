@@ -22,7 +22,6 @@ class MonadicApp
     @prop_newdata = prop_newdata
     @completion = nil
     @update_proc = update_proc
-    @show_html = false
     @params_original = params
     @params = @params_original.dup
     @template_original = File.read(template)

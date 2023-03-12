@@ -52,7 +52,6 @@ class MonadicApp
   end
 
   def reset
-    @show_html = false
     @params = @params_original.dup
 
     case @method

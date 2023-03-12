@@ -158,7 +158,7 @@ class MonadicApp
     print "\n"
 
     update_template(res)
-    show_html if @show_html
+    show_html
   end
 
   def bind_research_mode(input, num_retry: 0)
@@ -233,7 +233,6 @@ class MonadicApp
 
       update_template(res)
       @threads.clear
-      show_html if @show_html
     rescue StandardError => e
       @threads.clear
       @responses << <<~ERROR

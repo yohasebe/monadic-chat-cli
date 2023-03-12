@@ -52,8 +52,7 @@ class MonadicApp
 
     wait
 
-    print "HTML rendering is enabled\n"
-    @show_html = true
+    print "HTML is ready\n"
     show_html
   end
 
