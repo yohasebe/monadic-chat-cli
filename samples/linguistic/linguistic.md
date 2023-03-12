@@ -21,7 +21,6 @@ Make sure the following content requirements are all fulfilled:
 - keep the value of the "mode" property at "linguistic"
 - set the new prompt to the "prompt" property
 - create your response to the new prompt in accordance with the "messages" and set it to "response"
-- add "\n\n###\n\n" at the end of the "response" value (IMPORTANT)
 - insert both the new prompt and the response after all the existing items in the "messages"
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
@@ -34,4 +33,7 @@ Make sure the following formal requirements are all fulfilled:
 - escape double quotes and other special characters in the text values in the resulting JSON object
 - increment the value of "turns" by 1 and update the property so that the value of "turns" equals the number of the items in the "messages" of the resulting JSON object
 - check the validity of the generated JSON object and correct any possible parsing problems before returning it 
-- wrap the JSON object with "<JSON>\n" and "\n</JSON>" (IMPORTANT)
+
+Add "\n\n###\n\n" at the end of the "response" value.
+
+Wrap the JSON object with "<JSON>\n" and "\n</JSON>".

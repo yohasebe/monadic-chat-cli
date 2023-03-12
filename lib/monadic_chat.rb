@@ -45,6 +45,8 @@ module MonadicChat
   PASTEL = Pastel.new
 
   TEMP_HTML = File.join(Dir.home, "monadic_chat.html")
+  TEMP_JSON = File.join(Dir.home, "monadic_chat.json")
+
   style = +File.read(File.join(__dir__, "..", "assets", "github.css")).gsub(".markdown-") { "" }
   style << File.read(File.join(__dir__, "..", "assets", "pigments-default.css"))
   style << <<~CSS
@@ -119,7 +121,7 @@ module MonadicChat
         raise if OpenAI.models(token).empty?
 
         print "success\n"
-        OpenAI::Completion.new(token)
+        OpenAI::Completion.new(token, tmp_file: TEMP_JSON)
       rescue StandardError
         print "failure.\n"
         authenticate(overwrite: true)

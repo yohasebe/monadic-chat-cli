@@ -81,8 +81,9 @@ module OpenAI
   class Completion
     attr_reader :access_token
 
-    def initialize(access_token)
+    def initialize(access_token, tmp_file: nil)
       @access_token = access_token
+      @tmp_file = tmp_file
     end
 
     def models
@@ -118,13 +119,15 @@ module OpenAI
       case data
       when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
         json = Regexp.last_match(1).gsub(/\r\n?/, "\n").gsub(/\r\n/) { "\n" }
-        JSON.parse(json)
+        res = JSON.parse(json)
       when /(\{.+\})/m
         json = Regexp.last_match(1).gsub(/\r\n?/, "\n").gsub(/\r\n/) { "\n" }
-        JSON.parse(json)
+        res = JSON.parse(json)
       else
-        data
+        res = data
       end
+      File.open(@tmp_file, "w") { |f| f.write json } if @tmp_file
+      res
     end
 
     def run_iteration(params, prompts, template, replace_key = "{{PROMPT}}", num_retry: 0)

@@ -25,7 +25,6 @@ Make sure the following content requirements are all fulfilled:
 - insert both the new prompt and the response after all the existing items in the "messages"
 - if the new prompt is in a language other than the current value of "language", set the name of the new prompt language to "language" and make sure that "response" is in that language
 - make your response in the same language as the new prompt
-- add "\n\n###\n\n" at the end of the "response" value (IMPORTANT)
 - analyze the topic of the new prompt and insert it at the end of the value list of the "topics" property
 - avoid giving a response that is the same or similar to one of the previous responses in "messages"
 - program code in the response must be embedded in a code block in the markdown text
@@ -37,4 +36,7 @@ Make sure the following formal requirements are all fulfilled:
 - escape double quotes and other special characters in the text values in the resulting JSON object
 - increment the value of "turns" by 1 and update the property so that the value of "turns" equals the number of the items in the "messages" of the resulting JSON object
 - check the validity of the generated JSON object and correct any possible parsing problems before returning it 
-- wrap the JSON object with "<JSON>\n" and "\n</JSON>" (IMPORTANT)
+
+Add "\n\n###\n\n" at the end of the "response" value.
+
+Wrap the JSON object with "<JSON>\n" and "\n</JSON>".

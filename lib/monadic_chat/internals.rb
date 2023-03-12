@@ -236,8 +236,11 @@ class MonadicApp
       show_html if @show_html
     rescue StandardError => e
       @threads.clear
-      @responses << "Error: something went wrong in a thread"
-      pp e
+      @responses << <<~ERROR
+        Error: something went wrong in a thread"
+        #{e.message}
+        #{e.backtrace}
+      ERROR
     end
 
     loop do

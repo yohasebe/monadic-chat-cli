@@ -20,7 +20,6 @@ Make sure the following content requirements are all fulfilled:
 - keep the value of the "mode" property at "novel"
 - set the new prompt to the "prompt" property
 - create your new paragraph in response to the new prompt and set it to "response"
-- add "\n\n###\n\n" at the end of the "response" value (IMPORTANT)
 - do not repeat in your response what is already told in the "messages"
 - insert both the new prompt and the response after all the existing items in the "messages"
 - update the value of "tokens" with the number of tokens of the resulting JSON object"
@@ -31,4 +30,7 @@ Make sure the following formal requirements are all fulfilled:
 - escape double quotes and other special characters in the text values in the resulting JSON object
 - increment the value of "turns" by 1 and update the property so that the value of "turns" equals the number of the items in the "messages" of the resulting JSON object
 - check the validity of the generated JSON object and correct any possible parsing problems before returning it 
-- wrap the JSON object with "<JSON>\n" and "\n</JSON>" (IMPORTANT)
+
+Add "\n\n###\n\n" at the end of the "response" value.
+
+Wrap the JSON object with "<JSON>\n" and "\n</JSON>".
