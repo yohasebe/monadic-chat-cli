@@ -100,20 +100,20 @@ bundle update
 3. Grant permission to the executable
 
 ```text
-chmod +x ./bin/monadic
+chmod +x ./bin/monadic-chat
 ```
 
 4. Run the executable
 
 ```text
-./bin/monadic
+./bin/monadic-chat
 ```
 
 ## Usage
 
 ### Authentication
 
-When you start Monadic Chat with the `monadic` command for the first time, you will be asked for an OpenAI access token. If you do not have one, create an account on the [OpenAI](https://platform.openai.com/) website and obtain an access token.
+When you start Monadic Chat with the `monadic-chat` command for the first time, you will be asked for an OpenAI access token. If you do not have one, create an account on the [OpenAI](https://platform.openai.com/) website and obtain an access token.
 
 If the environment variable `OPENAI_API_KEY` is set in the system, its value will be used automatically.
 

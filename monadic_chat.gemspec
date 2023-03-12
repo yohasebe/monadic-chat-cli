@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
     end
   end
   spec.bindir = "bin"
-  spec.executables = ["monadic"]
+  spec.executables = ["monadic-chat"]
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "bundler"
