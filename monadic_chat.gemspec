@@ -8,8 +8,10 @@ Gem::Specification.new do |spec|
   spec.authors = ["yohasebe"]
   spec.email = ["yohasebe@gmail.com"]
 
-  spec.summary = "A ChatGPT-like AI chat app using OpenAI API"
-  spec.description = "AI chat app of a monadic architecture using OpenAI API"
+  spec.summary = "Highly configurable CLI client app for OpenAI chat/text-completion API"
+  spec.description = <<~DESC
+    Monadic Chat is a command-line client application program that uses OpenAI's Text Completion API and Chat API to enable chat-style conversations with OpenAI's artificial intelligence system in a ChatGPT-like style.
+  DESC
   spec.homepage = "https://github.com/yohasebe/monadic-chat"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6.0"
@@ -24,7 +26,7 @@ Gem::Specification.new do |spec|
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
   spec.files = Dir.chdir(__dir__) do
     `git ls-files -z`.split("\x0").reject do |f|
-      (f == __FILE__) || f.match(%r{\A(?:(?:bin|test|spec|features)/|\.(?:git|circleci)|appveyor)})
+      (f == __FILE__) || f.match(%r{\A(?:(?:apps|bin|spec|assets)/|\.(?:git))})
     end
   end
   spec.bindir = "bin"
@@ -48,6 +50,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "tty-markdown"
   spec.add_dependency "tty-progressbar"
   spec.add_dependency "tty-prompt"
-  spec.add_dependency "tty-reader"
   spec.add_dependency "tty-screen"
 end

@@ -5,6 +5,7 @@ require_relative "./monadic_chat/console"
 require_relative "./monadic_chat/formatting"
 require_relative "./monadic_chat/interaction"
 require_relative "./monadic_chat/menu"
+require_relative "./monadic_chat/parameters"
 require_relative "./monadic_chat/internals"
 
 Thread.abort_on_exception = false
@@ -36,7 +37,7 @@ class MonadicApp
   end
 
   ##################################################
-  # methods for running app
+  # methods for running monadic app
   ##################################################
 
   def parse(input = nil)

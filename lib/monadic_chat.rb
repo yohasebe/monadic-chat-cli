@@ -21,7 +21,7 @@ Oj.mimic_JSON
 
 module MonadicChat
   CONFIG = File.join(Dir.home, "monadic_chat.conf")
-  NUM_RETRY = 1
+  NUM_RETRY = 2
   MIN_LENGTH = 5
   TIMEOUT_SEC = 120
   TITLE_WIDTH = 72

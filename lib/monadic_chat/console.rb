@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class MonadicApp
+  ##################################################
+  # methods for manipulating terminal screen
+  ##################################################
   def count_lines_below
     screen_height = TTY::Screen.height
     vpos = Cursor.pos[:row]
