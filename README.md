@@ -16,33 +16,33 @@
 * [Introduction](#introduction)
 * [Dependencies](#dependencies)
 * [Installation](#installation)
-    * [Using RubyGems](#using-rubygems)
-    * [Clone the GitHub Repository](#clone-the-github-repository)
+  * [Using RubyGems](#using-rubygems)
+  * [Clone the GitHub Repository](#clone-the-github-repository)
 * [Usage](#usage)
-    * [Authentication](#authentication)
-    * [Select Main Menu Item](#select-main-menu-item)
-    * [Roles](#roles)
-    * [System-Wide Functions](#system-wide-functions)
+  * [Authentication](#authentication)
+  * [Select Main Menu Item](#select-main-menu-item)
+  * [Roles](#roles)
+  * [System-Wide Functions](#system-wide-functions)
 * [Apps](#apps)
-    * [Chat](#chat)
-    * [Code](#code)
-    * [Novel](#novel)
-    * [Translate](#translate)
+  * [Chat](#chat)
+  * [Code](#code)
+  * [Novel](#novel)
+  * [Translate](#translate)
 * [Modes](#modes)
-    * [Normal Mode](#normal-mode)
-    * [Research Mode](#research-mode)
+  * [Normal Mode](#normal-mode)
+  * [Research Mode](#research-mode)
 * [What is Research Mode?](#what-is-research-mode)
-    * [How Research Mode Works](#how-research-mode-works)
-    * [Accumulator](#accumulator)
-    * [Reducer](#reducer)
+  * [How Research Mode Works](#how-research-mode-works)
+  * [Accumulator](#accumulator)
+  * [Reducer](#reducer)
 * [Creating New App](#creating-new-app)
-    * [File Structure](#file-structure)
-    * [Reducer Code](#reducer-code)
-    * [Template for `Normal` Mode](#template-for-normal-mode)
-    * [Template for `Research` Mode](#template-for-research-mode)
+  * [File Structure](#file-structure)
+  * [Reducer Code](#reducer-code)
+  * [Template for `Normal` Mode](#template-for-normal-mode)
+  * [Template for `Research` Mode](#template-for-research-mode)
 * [What is Monadic about Monadic Chat?](#what-is-monadic-about-monadic-chat)
-    * [Unit, Map, and Join](#unit-map-and-join)
-    * [Discourse Management Object](#discourse-management-object)
+  * [Unit, Map, and Join](#unit-map-and-join)
+  * [Discourse Management Object](#discourse-management-object)
 * [Future Plans](#future-plans)
 * [Bibliographical Data](#bibliographical-data)
 * [Acknowledgments](#acknowledgments)
@@ -78,6 +78,11 @@ Execute the following command in an environment where Ruby 2.6.10 or higher is i
 
 ```text
 gem install monadic-chat
+```
+
+Then run the command to start the app:
+```text
+monadic-chat
 ```
 
 To update:
