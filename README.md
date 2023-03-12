@@ -6,8 +6,8 @@
 <img src="https://user-images.githubusercontent.com/18207/224493072-9720b341-c70d-43b9-b996-ba7e9a7a6806.gif" width="900" />
 </p>
 
-> **Note**  
-> This software is *under active development*, and the latest version may behave slightly differently than this documentation. The specifications may change in the future.
+> **Warning**  
+> This software is *under active development*. It may be unstable, and the latest version may behave slightly differently than this document. Also, specifications may change in the future.
 
 ## Table of Contents
 
@@ -389,7 +389,8 @@ The specifications for Monadic Chat's command-line user interface for this app a
 - Parsed data will be formatted in Penn Treebank format. However, square brackets [ ] are used instead of parentheses ( ).
 - The parsed data is returned as Markdown inline code enclosed in backticks (` `).
 
-The use of square brackets (instead of parentheses) in the notation of syntactic analysis here is to conform to the format of [RSyntaxTree](https://yohasebe.com/rsyntaxtree), a tree-drawing program for linguistic research developed by the author of Monadic Chat.
+> **Note**  
+> The use of square brackets (instead of parentheses) in the notation of syntactic analysis here is to conform to the format of [RSyntaxTree](https://yohasebe.com/rsyntaxtree), a tree-drawing program for linguistic research developed by the author of Monadic Chat.
 
 <img src="./doc/img/syntree-sample.png" width="300px" />
 
