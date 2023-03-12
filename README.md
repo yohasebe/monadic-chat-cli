@@ -6,7 +6,7 @@
 <img src="https://user-images.githubusercontent.com/18207/224493072-9720b341-c70d-43b9-b996-ba7e9a7a6806.gif" width="900" />
 </p>
 
-> **Note**
+> **Note**  
 > This software is *under active development*, and the latest version may behave slightly differently than this documentation. The specifications may change in the future.
 
 ## Table of Contents
@@ -16,33 +16,33 @@
 * [Introduction](#introduction)
 * [Dependencies](#dependencies)
 * [Installation](#installation)
-    * [Using RubyGems](#using-rubygems)
-    * [Clone the GitHub Repository](#clone-the-github-repository)
+  * [Using RubyGems](#using-rubygems)
+  * [Clone the GitHub Repository](#clone-the-github-repository)
 * [Usage](#usage)
-    * [Authentication](#authentication)
-    * [Select Main Menu Item](#select-main-menu-item)
-    * [Roles](#roles)
-    * [System-Wide Functions](#system-wide-functions)
+  * [Authentication](#authentication)
+  * [Select Main Menu Item](#select-main-menu-item)
+  * [Roles](#roles)
+  * [System-Wide Functions](#system-wide-functions)
 * [Apps](#apps)
-    * [Chat](#chat)
-    * [Code](#code)
-    * [Novel](#novel)
-    * [Translate](#translate)
+  * [Chat](#chat)
+  * [Code](#code)
+  * [Novel](#novel)
+  * [Translate](#translate)
 * [Modes](#modes)
-    * [Normal Mode](#normal-mode)
-    * [Research Mode](#research-mode)
+  * [Normal Mode](#normal-mode)
+  * [Research Mode](#research-mode)
 * [What is Research Mode?](#what-is-research-mode)
-    * [How Research Mode Works](#how-research-mode-works)
-    * [Accumulator](#accumulator)
-    * [Reducer](#reducer)
+  * [How Research Mode Works](#how-research-mode-works)
+  * [Accumulator](#accumulator)
+  * [Reducer](#reducer)
 * [Creating New App](#creating-new-app)
-    * [Folder/File Structure](#folderfile-structure)
-    * [Reducer Code](#reducer-code)
-    * [Template for `Normal` Mode](#template-for-normal-mode)
-    * [Template for `Research` Mode](#template-for-research-mode)
+  * [Folder/File Structure](#folderfile-structure)
+  * [Reducer Code](#reducer-code)
+  * [Template for `Normal` Mode](#template-for-normal-mode)
+  * [Template for `Research` Mode](#template-for-research-mode)
 * [What is Monadic about Monadic Chat?](#what-is-monadic-about-monadic-chat)
-    * [Unit, Map, and Join](#unit-map-and-join)
-    * [Discourse Management Object](#discourse-management-object)
+  * [Unit, Map, and Join](#unit-map-and-join)
+  * [Discourse Management Object](#discourse-management-object)
 * [Future Plans](#future-plans)
 * [Bibliographical Data](#bibliographical-data)
 * [Acknowledgments](#acknowledgments)
@@ -200,7 +200,7 @@ You can reset all the conversation history (messages by both User and GPT). Note
 
 **save and load**
 
-The conversation history (messages by both User and GPT, and metadata in `research` mode) can be saved as a JSON file in a specified path. Note that the saved file can only be read by the same application that saved it.
+The conversation history (messages by both User and GPT, and metadata in `research` mode) can be saved as a JSON file in a specified path. Note that the saved file can only be read by the same application that saved it in the `research` mode.
 
 **clear/clean**
 
@@ -295,6 +295,9 @@ By default, when the number of tokens in the response from the GPT (which increa
 
 If you wish to specify how the conversation history is handled as the interaction with the GPT model unfolds, you can write a `Proc` object containing Ruby code. Since various metadata are available in this mode, finer-grained control is possible.
 
+> **Warning**  
+> The `research` mode is not intended for general use but for research purposes. You may not get the expected results depending on the template design, parameter settings, and reducer settings. Adjustments in such cases require technical knowledge of OpenAI's text completion API or Ruby.
+
 ## What is Research Mode?
 
 Monadic Chat's `research` mode has the following advantages:
@@ -311,7 +314,7 @@ There are some drawbacks, however:
 - `Research` mode requires more extensive input/output data and consumes more tokens than `normal` mode.
 - The text-completion API used in `research` mode is more expensive than the chat API used in `normal` mode.
 
-For these reasons, `normal` mode is recommended for casual use as an alternative CLI to ChatGPT. Nevertheless, the research mode, as described below, makes Monadic Chat definitively different from other GPT client applications. 
+For these reasons, `normal` mode is recommended for casual use as an alternative CLI to ChatGPT. Nevertheless, as described below, the research mode makes Monadic Chat definitively different from other GPT client applications.
 
 ### How Research Mode Works
 
@@ -385,6 +388,8 @@ The specifications for Monadic Chat's command-line user interface for this app a
 - The parsed data is returned as Markdown inline code enclosed in backticks (` `).
 
 The use of square brackets (instead of parentheses) in the notation of syntactic analysis here is to conform to the format of [RSyntaxTree](https://yohasebe.com/rsyntaxtree), a tree-drawing program for linguistic research developed by the author of Monadic Chat.
+
+<img src="./doc/img/syntree-sample.png" width="300px" />
 
 The sample app we create in this section is stored in the [`sample_app`](https://github.com/yohasebe/monadic-chat/tree/main/sample_app) folder in the repository.
 
@@ -523,6 +528,7 @@ Make sure the following content requirements are all fulfilled:
 - keep the value of the "mode" property at "linguistic"
 - set the new prompt to the "prompt" property
 - create your response to the new prompt in accordance with the "messages" and set it to "response"
+- add "\n\n###\n\n" at the end of the "response" value (IMPORTANT)
 - insert both the new prompt and the response after all the existing items in the "messages"
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
@@ -540,7 +546,6 @@ Make sure the following formal requirements are all fulfilled:
 
 - do not use invalid characters in the JSON object
 - escape double quotes and other special characters in the text values in the resulting JSON object
-- add "\n\n###\n\n" at the end of the "response" value (IMPORTANT)
 - wrap the JSON object with "<JSON>\n" and "\n</JSON>" (IMPORTANT)
 ```
 

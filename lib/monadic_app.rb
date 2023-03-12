@@ -7,7 +7,7 @@ require_relative "./monadic_chat/interaction"
 require_relative "./monadic_chat/menu"
 require_relative "./monadic_chat/internals"
 
-Thread.abort_on_exception = true
+Thread.abort_on_exception = false
 
 class MonadicApp
   include MonadicChat

@@ -90,14 +90,25 @@ class MonadicApp
     end
   end
 
+  def check_file(path)
+    dirname = File.dirname(File.expand_path(path))
+    path == "" || (/\.json\z/ =~ path.strip && Dir.exist?(dirname)) ? true : false
+  end
+
   def save_data
-    input = PROMPT_SYSTEM.readline("Enter the file path for the JSON file (including the file name and .json extension): ") do |q|
-      q.validate(lambda do |r|
-        dirname = File.dirname(File.expand_path(r))
-        r == "" || (/\.json\z/ =~ r.to_s.strip && Dir.exist?(dirname))
-      end)
-      q.messages[:valid?] = "Invalid file path"
+    input = ""
+    loop do
+      print TTY::Cursor.save
+      path = PROMPT_SYSTEM.readline("Enter the file path for the JSON file (including the file name and .json extension): ")
+      if check_file(path)
+        input = path
+        break
+      else
+        print TTY::Cursor.restore
+        print TTY::Cursor.clear_screen_down
+      end
     end
+    print TTY::Cursor.save
 
     return if input.to_s == ""
 
@@ -138,12 +149,19 @@ class MonadicApp
   end
 
   def load_data
-    input = PROMPT_SYSTEM.readline("Enter the path to the save file (press Enter to cancel): ") do |q|
-      q.validate(lambda do |r|
-        r == "" || /\.json\z/ =~ r.to_s.strip && File.exist?(File.expand_path(r.strip))
-      end)
-      q.messages[:valid?] = "Invalid file path"
+    input = ""
+    loop do
+      print TTY::Cursor.save
+      path = PROMPT_SYSTEM.readline("Enter the file path for the JSON file (press Enter to cancel): ")
+      if check_file(path)
+        input = path
+        break
+      else
+        print TTY::Cursor.restore
+        print TTY::Cursor.clear_screen_down
+      end
     end
+    print TTY::Cursor.save
 
     return if input.to_s == ""
 

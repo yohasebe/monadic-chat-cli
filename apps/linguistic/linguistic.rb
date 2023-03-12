@@ -41,13 +41,22 @@ class Linguistic < MonadicApp
               # obj: old Hash object                                     #
               # res: new response Hash object to be modified             #
               ############################################################
-              if res["messages"].size > 1 &&
-                 res["tokens"].to_i > params["max_tokens"].to_i / 2
+              conditions = [
+                res["messages"].size > 1,
+                res["tokens"].to_i > params["max_tokens"].to_i / 2
+              ]
+              if conditions.all?
                 res["messages"].shift(1)
                 res["turns"] = res["turns"].to_i - 1
               end
               res
             when "chat/completions"
+              # obj = objectify
+              ############################################################
+              # Normal mode recuder defined here                         #
+              # obj: old Hash object (uncomment a line above before use) #
+              # res: new response Hash object to be modified             #
+              ############################################################
               if res.size > @num_retained_turns * 2 + 1
                 res.each_with_index do |ele, i|
                   if ele["role"] != "system"

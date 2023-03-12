@@ -19,7 +19,7 @@ class MonadicApp
       input = if mode == :replace
                 val
               else
-                PROMPT_SYSTEM.readline("#{val}:")
+                PROMPT_SYSTEM.readline("#{val}: ")
               end
 
       unless input
