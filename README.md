@@ -9,7 +9,7 @@
 > **Warning**  
 > This software is ***under active development***. It may be unstable, and the latest version may behave slightly differently than this document. Also, specifications may change in the future.
 
-** Change Log**
+**Change Log**
 
 - [March 13, 2023] Text on the architecture of the `research` mode updated in accordance with Version 0.2.0
 
