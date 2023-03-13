@@ -18,7 +18,7 @@ RSpec.describe "Translate" do
   translate.bind_normal_mode(input3, num_retry: num_retry)
 
   it "gives as many responses as the number of prompts given" do
-    expect(translate.objectify["messages"].size).to be 1 + 3 * 2
+    expect(translate.objectify.reject { |m| m["role"] == "system" }.size).to be 3 * 2
   end
 end
 
@@ -32,7 +32,7 @@ RSpec.describe "Chat" do
   chat.bind_normal_mode(input3, num_retry: num_retry)
 
   it "gives as many responses as the number of prompts given" do
-    expect(chat.objectify["messages"].size).to be 1 + 3 * 2
+    expect(chat.objectify.reject { |m| m["role"] == "system" }.size).to be 3 * 2
   end
 end
 
@@ -46,7 +46,7 @@ RSpec.describe "Novel" do
   novel.bind_normal_mode(input3, num_retry: num_retry)
 
   it "gives as many responses as the number of prompts given" do
-    expect(novel.objectify["messages"].size).to be 1 + 3 * 2
+    expect(novel.objectify.reject { |m| m["role"] == "system" }.size).to be 4 * 2
   end
 end
 
@@ -60,6 +60,6 @@ RSpec.describe "Code" do
   code.bind_normal_mode(input3, num_retry: num_retry)
 
   it "gives as many responses as the number of prompts given" do
-    expect(code.objectify["messages"].size).to be 1 + 3 * 2
+    expect(code.objectify.reject { |m| m["role"] == "system" }.size).to be 4 * 2
   end
 end

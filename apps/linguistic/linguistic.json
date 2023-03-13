@@ -13,5 +13,11 @@
   },
   {"role": "assistant",
    "content": "`[S [NP We] [IP [I didn't] [VP [V take] [NP [Det a] [N picture] ] ] ] ] ]`"
+  },
+  {"role": "user",
+   "content": "\"We didn't have a camera.\""
+  },
+  {"role": "assistant",
+   "content": "`[S [NP We] [IP [I didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`"
   }
 ]}

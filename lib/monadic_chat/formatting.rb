@@ -6,36 +6,27 @@ class MonadicApp
   ##################################################
   def format_data
     contextual = []
-    accumulated = []
+    accumulator = []
 
-    objectify.each do |key, val|
-      next if %w[prompt response].include? key
+    if @method == "completions"
+      objectify.each do |key, val|
+        next if %w[prompt response messages].include? key
 
-      if (@method == "completions" && key == @prop_accumulated) ||
-         (@method == "chat/completions" && key == "messages")
-        val = val.map do |v|
-          case @method
-          when "completions"
-            if v.instance_of?(String)
-              v.sub(/\s+###\s*$/m, "")
-            else
-              v.map { |role, text| "#{role.strip.capitalize}: #{text.sub(/\s+###\s*$/m, "")}" }
-            end
-          when "chat/completions"
-            "#{v["role"].capitalize}: #{v["content"]}"
-          end
-        end
-        accumulated << val.join("\n\n")
-      else
         contextual << "- **#{key.split("_").map(&:capitalize).join(" ")}**: #{val.to_s.strip}"
       end
     end
 
+    @messages.each do |m|
+      accumulator << "#{m["role"].capitalize}: #{m["content"]}".sub("\n\n###\n\n", "")
+    end
+
     h1 = "# Monadic :: Chat / #{self.class.name}"
     contextual.map!(&:strip).unshift "## Contextual Data\n" unless contextual.empty?
-    accum_label = @prop_accumulated.split("_").map(&:capitalize).join(" ")
-    accumulated.map!(&:strip).unshift "## #{accum_label}\n" unless accumulated.empty?
-    "#{h1}\n\n#{contextual.join("\n")}\n\n#{accumulated.join("\n")}"
+
+    accum_label = @prop_accumulator.split("_").map(&:capitalize).join(" ")
+    accumulator.map!(&:strip).unshift "## #{accum_label}\n" unless accumulator.empty?
+
+    "#{h1}\n\n#{contextual.join("\n")}\n\n#{accumulator.join("\n\n")}"
   end
 
   def show_data
@@ -48,12 +39,22 @@ class MonadicApp
   end
 
   def set_html
-    print PROMPT_SYSTEM.prefix
+    res = format_data.sub(%r{::(.+?)/(.+?)\b}) do
+      " <span class='monadic_gray'>::</span> <span class='monadic_app'>#{Regexp.last_match(1)}</span> <span class='monadic_gray'>/</span> #{Regexp.last_match(2)}"
+    end
+    res = res.gsub("```") { "~~~" }
+             .gsub(/^(system):/i) { "<span class='monadic_system'> #{Regexp.last_match(1)} </span><br />" }
+             .gsub(/^(user):/i) { "<span class='monadic_user'> #{Regexp.last_match(1)} </span><br />" }
+             .gsub(/^(assistant|gpt):/i) { "<span class='monadic_chat'> #{Regexp.last_match(1)} </span><br />" }
+    add_to_html(res, TEMP_HTML)
+  end
 
+  def show_html
     wait
-
+    set_html
+    print PROMPT_SYSTEM.prefix
     print "HTML is ready\n"
-    show_html
+    Launchy.open(TEMP_HTML)
   end
 
   def add_to_html(text, filepath)
@@ -94,17 +95,5 @@ class MonadicApp
       HTML
       f.write html
     end
-    Launchy.open(filepath)
-  end
-
-  def show_html
-    res = format_data.sub(%r{::(.+?)/(.+?)\b}) do
-      " <span class='monadic_gray'>::</span> <span class='monadic_app'>#{Regexp.last_match(1)}</span> <span class='monadic_gray'>/</span> #{Regexp.last_match(2)}"
-    end
-    res = res.gsub("```") { "~~~" }
-             .gsub(/^(system):/i) { "<span class='monadic_system'> #{Regexp.last_match(1)} </span><br />" }
-             .gsub(/^(user):/i) { "<span class='monadic_user'> #{Regexp.last_match(1)} </span><br />" }
-             .gsub(/^(assistant|gpt):/i) { "<span class='monadic_chat'> #{Regexp.last_match(1)} </span><br />" }
-    add_to_html(res, TEMP_HTML)
   end
 end

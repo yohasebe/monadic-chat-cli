@@ -9,16 +9,16 @@ class MonadicApp
     clear_screen
     print TTY::Cursor.save
     parameter = PROMPT_SYSTEM.select("Select function:", per_page: 10, cycle: true, filter: true, default: 1, show_help: :never) do |menu|
-      menu.choice "#{BULLET} #{PASTEL.bold("cancel/return/escape")}   cancel this menu", "cancel"
-      menu.choice "#{BULLET} #{PASTEL.bold("params/settings/config")} show and change values of parameters", "params"
-      menu.choice "#{BULLET} #{PASTEL.bold("data/context")}           show currrent contextual info", "data"
-      menu.choice "#{BULLET} #{PASTEL.bold("html")}                   view contextual info on the web browser", "html"
-      menu.choice "#{BULLET} #{PASTEL.bold("reset")}                  reset context to original state", "reset"
-      menu.choice "#{BULLET} #{PASTEL.bold("save")}                   save current contextual info to file", "save"
-      menu.choice "#{BULLET} #{PASTEL.bold("load")}                   load current contextual info from file", "load"
-      menu.choice "#{BULLET} #{PASTEL.bold("clear/clean")}            clear screen", "clear"
-      menu.choice "#{BULLET} #{PASTEL.bold("readme/documentation")}   open readme/documentation", "readme"
-      menu.choice "#{BULLET} #{PASTEL.bold("exit/bye/quit")}          go back to main menu", "exit"
+      menu.choice "#{BULLET} #{PASTEL.bold("cancel/return/escape")}    Cancel this menu", "cancel"
+      menu.choice "#{BULLET} #{PASTEL.bold("params/settings/config")}  Show and change values of parameters", "params"
+      menu.choice "#{BULLET} #{PASTEL.bold("data/context")}            Show currrent contextual info", "data"
+      menu.choice "#{BULLET} #{PASTEL.bold("html")}                    View contextual info on the web browser", "html"
+      menu.choice "#{BULLET} #{PASTEL.bold("reset")}                   Reset context to initial state", "reset"
+      menu.choice "#{BULLET} #{PASTEL.bold("save")}                    Save current contextual info to file", "save"
+      menu.choice "#{BULLET} #{PASTEL.bold("load")}                    Load current contextual info from file", "load"
+      menu.choice "#{BULLET} #{PASTEL.bold("clear/clean")}             Clear screen", "clear"
+      menu.choice "#{BULLET} #{PASTEL.bold("readme/documentation")}    Open readme/documentation", "readme"
+      menu.choice "#{BULLET} #{PASTEL.bold("exit/bye/quit")}           Go back to main menu", "exit"
     end
 
     print TTY::Cursor.restore
@@ -33,7 +33,8 @@ class MonadicApp
     when "data"
       show_data
     when "html"
-      set_html
+      @html = true
+      show_html
     when "reset"
       reset
     when "save"
@@ -52,14 +53,10 @@ class MonadicApp
   end
 
   def reset
-    @params = @params_original.dup
-
-    case @method
-    when "completions"
-      @template = @template_original.dup
-    when "chat/completions"
-      @template = JSON.parse @template_original
-    end
+    @html = false
+    @params = @params_initial.dup
+    @messages = @messages_initial.dup
+    @template = @template_initial.dup
 
     if @placeholders.empty?
       print PROMPT_SYSTEM.prefix
@@ -133,9 +130,11 @@ class MonadicApp
         case @method
         when "completions"
           m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
-          f.write JSON.pretty_generate(JSON.parse(m[1]))
+          data = JSON.parse(m[1])
+          data["messages"] = @messages
+          f.write JSON.pretty_generate(data)
         when "chat/completions"
-          f.write JSON.pretty_generate(@template)
+          f.write JSON.pretty_generate({ "messages" => @messages })
         end
 
         print "Data has been saved successfully\n"
@@ -170,14 +169,17 @@ class MonadicApp
       data = JSON.parse(json)
       case @method
       when "completions"
+        self.class.name.downcase.split("::")[-1]
+
         raise unless data["mode"] == self.class.name.downcase.split("::")[-1]
 
-        new_template = @template.sub(/\n\n```json\s*\{.+\}\s*```\n\n/m, "\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
-        @template = new_template
+        @messages = data.delete "messages"
+        @template = @template.sub(/\n\n```json\s*\{.+\}\s*```\n\n/m, "\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
       when "chat/completions"
+        pp data
         raise unless data["messages"] && data["messages"][0]["role"]
 
-        @template["messages"] = data["messages"]
+        @messages = data["messages"]
       end
       print "Data has been loaded successfully\n"
       true

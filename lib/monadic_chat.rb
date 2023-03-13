@@ -46,6 +46,7 @@ module MonadicChat
 
   TEMP_HTML = File.join(Dir.home, "monadic_chat.html")
   TEMP_JSON = File.join(Dir.home, "monadic_chat.json")
+  TEMP_MD = File.join(Dir.home, "monadic_chat.md")
 
   style = +File.read(File.join(__dir__, "..", "assets", "github.css")).gsub(".markdown-") { "" }
   style << File.read(File.join(__dir__, "..", "assets", "pigments-default.css"))
@@ -126,7 +127,7 @@ module MonadicChat
         raise if OpenAI.models(token).empty?
 
         print "success\n"
-        OpenAI::Completion.new(token, tmp_file: TEMP_JSON)
+        OpenAI::Completion.new(token)
       rescue StandardError
         print "failure.\n"
         false

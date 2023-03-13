@@ -81,16 +81,15 @@ module OpenAI
   class Completion
     attr_reader :access_token
 
-    def initialize(access_token, tmp_file: nil)
+    def initialize(access_token)
       @access_token = access_token
-      @tmp_file = tmp_file
     end
 
     def models
       OpenAI.models(@access_token)
     end
 
-    def run(params, num_retry: 1, &block)
+    def run(params, num_retry: 1, tmp_json_file: nil, tmp_md_file: nil, &block)
       method = OpenAI.model_to_method(params["model"])
 
       response = OpenAI.query(@access_token, "post", method, 60, params, &block)
@@ -102,7 +101,8 @@ module OpenAI
 
       case method
       when "completions"
-        get_json response ["choices"][0]["text"]
+        File.open(tmp_md_file, "w") { |f| f.write params["prompt"] } if tmp_md_file
+        get_json(response["choices"][0]["text"], tmp_json_file: tmp_json_file)
       when "chat/completions"
         response ["choices"][0]["text"]
       end
@@ -115,7 +115,7 @@ module OpenAI
       end
     end
 
-    def get_json(data)
+    def get_json(data, tmp_json_file: nil)
       case data
       when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
         json = Regexp.last_match(1).gsub(/\r\n?/, "\n").gsub(/\r\n/) { "\n" }
@@ -126,7 +126,7 @@ module OpenAI
       else
         res = data
       end
-      File.open(@tmp_file, "w") { |f| f.write json } if @tmp_file
+      File.open(tmp_json_file, "w") { |f| f.write json } if tmp_json_file
       res
     end
 

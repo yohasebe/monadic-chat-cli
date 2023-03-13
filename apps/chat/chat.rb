@@ -21,56 +21,54 @@ class Chat < MonadicApp
       "stop" => nil
     }
     method = OpenAI.model_to_method(params["model"])
-    template = case method
-               when "completions"
-                 TEMPLATES["research/chat"]
-               when "chat/completions"
-                 TEMPLATES["normal/chat"]
-               end
-    super(params,
-          template,
-          {},
-          "messages",
-          "response",
-          proc do |res|
+    case method
+    when "completions"
+      tjson = TEMPLATES["normal/chat"]
+      tmarkdown = TEMPLATES["research/chat"]
+    when "chat/completions"
+      tjson = TEMPLATES["normal/chat"]
+      tmarkdown = nil
+    end
+    super(params: params,
+          tjson: tjson,
+          tmarkdown: tmarkdown,
+          placeholders: {},
+          prop_accumulator: "messages",
+          prop_newdata: "response",
+          update_proc: proc do
             case method
             when "completions"
-              obj = objectify
               ############################################################
-              # Research mode recuder defined here                       #
-              # obj: old Hash object                                     #
-              # res: new response Hash object to be modified             #
+              # Research mode reduder defined here                       #
+              # @messages: messages to this point                        #
+              # @metadata: currently available metdata sent from GPT     #
               ############################################################
+
               conditions = [
-                res["messages"].size > 1,
-                res["tokens"].to_i > params["max_tokens"].to_i / 2,
-                !obj["topics"].empty?,
-                res["topics"] != obj["topics"]
+                @messages.size > 1,
+                @metadata["tokens"].to_i > params["max_tokens"].to_i / 2
               ]
-              if conditions.all?
-                res["messages"].shift(1)
-                res["turns"] = res["turns"].to_i - 1
-              end
-              res
+
+              @metadata["turns"] = @metadata["turns"].to_i - 1 if conditions.all?
+
             when "chat/completions"
-              # obj = objectify
               ############################################################
               # Normal mode recuder defined here                         #
-              # obj: old Hash object (uncomment a line above before use) #
-              # res: new response Hash object to be modified             #
+              # @messages: messages to this point                        #
               ############################################################
+
               conditions = [
-                res.size > @num_retained_turns * 2 + 1
+                @messages.size > @num_retained_turns * 2 + 1
               ]
+
               if conditions.all?
-                res.each_with_index do |ele, i|
+                @messages.each_with_index do |ele, i|
                   if ele["role"] != "system"
-                    res.delete_at i
+                    @messages.delete_at i
                     break
                   end
                 end
               end
-              res
             end
           end
          )

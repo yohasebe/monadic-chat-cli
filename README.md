@@ -7,7 +7,11 @@
 </p>
 
 > **Warning**  
-> This software is *under active development*. It may be unstable, and the latest version may behave slightly differently than this document. Also, specifications may change in the future.
+> This software is ***under active development***. It may be unstable, and the latest version may behave slightly differently than this document. Also, specifications may change in the future.
+
+** Change Log**
+
+- [March 13, 2023] Text on the architecture of the `research` mode updated in accordance with Version 0.2.0
 
 ## Table of Contents
 
@@ -16,33 +20,33 @@
 * [Introduction](#introduction)
 * [Dependencies](#dependencies)
 * [Installation](#installation)
-  * [Using RubyGems](#using-rubygems)
-  * [Clone the GitHub Repository](#clone-the-github-repository)
+    * [Using RubyGems](#using-rubygems)
+    * [Clone the GitHub Repository](#clone-the-github-repository)
 * [Usage](#usage)
-  * [Authentication](#authentication)
-  * [Select Main Menu Item](#select-main-menu-item)
-  * [Roles](#roles)
-  * [System-Wide Functions](#system-wide-functions)
+    * [Authentication](#authentication)
+    * [Select Main Menu Item](#select-main-menu-item)
+    * [Roles](#roles)
+    * [System-Wide Functions](#system-wide-functions)
 * [Apps](#apps)
-  * [Chat](#chat)
-  * [Code](#code)
-  * [Novel](#novel)
-  * [Translate](#translate)
+    * [Chat](#chat)
+    * [Code](#code)
+    * [Novel](#novel)
+    * [Translate](#translate)
 * [Modes](#modes)
-  * [Normal Mode](#normal-mode)
-  * [Research Mode](#research-mode)
+    * [Normal Mode](#normal-mode)
+    * [Research Mode](#research-mode)
 * [What is Research Mode?](#what-is-research-mode)
-  * [How Research Mode Works](#how-research-mode-works)
-  * [Accumulator](#accumulator)
-  * [Reducer](#reducer)
+    * [How Research Mode Works](#how-research-mode-works)
+    * [Accumulator](#accumulator)
+    * [Reducer](#reducer)
 * [Creating New App](#creating-new-app)
-  * [File Structure](#file-structure)
-  * [Reducer Code](#reducer-code)
-  * [Template for `Normal` Mode](#template-for-normal-mode)
-  * [Template for `Research` Mode](#template-for-research-mode)
+    * [File Structure](#file-structure)
+    * [Reducer Code](#reducer-code)
+    * [Template for `Normal` Mode](#template-for-normal-mode)
+    * [Template for `Research` Mode](#template-for-research-mode)
 * [What is Monadic about Monadic Chat?](#what-is-monadic-about-monadic-chat)
-  * [Unit, Map, and Join](#unit-map-and-join)
-  * [Discourse Management Object](#discourse-management-object)
+    * [Unit, Map, and Join](#unit-map-and-join)
+    * [Discourse Management Object](#discourse-management-object)
 * [Future Plans](#future-plans)
 * [Bibliographical Data](#bibliographical-data)
 * [Acknowledgments](#acknowledgments)
@@ -201,7 +205,7 @@ All the information retrievable by running the `data/context` function can be pr
 
 <br />
 
-The generated HTML is saved in the user's home directory (`$HOME`) with the file name `monadic_chat.html`. The file contents does not automatically updated. Run `html` command every time when you need it. HTML data is written to this file regardless of the app.
+The generated HTML will be saved in the user’s home directory (`$HOME`) with the file `monadic_chat.html`. Once the `html` command is executed, the file contents will continue to be updated until you `reset` or quit the running app. Reload the browser tab or rerun the `html` command to show the latest data. HTML data is written to this file regardless of the app.
 
 In `research` mode, it may take several seconds to several minutes after the `html` command is executed before the acutual HTML is displayed. This is because in `research` mode, even after displaying a direct response to user input, there may be a process running in the background that retrieves and reconstructs the context data, requiring the system to wait for it to finish.
 
@@ -288,13 +292,13 @@ Sometimes, however, problematic translations are created. The user can "save" th
 
 ## Modes
 
-Monadic Chat has two modes. The `normal` mode utilizes OpenAI's chat API to achieve ChatGPT-like functionality. It is suitable for using a large language model as a competent companion for various pragmatic purposes. On the other hand, the `research` mode utilizes OpenAI's text-completion API. This mode allows for acquiring metadata in the background while receiving the primary response at each conversation turn. It may be especially useful for researchers exploring the possibilities of large-scale language models and their applications.
+Monadic Chat has two modes. The `normal` mode utilizes OpenAI's chat API to achieve ChatGPT-like functionality. It is suitable for using a large language model as a competent companion for various pragmatic purposes. On the other hand, the `research` mode utilizes OpenAI's text-completion API. This mode allows for acquiring **metadata** in the background while receiving the primary response at each conversation turn. It may be especially useful for researchers exploring the possibilities of large-scale language models and their applications.
 
 ### Normal Mode
 
 The default language model for `normal` mode is `gpt-3.5-turbo`.
 
-In the default configuration, the dialogue messages are reduced after ten turns by deleting the oldest ones (but not the messages that the `system` role gave as instructions).
+In the default configuration, the dialogue messages are reduced after ten turns by deleting the oldest ones (but not the messages that the `system` role has given as instructions).
 
 ### Research Mode
 
@@ -358,7 +362,9 @@ Terms in bold in it may require more explanation.
 ]}
 ```
 
-The accumulator in `research` mode also looks like this.
+The accumulator in `research` mode also looks like this. 
+
+The conversation history is kept entirely in memory until the running app is terminated or reset. The part of the conversation history sent through the API along with new input sentences is referred to here as the accumulator.
 
 ### Reducer
 
@@ -400,8 +406,7 @@ The specifications for Monadic Chat's command-line user interface for this app a
 
 > **Note**  
 > The use of square brackets (instead of parentheses) in the notation of syntactic analysis here is to conform to the format of [RSyntaxTree](https://yohasebe.com/rsyntaxtree), a tree-drawing program for linguistic research developed by the author of Monadic Chat.
-
-<img src="./doc/img/syntree-sample.png" width="300px" />
+> <img src="./doc/img/syntree-sample.png" width="300px" />
 
 The sample app we create in this section is stored in the [`sample_app`](https://github.com/yohasebe/monadic-chat/tree/main/sample_app) folder in the repository.
 
@@ -442,16 +447,14 @@ apps
 The purpose of each file is as follows.
 
 - `linguistic.rb`: Ruby code to define the "reducer"
-- `linguistic.json`: JSON template describing GPT behavior in `normal` mode
-- `linguistic.md`: Markdown template describing GPT behavior in `research` mode
-
-The `.rb` file is required, but you may create both `.json` and `.md` files, or only one of them.
+- `linguistic.json`: JSON template describing GPT behavior in `normal` and `research` modes
+- `linguistic.md`: Markdown template describing GPT behavior in addition to the `json` file above in `research` mode
 
 Template files with a name beginning with `_` are also ignored. If a folder has a name beginning with `_`, all its contents are ignored. 
 
 ### Reducer Code
 
-We do not need to make the reducer do anything special for the current purposes. So, let's copy the code from the default `chat` app and make a minor modification, such as changing the class name so that it matches the app name. We save it as `apps/linguistic/linguistic.rb`.
+We do not need to make the reducer do anything special for the current purposes. So, let's copy the code from the default `chat` app and make a minor modification, such as changing the class name and the app name so that it matches the app name. We save it as `apps/linguistic/linguistic.rb`.
 
 ### Template for `Normal` Mode
 
@@ -486,10 +489,14 @@ Below we will look at the `research` mode template for the `linguistic` app, sec
 
 **Main Section**
 
-<div style="highlight highlight-source-gfm"><pre style="white-space : pre-wrap !important;">You are a natural language syntactic/semantic/pragmatic analyzer. Analyze the new prompt from the user below and execute a syntactic parsing. Give your response in a variation of the penn treebank format, but use brackets [ ] instead of parentheses ( ). Also, give your response in a markdown code span. The sentence must always be parsed if the user's input sentence is enclosed in double quotes. Create a response to the following new prompt from the user and set your response to the "response" property of the JSON object below. All prompts by "user" in the "messages" property are continuous in content.
+<div style="highlight highlight-source-gfm"><pre style="white-space : pre-wrap !important;">
+{{SYSTEM}
+
+Create a response "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES".
+
 </pre></div>
 
-The text here is the same as the text in the template for the `normal` mode in an instruction message by the `system`. However, note that it contains an instruction that the response from GPT should be presented in the form of a JSON object, as shown in one of the following sections. 
+The text here is the same as the text in the template for the `normal` mode in an instruction message by the `system`. Monadic Chat automatically replaces `{{SYSTEM}}` with the `system`'s instruction text when sending templates through the API. Note that it additionally contains an instruction that the response from GPT should be presented in the form of a JSON object, as shown in one of the following sections. 
 
 **New Prompt**
 
@@ -497,7 +504,17 @@ The text here is the same as the text in the template for the `normal` mode in a
 NEW PROMPT: {{PROMPT}}
 ```
 
-Monadic Chat replaces `{{PROMPT}}` with input from the user when sending templates through the API.
+Monadic Chat replaces `{{PROMPT}}` with input from the user when sending the template through the API.
+
+**Past Messages**
+
+```markdown
+PAST MESSAGES:
+
+{{MESSAGES}}
+```
+
+Monadic Chat replaces `{{MESSAGES}}` with messages from past conversations when sending the template. Note that not all the past messages have to be copied here: the reducer mechanism could select, modify, or even "generate" messages and include them instead.
 
 **JSON Object**
 
@@ -506,15 +523,11 @@ Monadic Chat replaces `{{PROMPT}}` with input from the user when sending templat
   "prompt": "\"We didn't have a camera.\"",
   "response": "`[S [NP We] [VP [V didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`\n\n###\n\n",
   "mode": "linguistic",
-  "turns": 2,
+  "tokens": 351
+  "turns": 3,
   "sentence_type": ["declarative"],
   "sentiment": ["sad"],
   "summary": "The user saw a beautiful sunset, but did not take a picture because the user did not have a camera.",
-  "tokens": 351,
-  "messages": [{"user": "\"We saw a beautiful sunset.\"", "assistant": "`[S [NP He] [VP [V saw] [NP [det a] [N' [Adj beautiful] [N sunset] ] ] ] ]`\n\n###\n\n" },
-               {"user": "\"We didn't take a picture.\"", "assistant": "`[S [NP We] [IP [I didn't] [VP [V take] [NP [Det a] [N picture] ] ] ] ] ]`\n\n###\n\n" },
-               {"user": "\"We didn't have a camera.\"", "assistant": "`[S [NP We] [IP [I didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`\n\n###\n\n" }
-              ]
 }
 ```
 
@@ -525,12 +538,15 @@ Note that the entire `research` mode template is written in Markdown format, so 
     ```json
     {
       "prompt": ...
+      "response": ...
+      "mode": ...
+      "tokens": ...
+      "turns": ...
       ...
-      "messages": ...
     }
     ```
 
-The required properties of this JSON object are `prompt`, `response`, and `messages`. Other properties are optional. The format of the `messages` property is similar to that of the `normal` mode (i.e., OpenAI's chat API. The only difference is that it is structured as a list of objects whose keys are user and assistant to make it easier to describe.)
+The required properties of this JSON object are `prompt`, `response`, `mode`, and `tokens`. Other properties are optional. The `mode` property is used to check the app name when saving the conversation data or loading from an external file. The `tokens` property is used in the reducer mechanism to check the approximate size of the current JSON object. The `turns` property is also used in the reducer mechanism.
 
 The JSON object in the `research` mode template is saved in the user’s home directory (`$HOME`) with the file `monadic_chat.json`. The content is overwritten every time the JSON object is updated. Note that this JSON file is created for logging purposes (so the data is not pretty printed). Modifying its content does not affect the processes carried out by the app.
 
@@ -542,12 +558,11 @@ Make sure the following content requirements are all fulfilled:
 - keep the value of the "mode" property at "linguistic"
 - set the new prompt to the "prompt" property
 - create your response to the new prompt in accordance with the "messages" and set it to "response"
-- insert both the new prompt and the response after all the existing items in the "messages"
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
 - summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words.
 - update the value of "tokens" with the number of tokens of the resulting JSON object"
-- increment the value of "turns" by 1 and update the property so that the value of "turns" equals the number of the items in the "messages" of the resulting JSON object
+- increment the value of "turns" by 1
 ```
 
 Note that all the properties of the JSON object above are mentioned so that GPT can update them accordingly.
@@ -559,6 +574,7 @@ Make sure the following formal requirements are all fulfilled:
 
 - do not use invalid characters in the JSON object
 - escape double quotes and other special characters in the text values in the resulting JSON object
+- check the validity of the generated JSON object and correct any possible parsing problems before returning it 
 
 Add "\n\n###\n\n" at the end of the "response" value.
 

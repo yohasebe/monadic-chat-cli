@@ -12,26 +12,34 @@ Thread.abort_on_exception = false
 
 class MonadicApp
   include MonadicChat
-  attr_reader :template
+  attr_reader :template, :messages
 
-  def initialize(params, template, placeholders, prop_accumulated, prop_newdata, update_proc)
+  def initialize(params:, tjson:, tmarkdown:, placeholders:, prop_accumulator:, prop_newdata:, update_proc:)
     @threads = Thread::Queue.new
     @responses = Thread::Queue.new
     @placeholders = placeholders
-    @prop_accumulated = prop_accumulated
+    @prop_accumulator = prop_accumulator
     @prop_newdata = prop_newdata
     @completion = nil
     @update_proc = update_proc
-    @params_original = params
-    @params = @params_original.dup
-    @template_original = File.read(template)
+    @params_initial = params
+    @params = @params_initial.dup
+    @html = false
+
     @method = OpenAI.model_to_method @params["model"]
+
+    @metadata = {}
+
+    @messages_initial = JSON.parse(File.read(tjson))["messages"]
+    @messages = @messages_initial.dup
 
     case @method
     when "completions"
-      @template = @template_original.dup
+      @template_initial = File.read(tmarkdown)
+      @template = @template_initial.dup
     when "chat/completions"
-      @template = JSON.parse @template_original
+      @template_initial = ""
+      @template = ""
     end
   end
 
@@ -54,7 +62,8 @@ class MonadicApp
       when /\A\s*(?:data|context)\s*\z/i
         show_data
       when /\A\s*(?:html)\s*\z/i
-        set_html
+        @html = true
+        show_html
       when /\A\s*(?:save)\s*\z/i
         save_data
       when /\A\s*(?:load)\s*\z/i

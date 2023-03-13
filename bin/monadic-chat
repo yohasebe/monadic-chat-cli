@@ -57,6 +57,7 @@ module MonadicMenu
       openai_completion ||= MonadicChat.authenticate
       exit unless openai_completion
 
+      max_app_name_width = APPS.reduce(8) { |accum, app| app.length > accum ? app.length : accum } + 2
       parameter = PROMPT_SYSTEM.select(" Current mode: #{print_mode.call(mode)}\n\nSelect item:",
                                        per_page: 10,
                                        cycle: true,
@@ -67,18 +68,18 @@ module MonadicMenu
           next unless TEMPLATES["#{mode}/#{app}"]
 
           desc = eval("#{app.capitalize}::DESC", binding, __FILE__, __LINE__)
-          menu.choice "#{BULLET} #{PASTEL.bold(app.capitalize)} #{desc}", app
+          menu.choice "#{BULLET} #{PASTEL.bold(app.capitalize.ljust(max_app_name_width))} #{desc}", app
         end
 
         case mode
         when "research"
-          menu.choice "#{BULLET} #{PASTEL.bold("Mode")} Switch from #{PASTEL.bold.red("Research")} (current) to #{PASTEL.bold.green("Normal")}", "mode"
+          menu.choice "#{BULLET} #{PASTEL.bold("Mode".ljust(max_app_name_width))} Switch from #{PASTEL.bold.red("Research")} (current) to #{PASTEL.bold.green("Normal")}", "mode"
         when "normal"
-          menu.choice "#{BULLET} #{PASTEL.bold("Mode")} Switch from #{PASTEL.bold.green("Normal")} (current) to #{PASTEL.bold.red("Research")}", "mode"
+          menu.choice "#{BULLET} #{PASTEL.bold("Mode".ljust(max_app_name_width))} Switch from #{PASTEL.bold.green("Normal")} (current) to #{PASTEL.bold.red("Research")}", "mode"
         end
 
-        menu.choice "#{BULLET} #{PASTEL.bold("Readme")} Open Readme/Documentation", "readme"
-        menu.choice "#{BULLET} #{PASTEL.bold("Quit")} Quit/Exit/Bye", "exit"
+        menu.choice "#{BULLET} #{PASTEL.bold("Readme".ljust(max_app_name_width))} Open Readme/Documentation", "readme"
+        menu.choice "#{BULLET} #{PASTEL.bold("Quit".ljust(max_app_name_width))} Quit/Exit/Bye", "exit"
       end
 
       begin

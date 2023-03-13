@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   DESC
   spec.homepage = "https://github.com/yohasebe/monadic-chat"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 2.6.0"
+  spec.required_ruby_version = ">= 2.6.10"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
@@ -36,7 +36,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec"
-  spec.add_development_dependency "solargraph"
 
   spec.add_dependency "http"
   spec.add_dependency "kramdown"

@@ -32,12 +32,8 @@ class MonadicApp
       false
     else
       replacements.each do |key, value|
-        case @method
-        when "completions"
-          @template.gsub!(key, value)
-        when "chat/completions"
-          @template["messages"][0]["content"].gsub!(key, value)
-        end
+        @messages[0]["content"].gsub!(key, value)
+        messages[0]["content"]
       end
       true
     end
@@ -68,34 +64,58 @@ class MonadicApp
     when "completions"
       m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
       json = m[1].gsub(/(?!\\\\\\)\\\\"/) { '\\\"' }
-      JSON.parse(json)
+      res = JSON.parse(json)
+      res["messages"] = @messages
+      res
     when "chat/completions"
-      @template
+      @messages
     end
   end
 
   def prepare_params(input)
     params = @params.dup
+
+    @update_proc.call
     case @method
     when "completions"
-      template = @template.dup.sub("{{PROMPT}}", input).sub("{{MAX_TOKENS}}", (@params["max_tokens"] / 2).to_s)
+      messages = +""
+      system = +""
+      @messages.each do |mes|
+        role = mes["role"]
+        content = mes["content"]
+        case role
+        when "system"
+          system << "#{content}\n"
+        when "assistant", "gpt"
+          system << "- #{mes["role"].strip}: #{content.sub("\n\n###\n\n", "")}\n\n###\n\n"
+        else
+          messages << "- #{mes["role"].strip}: #{mes["content"]}"
+        end
+      end
+      template = @template.dup.sub("{{SYSTEM}}", system)
+                          .sub("{{PROMPT}}", input)
+                          .sub("{{MESSAGES}}", messages.strip)
+
       params["prompt"] = template
+      @messages << { "role" => "user", "content" => input }
     when "chat/completions"
-      @template["messages"] << { "role" => "user", "content" => input }
-      params["messages"] = @template["messages"]
+      @messages << { "role" => "user", "content" => input }
+      @update_proc.call
+      params["messages"] = @messages
     end
+
     params
   end
 
   def update_template(res)
     case @method
     when "completions"
-      updated = @update_proc.call(res)
-      json = updated.to_json.strip
+      @metadata = res
+      @messages << { "role" => "assistant", "content" => res["response"] }
+      json = res.to_json.strip
       @template.sub!(/\n\n```json.+```\n\n/m, "\n\n```json\n#{json}\n```\n\n")
     when "chat/completions"
-      @template["messages"] << { "role" => "assistant", "content" => res }
-      @template["messages"] = @update_proc.call(@template["messages"])
+      @messages << { "role" => "assistant", "content" => res }
     end
   end
 
@@ -110,6 +130,7 @@ class MonadicApp
     wait
 
     params = prepare_params(input)
+
     print TTY::Cursor.save
 
     escaping = +""
@@ -158,6 +179,7 @@ class MonadicApp
     print "\n"
 
     update_template(res)
+    set_html if @html
   end
 
   def bind_research_mode(input, num_retry: 0)
@@ -166,6 +188,7 @@ class MonadicApp
     wait
 
     params = prepare_params(input)
+
     print TTY::Cursor.save
 
     @threads << true
@@ -179,7 +202,7 @@ class MonadicApp
       finished = false
       response = +""
       spinning = false
-      res = @completion.run(params, num_retry: num_retry) do |chunk|
+      res = @completion.run(params, num_retry: num_retry, tmp_json_file: TEMP_JSON, tmp_md_file: TEMP_MD) do |chunk|
         if finished && !response_all_shown
           response_all_shown = true
           @responses << response.sub(/\s+###\s*".*/m, "")
@@ -265,5 +288,6 @@ class MonadicApp
         break
       end
     end
+    set_html if @html
   end
 end
