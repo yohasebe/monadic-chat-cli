@@ -400,7 +400,8 @@ The specifications for Monadic Chat's command-line user interface for this app a
 
 > **Note**  
 > The use of square brackets (instead of parentheses) in the notation of syntactic analysis here is to conform to the format of [RSyntaxTree](https://yohasebe.com/rsyntaxtree), a tree-drawing program for linguistic research developed by the author of Monadic Chat.
-> <img src="./doc/img/syntree-sample.png" width="300px" />
+>
+> <img src="./doc/img/syntree-sample.png" width="280px" />
 
 The sample app we create in this section is stored in the [`sample_app`](https://github.com/yohasebe/monadic-chat/tree/main/sample_app) folder in the repository.
 
