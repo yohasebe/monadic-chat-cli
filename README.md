@@ -42,8 +42,8 @@
 * [Creating New App](#creating-new-app)
     * [File Structure](#file-structure)
     * [Reducer Code](#reducer-code)
-    * [Template for `Normal` Mode](#template-for-normal-mode)
-    * [Template for `Research` Mode](#template-for-research-mode)
+    * [Monadic Chat Template](#monadic-chat-template)
+    * [Extra Template for `Research` Mode](#extra-template-for-research-mode)
 * [What is Monadic about Monadic Chat?](#what-is-monadic-about-monadic-chat)
     * [Unit, Map, and Join](#unit-map-and-join)
     * [Discourse Management Object](#discourse-management-object)
@@ -460,7 +460,7 @@ Template files with a name beginning with `_` are also ignored. If a folder has 
 
 We do not need to make the reducer do anything special for the current purposes. So, let's copy the code from the default `chat` app and make a minor modification, such as changing the class name and the app name so that it matches the app name. We save it as `apps/linguistic/linguistic.rb`.
 
-### Template for `Normal` Mode
+### Monadic Chat Template
 
 In `normal` mode, achieving all the necessary functions shown earlier is impossible or very tough, to say the least. All we do here is display the results of syntactic analysis and define a user interface. Create a JSON file `apps/linguistic/linguistic.rb` and save it with the following contents:
 
@@ -479,9 +479,11 @@ In `normal` mode, achieving all the necessary functions shown earlier is impossi
 
 The data structure here is no different from that specified in [OpenAI Chat API](https://platform.openai.com/docs/guides/chat). The `normal` mode of Monadic Chat is just a client application that uses this API to achieve ChatGPT-like functionality on the command line.
 
-### Template for `Research` Mode
+### Extra Template for `Research` Mode
 
-The template in `research` mode is a Markdown file consisting of five sections. The role and content of each section are shown in the following figure.
+In the `research` mode, you can obtain metadata at each turn as you progress through an interactive conversation with GPT. Compressing and modifying the conversation history based on the metadata (or any other data) is also possible. However, you must create an extra template besides the `normal` mode JSON template.
+
+This extra template for `research` mode is a Markdown file comprising six sections. The role and content of each section are shown in the following figure.
 
 <br />
 
