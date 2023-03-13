@@ -1,6 +1,6 @@
 {{SYSTEM}}
 
-Create a response "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES". In "PAST MESSAGES", "assistant" refers to you. Make your response as detailed as possible.
+Create a response to "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES". In "PAST MESSAGES", "assistant" refers to you. Make your response as detailed as possible.
 
 NEW PROMPT: {{PROMPT}}
 

@@ -1,8 +1,8 @@
 {{SYSTEM}}
 
-All prompts by "user" in the "messages" property are continuous in content. If pasing the input sentence is extremely difficult, or the input is not enclosed in double quotes, let the user know.
+All prompts by "user" in the "messages" property are continuous in content. If parsing the input sentence is extremely difficult, or the input is not enclosed in double quotes, let the user know.
 
-Create a response "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES". In "PAST MESSAGES", "assistant" refers to you.
+Create a response to "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES". In "PAST MESSAGES", "assistant" refers to you.
 
 NEW PROMPT: {{PROMPT}}
 
@@ -31,7 +31,7 @@ Make sure the following content requirements are all fulfilled:
 - create your response to the new prompt based on "PAST MESSAGES" and set it to "response"
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
-- summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words using as many discourse markers such as "because", "therefore", "but", "so" to show the logical connection between the events.
+- summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words using as many discourse markers such as "because", "therefore", "but", and "so" to show the logical connection between the events.
 - update the value of "tokens" with the number of tokens of the resulting JSON object"
 - increment the value of "turns" by 1
 

@@ -199,12 +199,6 @@ In `research` mode, it may take a while (usually several seconds) after the `dat
 
 All the information retrievable by running the `data/context` function can be presented in HTML. The HTML file is automatically opened in the default web browser.
 
-<br />
-
-<kbd><img src="./doc/img/linguistic-html.png" width="700px" style="border: thin solid darkgray;"/></kbd>
-
-<br />
-
 The generated HTML will be saved in the user’s home directory (`$HOME`) with the file `monadic_chat.html`. Once the `html` command is executed, the file contents will continue to be updated until you `reset` or quit the running app. Reload the browser tab or rerun the `html` command to show the latest data. HTML data is written to this file regardless of the app.
 
 In `research` mode, it may take several seconds to several minutes after the `html` command is executed before the acutual HTML is displayed. This is because in `research` mode, even after displaying a direct response to user input, there may be a process running in the background that retrieves and reconstructs the context data, requiring the system to wait for it to finish.
@@ -410,6 +404,16 @@ The specifications for Monadic Chat's command-line user interface for this app a
 
 The sample app we create in this section is stored in the [`sample_app`](https://github.com/yohasebe/monadic-chat/tree/main/sample_app) folder in the repository.
 
+Below is a sample HTML displaying the conversation (sentence and its syntactic structure notation pairs) and metadata.
+
+<br />
+
+<kbd><img src="./doc/img/linguistic-html.png" width="700px" style="border: thin solid darkgray;"/></kbd>
+
+<br />
+
+
+
 ### File Structure
 
 New Monadic Chat apps must be placed inside the `apps` folder. The folders and files for default apps `chat`, `code`, `novel`, and `translate` are also in this folder.
@@ -489,14 +493,13 @@ Below we will look at the `research` mode template for the `linguistic` app, sec
 
 **Main Section**
 
-<div style="highlight highlight-source-gfm"><pre style="white-space : pre-wrap !important;">
-{{SYSTEM}
+<div style="highlight highlight-source-gfm"><pre style="white-space : pre-wrap !important;">{{SYSTEM}
 
-Create a response "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES".
+All prompts by "user" in the "messages" property are continuous in content.You are an English syntactic/semantic/pragmatic analyzer. Analyze the new prompt from the user below and execute a syntactic parsing. Give your response in a variation of the penn treebank format, but use brackets [ ] instead of parentheses ( ). Also, give your response in a markdown code span. The sentence must always be parsed if the user's input sentence is enclosed in double quotes. Let the user know if parsing the sentence is difficult or the input must be enclosed in double quotes. 
 
-</pre></div>
+Create a response to "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES". In "PAST MESSAGES", "assistant" refers to you.</pre></div>
 
-The text here is the same as the text in the template for the `normal` mode in an instruction message by the `system`. Monadic Chat automatically replaces `{{SYSTEM}}` with the `system`'s instruction text when sending templates through the API. Note that it additionally contains an instruction that the response from GPT should be presented in the form of a JSON object, as shown in one of the following sections. 
+Some of the text here is the same as the text of the directive message by `system` in the template in `normal` mode; Monadic Chat automatically replaces `{{SYSTEM}}} with the `system` directive text when the template is sent via API. However, the above text also includes a few additional paragpraphs, including the one instructing the response from GPT to be presented as a JSON object.
 
 **New Prompt**
 
@@ -510,7 +513,6 @@ Monadic Chat replaces `{{PROMPT}}` with input from the user when sending the tem
 
 ```markdown
 PAST MESSAGES:
-
 {{MESSAGES}}
 ```
 
@@ -535,16 +537,18 @@ This is the core of the `research` mode template.
 
 Note that the entire `research` mode template is written in Markdown format, so the above JSON object is actually separated from the rest of the template by a code fence, as shown below.
 
-    ```json
-    {
-      "prompt": ...
-      "response": ...
-      "mode": ...
-      "tokens": ...
-      "turns": ...
-      ...
-    }
-    ```
+```json
+ ```json
+ {
+   "prompt": ...
+   "response": ...
+   "mode": ...
+   "tokens": ...
+   "turns": ...
+   ...
+ }
+ ```
+```
 
 The required properties of this JSON object are `prompt`, `response`, `mode`, and `tokens`. Other properties are optional. The `mode` property is used to check the app name when saving the conversation data or loading from an external file. The `tokens` property is used in the reducer mechanism to check the approximate size of the current JSON object. The `turns` property is also used in the reducer mechanism.
 
@@ -557,10 +561,10 @@ Make sure the following content requirements are all fulfilled:
 
 - keep the value of the "mode" property at "linguistic"
 - set the new prompt to the "prompt" property
-- create your response to the new prompt in accordance with the "messages" and set it to "response"
+- create your response to the new prompt based on "PAST MESSAGES" and set it to "response"
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
-- summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words.
+- summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words using as many discourse markers such as "because", "therefore", "but", and "so" to show the logical connection between the events.
 - update the value of "tokens" with the number of tokens of the resulting JSON object"
 - increment the value of "turns" by 1
 ```

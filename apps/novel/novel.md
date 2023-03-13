@@ -1,6 +1,6 @@
 {{SYSTEM}}
 
-Create a response "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES". In "PAST MESSAGES", "assistant" refers to you.
+Create a response to "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES". In "PAST MESSAGES", "assistant" refers to you.
 
 NEW PROMPT: {{PROMPT}}
 
@@ -11,8 +11,8 @@ JSON:
 
 ```json
 {
-  "prompt": "The prefice to the novel is presented",
-  "response": "What follows is the story that an AI assistant tells. It is guaranteed that this will be an incredibly realistic and interesting novel.\n\n###\n\n",
+  "prompt": "The preface to the novel is presented",
+  "response": "What follows is a story that an AI assistant tells. It is guaranteed that this will be an incredibly realistic and interesting novel.\n\n###\n\n",
   "mode": "novel",
   "turns": 1,
   "tokens": 147

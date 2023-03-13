@@ -1,6 +1,6 @@
 {{SYSTEM}}
 
-Create a response "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES".
+Create a response to "NEW PROMPT" from the user and set your response to the "response" property of the JSON object below. The preceding conversation is stored in "PAST MESSAGES".
  The preceding conversation is stored in "PAST MESSAGES". In "PAST MESSAGES", "assistant" refers to you. Make your response as detailed as possible.
 
 NEW PROMPT: {{PROMPT}}
@@ -24,7 +24,7 @@ JSON:
 
 Make sure the following content requirements are all fulfilled:
 
-- keep the value of the "mode" property at "experiment"
+- keep the value of the "mode" property at "chat"
 - set the new prompt to the "prompt" property
 - create your response to the new prompt based on the PAST MESSAGES and set it to "response"
 - if the new prompt is in a language other than the current value of "language", set the name of the new prompt language to "language" and make sure that "response" is in that language
