@@ -542,7 +542,7 @@ Note that the entire `research` mode template is written in Markdown format, so 
 
 <br />
 
-<kbd><img src="./doc/img/extra-template-json.png" width="700px" /></kbd>
+<kbd><img src="./doc/img/extra-template-json.png" width="900px" /></kbd>
 
 <br />
 
