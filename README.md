@@ -132,7 +132,7 @@ When you start Monadic Chat with the `monadic-chat` command for the first time, 
 
 <br />
 
-<kbd><img src="./doc/img/input-acess-token.png" width="700px" style="border: thin solid darkgray;"/></kbd>
+<kbd><img src="./doc/img/input-acess-token.png" width="700px" /></kbd>
 
 <br />
 
@@ -150,7 +150,7 @@ Selecting `readme` will take you to the README on the GitHub repository (the doc
 
 <br />
 
-<kbd><img src="./doc/img/select-app-menu.png" width="700px" style="border: thin solid darkgray;"/></kbd>
+<kbd><img src="./doc/img/select-app-menu.png" width="700px" /></kbd>
 
 <br />
 
@@ -170,7 +170,7 @@ You can call up the function menu anytime. To invoke the function menu, type `he
 
 <br />
 
-<kbd><img src="./doc/img/select-feature-menu.png" width="700px" style="border: thin solid darkgray;"/></kbd>
+<kbd><img src="./doc/img/select-feature-menu.png" width="700px" /></kbd>
 
 <br />
 
@@ -409,7 +409,7 @@ Below is a sample HTML displaying the conversation (sentence and its syntactic s
 
 <br />
 
-<kbd><img src="./doc/img/linguistic-html.png" width="700px" style="border: thin solid darkgray;"/></kbd>
+<kbd><img src="./doc/img/linguistic-html.png" width="700px" /></kbd>
 
 <br />
 
@@ -540,18 +540,11 @@ This is the core of the `research` mode template.
 
 Note that the entire `research` mode template is written in Markdown format, so the above JSON object is actually separated from the rest of the template by a code fence, as shown below.
 
-```json
- ```json
- {
-   "prompt": ...
-   "response": ...
-   "mode": ...
-   "tokens": ...
-   "turns": ...
-   ...
- }
- ```
-```
+<br />
+
+<kbd><img src="./doc/img/extra-template-json.png" width="700px" /></kbd>
+
+<br />
 
 The required properties of this JSON object are `prompt`, `response`, `mode`, and `tokens`. Other properties are optional. The `mode` property is used to check the app name when saving the conversation data or loading from an external file. The `tokens` property is used in the reducer mechanism to check the approximate size of the current JSON object. The `turns` property is also used in the reducer mechanism.
 
