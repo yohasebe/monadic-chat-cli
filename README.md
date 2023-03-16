@@ -6,6 +6,10 @@
 <img src="https://user-images.githubusercontent.com/18207/224493072-9720b341-c70d-43b9-b996-ba7e9a7a6806.gif" width="900" />
 </p>
 
+<p align="center">
+<img src="https://user-images.githubusercontent.com/18207/225505520-53e6f2c4-84a8-4128-a005-3fe980ec2449.gif" width="900" />
+</p>
+
 > **Warning**  
 > This software is ***under active development***. It may be unstable, and the latest version may behave slightly differently than this document. Also, specifications may change in the future.
 
