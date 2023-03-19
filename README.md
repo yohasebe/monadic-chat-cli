@@ -15,6 +15,7 @@
 
 **Change Log**
 
+- [March 19, 2023] Text and figure in "How the research mode workds" section updated
 - [March 13, 2023] Text on the architecture of the `research` mode updated in accordance with Version 0.2.0
 
 ## Table of Contents
@@ -345,7 +346,8 @@ Terms in bold in it may require more explanation.
 - The **template** contains conversation data in JSON format and instructions on how the text-completion API should update this data. More details are given in the [Creating New Apps]("#creating-new-apps") section below.
 - The term **prompt** can be used in two ways: in one sense, it means text input from the user. In the figure above, however, "prompt" refers to the contents of the template as a whole, which is sent to the API.
 - The response to the user’s input is referred to as **output**. Input and output are in the returned JSON object, structured according to the instruction specified in the template.
-- The JSON object contains a list of the conversation history, referred to as the **accum** (accumulator) in the figure. Each turn of the conversation increases the messages stored in the accumulator.
+- The **accumulator** is where the conversation history is stored. Each turn of the conversation increases the number of messages stored in it.
+- The **accumulator** is where the conversation history is stored. The number of messages accumulated increases with each turn of the conversation.
 - A Monadic Chat app must define a **reducer** to prevent the accumulator from growing excessively.
 
 ### Accumulator

@@ -18,9 +18,9 @@ class MonadicApp
 
   def show_greet
     current_mode = case @method
-                   when "completions"
+                   when RESEARCH_MODE
                      PASTEL.red("Research")
-                   when "chat/completions"
+                   when NORMAL_MODE
                      PASTEL.green("Normal")
                    end
     greet_md = <<~GREET

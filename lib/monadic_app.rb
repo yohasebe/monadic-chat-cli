@@ -34,10 +34,10 @@ class MonadicApp
     @messages = @messages_initial.dup
 
     case @method
-    when "completions"
+    when RESEARCH_MODE
       @template_initial = File.read(tmarkdown)
       @template = @template_initial.dup
-    when "chat/completions"
+    when NORMAL_MODE
       @template_initial = ""
       @template = ""
     end
@@ -76,9 +76,9 @@ class MonadicApp
         if input && confirm_query(input)
           begin
             case @method
-            when "completions"
+            when RESEARCH_MODE
               bind_research_mode(input, num_retry: NUM_RETRY)
-            when "chat/completions"
+            when NORMAL_MODE
               bind_normal_mode(input, num_retry: NUM_RETRY)
             end
           rescue StandardError => e

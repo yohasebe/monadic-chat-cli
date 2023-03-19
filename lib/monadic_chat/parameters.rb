@@ -21,9 +21,9 @@ class MonadicApp
     when "model"
       value = change_model
       case @method
-      when "completions"
+      when RESEARCH_MODE
         @template = @template_original.dup
-      when "chat/completions"
+      when NORMAL_MODE
         @template = JSON.parse @template_original
       end
     when "max_tokens"

@@ -128,12 +128,12 @@ class MonadicApp
     begin
       File.open(filepath, "w") do |f|
         case @method
-        when "completions"
+        when RESEARCH_MODE
           m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
           data = JSON.parse(m[1])
           data["messages"] = @messages
           f.write JSON.pretty_generate(data)
-        when "chat/completions"
+        when NORMAL_MODE
           f.write JSON.pretty_generate({ "messages" => @messages })
         end
 
@@ -168,15 +168,14 @@ class MonadicApp
       json = File.read(filepath)
       data = JSON.parse(json)
       case @method
-      when "completions"
+      when RESEARCH_MODE
         self.class.name.downcase.split("::")[-1]
 
         raise unless data["mode"] == self.class.name.downcase.split("::")[-1]
 
         @messages = data.delete "messages"
         @template = @template.sub(/\n\n```json\s*\{.+\}\s*```\n\n/m, "\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
-      when "chat/completions"
-        pp data
+      when NORMAL_MODE
         raise unless data["messages"] && data["messages"][0]["role"]
 
         @messages = data["messages"]

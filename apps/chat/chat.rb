@@ -22,10 +22,10 @@ class Chat < MonadicApp
     }
     method = OpenAI.model_to_method(params["model"])
     case method
-    when "completions"
+    when RESEARCH_MODE
       tjson = TEMPLATES["normal/chat"]
       tmarkdown = TEMPLATES["research/chat"]
-    when "chat/completions"
+    when NORMAL_MODE
       tjson = TEMPLATES["normal/chat"]
       tmarkdown = nil
     end
@@ -37,7 +37,7 @@ class Chat < MonadicApp
           prop_newdata: "response",
           update_proc: proc do
             case method
-            when "completions"
+            when RESEARCH_MODE
               ############################################################
               # Research mode reduder defined here                       #
               # @messages: messages to this point                        #
@@ -51,7 +51,7 @@ class Chat < MonadicApp
 
               @metadata["turns"] = @metadata["turns"].to_i - 1 if conditions.all?
 
-            when "chat/completions"
+            when NORMAL_MODE
               ############################################################
               # Normal mode recuder defined here                         #
               # @messages: messages to this point                        #

@@ -61,13 +61,13 @@ class MonadicApp
 
   def objectify
     case @method
-    when "completions"
+    when RESEARCH_MODE
       m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
       json = m[1].gsub(/(?!\\\\\\)\\\\"/) { '\\\"' }
       res = JSON.parse(json)
       res["messages"] = @messages
       res
-    when "chat/completions"
+    when NORMAL_MODE
       @messages
     end
   end
@@ -77,7 +77,7 @@ class MonadicApp
 
     @update_proc.call
     case @method
-    when "completions"
+    when RESEARCH_MODE
       messages = +""
       system = +""
       @messages.each do |mes|
@@ -98,7 +98,7 @@ class MonadicApp
 
       params["prompt"] = template
       @messages << { "role" => "user", "content" => input }
-    when "chat/completions"
+    when NORMAL_MODE
       @messages << { "role" => "user", "content" => input }
       @update_proc.call
       params["messages"] = @messages
@@ -109,12 +109,12 @@ class MonadicApp
 
   def update_template(res)
     case @method
-    when "completions"
+    when RESEARCH_MODE
       @metadata = res
       @messages << { "role" => "assistant", "content" => res["response"] }
       json = res.to_json.strip
       @template.sub!(/\n\n```json.+```\n\n/m, "\n\n```json\n#{json}\n```\n\n")
-    when "chat/completions"
+    when NORMAL_MODE
       @messages << { "role" => "assistant", "content" => res }
     end
   end

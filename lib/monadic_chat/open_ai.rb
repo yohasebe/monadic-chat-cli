@@ -18,6 +18,10 @@ module OpenAI
   def self.model_to_method(model)
     {
       "text-davinci-003" => "completions",
+      "gpt-4" => "completions",
+      "gpt-4-0314" => "completions",
+      "gpt-4-32K" => "completions",
+      "gpt-4-32k-0314" => "completions",
       "gpt-3.5-turbo" => "chat/completions",
       "gpt-3.5-turbo-0301" => "chat/completions"
     }[model]

@@ -25,6 +25,8 @@ module MonadicChat
   MIN_LENGTH = 5
   TIMEOUT_SEC = 120
   TITLE_WIDTH = 72
+  NORMAL_MODE = "chat/completions"
+  RESEARCH_MODE = "completions"
 
   APPS_DIR = File.absolute_path(File.join(__dir__, "..", "apps"))
   APPS_DIR_LIST = Dir.entries(APPS_DIR)
