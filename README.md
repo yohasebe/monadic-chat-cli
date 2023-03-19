@@ -3,11 +3,11 @@
 <p align="center"><b>Highly configurable CLI client app for OpenAI chat/text-completion API</b></p>
 
 <p align="center">
-<kbd><img src="https://user-images.githubusercontent.com/18207/224493072-9720b341-c70d-43b9-b996-ba7e9a7a6806.gif" width="900" /></kbd>
+<kbd><img src="https://user-images.githubusercontent.com/18207/224493072-9720b341-c70d-43b9-b996-ba7e9a7a6806.gif" width="800" /></kbd>
 </p>
 
 <p align="center">
-<kbd><img src="https://user-images.githubusercontent.com/18207/225505520-53e6f2c4-84a8-4128-a005-3fe980ec2449.gif" width="900" /></kbd>
+<kbd><img src="https://user-images.githubusercontent.com/18207/225505520-53e6f2c4-84a8-4128-a005-3fe980ec2449.gif" width="800" /></kbd>
 </p>
 
 > **Warning**  
