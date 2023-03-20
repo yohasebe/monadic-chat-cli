@@ -13,3 +13,7 @@
 
 - Research mode architecture changed
 - Stability improvement
+
+## [0.2.1] - 2023-03-21
+
+- GPT-4 models supported (experimental)

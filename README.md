@@ -15,6 +15,7 @@
 
 **Change Log**
 
+- [March 21, 2023] GPT-4 models supported (experimental)
 - [March 20, 2023] Text and figure in "How the research mode workds" section updated
 - [March 13, 2023] Text on the architecture of the `research` mode updated in accordance with Version 0.2.0
 
