@@ -3,7 +3,7 @@
 require_relative "../../lib/monadic_app"
 
 class Linguistic < MonadicApp
-  DESC = "Syntatic/Semantic/Pragmatic Analyzer"
+  DESC = "Linguistic Analysis App (experimental)"
   COLOR = "red"
 
   attr_accessor :template, :config, :params, :completion
