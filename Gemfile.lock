@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    monadic-chat (0.2.0)
+    monadic-chat (0.2.1)
       http
       kramdown
       launchy
@@ -21,13 +21,9 @@ GEM
   specs:
     addressable (2.8.1)
       public_suffix (>= 2.0.2, < 6.0)
-    ast (2.4.2)
-    backport (1.2.0)
-    benchmark (0.2.1)
     diff-lcs (1.5.0)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
-    e2mmap (0.1.0)
     ffi (1.15.5)
     ffi-compiler (1.0.1)
       ffi (>= 1.0.0)
@@ -40,32 +36,19 @@ GEM
     http-cookie (1.0.5)
       domain_name (~> 0.5)
     http-form_data (2.3.0)
-    jaro_winkler (1.5.4)
-    json (2.6.3)
     kramdown (2.4.0)
       rexml
-    kramdown-parser-gfm (1.1.0)
-      kramdown (~> 2.0)
     launchy (2.5.2)
       addressable (~> 2.8)
     llhttp-ffi (0.4.0)
       ffi-compiler (~> 1.0)
       rake (~> 13.0)
-    nokogiri (1.14.2-x86_64-darwin)
-      racc (~> 1.4)
     oj (3.14.2)
     parallel (1.22.1)
-    parser (3.2.1.1)
-      ast (~> 2.4.1)
     pastel (0.8.0)
       tty-color (~> 0.5)
     public_suffix (5.0.1)
-    racc (1.6.2)
-    rainbow (3.1.1)
     rake (13.0.6)
-    regexp_parser (2.7.0)
-    reverse_markdown (2.1.1)
-      nokogiri
     rexml (3.2.5)
     rouge (4.1.0)
     rspec (3.12.0)
@@ -81,41 +64,11 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.12.0)
     rspec-support (3.12.0)
-    rubocop (1.48.0)
-      json (~> 2.3)
-      parallel (~> 1.10)
-      parser (>= 3.2.0.0)
-      rainbow (>= 2.2.2, < 4.0)
-      regexp_parser (>= 1.8, < 3.0)
-      rexml (>= 3.2.5, < 4.0)
-      rubocop-ast (>= 1.26.0, < 2.0)
-      ruby-progressbar (~> 1.7)
-      unicode-display_width (>= 2.4.0, < 3.0)
-    rubocop-ast (1.27.0)
-      parser (>= 3.2.1.0)
-    ruby-progressbar (1.13.0)
-    solargraph (0.48.0)
-      backport (~> 1.2)
-      benchmark
-      bundler (>= 1.17.2)
-      diff-lcs (~> 1.4)
-      e2mmap
-      jaro_winkler (~> 1.5)
-      kramdown (~> 2.3)
-      kramdown-parser-gfm (~> 1.1)
-      parser (~> 3.0)
-      reverse_markdown (>= 1.0.5, < 3)
-      rubocop (>= 0.52)
-      thor (~> 1.0)
-      tilt (~> 2.0)
-      yard (~> 0.9, >= 0.9.24)
     strings (0.2.1)
       strings-ansi (~> 0.2)
       unicode-display_width (>= 1.5, < 3.0)
       unicode_utils (~> 1.4)
     strings-ansi (0.2.0)
-    thor (1.2.1)
-    tilt (2.1.0)
     tty-box (0.7.0)
       pastel (~> 0.8)
       strings (~> 0.2.0)
@@ -147,12 +100,10 @@ GEM
     unf_ext (0.0.8.2)
     unicode-display_width (2.4.2)
     unicode_utils (1.4.0)
-    webrick (1.7.0)
     wisper (2.0.1)
-    yard (0.9.28)
-      webrick (~> 1.7.0)
 
 PLATFORMS
+  ruby
   x86_64-darwin-22
 
 DEPENDENCIES
@@ -160,7 +111,6 @@ DEPENDENCIES
   monadic-chat!
   rake
   rspec
-  solargraph
 
 BUNDLED WITH
-   2.4.1
+   2.4.8
