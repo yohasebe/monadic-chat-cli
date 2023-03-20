@@ -63,11 +63,11 @@
 
 ## Introduction
 
-**Monadic Chat** is a command-line client application program that uses OpenAI's Text Completion API and Chat API to enable chat-style conversations with OpenAI's artificial intelligence system in a ChatGPT-like style.
+**Monadic Chat** is a user-friendly command-line client application that utilizes OpenAI’s Text Completion API and Chat API to facilitate ChatGPT-style conversations with OpenAI’s large language models (LLM) on any terminal application of your choice.
 
-The conversation with the AI can be saved in a JSON file, and the saved JSON file can be loaded later to continue the conversation. The conversation data can also be converted to HTML and displayed in a web browser.
+The conversation history can be saved in a JSON file, which can be loaded later to continue the conversation. Additionally, the conversation data can be converted to HTML and viewed in a web browser for easy accessibility.
 
-Monadic Chat comes with four apps (`Chat`, `Code`, `Novel`, and `Translate`). Each can generate a different kind of text through interactive conversation between the user and OpenAI's large-scale language model. Users can also create new apps.
+Monadic Chat includes four pre-built apps (`Chat`, `Code`, `Novel`, and `Translate`) that are designed to generate different types of discourse through interactive conversation with the LLM. Users also have the option to create their own apps by writing new templates.
 
 ## Dependencies
 
