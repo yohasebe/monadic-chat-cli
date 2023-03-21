@@ -2,6 +2,20 @@
 
 num_retry = 2
 
+model_to_use = "gpt-4"
+fallback = "gpt-3.5-turbo"
+
+availability = OpenAI.models(COMPLETION.access_token).any? do |model|
+  model["id"] == model_to_use
+end
+
+if availability
+  puts "#{model_to_use} is available to use"
+else
+  puts "#{model_to_use} is not available. Using #{fallback} instead."
+  model_to_use = fallback
+end
+
 RSpec.describe "Translate" do
   replacements = {
     "mode" => :replace,
@@ -9,6 +23,7 @@ RSpec.describe "Translate" do
   }
 
   translate = Translate.new(COMPLETION, replacements: replacements, research_mode: false)
+  translate.params["model"] = model_to_use
   translate.fulfill_placeholders
   input1 = "ワタシは猫なんですけどね(as you see)。"
   translate.bind_normal_mode(input1, num_retry: num_retry)
@@ -24,6 +39,7 @@ end
 
 RSpec.describe "Chat" do
   chat = Chat.new(COMPLETION, research_mode: false)
+  chat.params["model"] = model_to_use
   input1 = "What is the best place to visit in Texas?"
   chat.bind_normal_mode(input1, num_retry: num_retry)
   input2 = "What do people say about the place?"
@@ -38,6 +54,7 @@ end
 
 RSpec.describe "Novel" do
   novel = Novel.new(COMPLETION, research_mode: false)
+  novel.params["model"] = model_to_use
   input1 = "Tom woke up to the sound of pouring rain."
   novel.bind_normal_mode(input1, num_retry: num_retry)
   input2 = "He decided to call his old friend first time in many years."
@@ -52,6 +69,7 @@ end
 
 RSpec.describe "Code" do
   code = Code.new(COMPLETION, research_mode: false)
+  code.params["model"] = model_to_use
   input1 = "Write a command line app that shows the current global IP in Ruby."
   code.bind_normal_mode(input1, num_retry: num_retry)
   input2 = "Make the code capable of showing the approximate geographical locatioin."

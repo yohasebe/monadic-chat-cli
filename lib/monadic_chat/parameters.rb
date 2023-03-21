@@ -20,11 +20,10 @@ class MonadicApp
     case parameter
     when "model"
       value = change_model
+      @messages = @messages_initial.dup
       case @method
       when RESEARCH_MODE
-        @template = @template_original.dup
-      when NORMAL_MODE
-        @template = JSON.parse @template_original
+        @template = @template_initial.dup
       end
     when "max_tokens"
       value = change_max_tokens
