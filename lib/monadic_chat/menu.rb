@@ -127,13 +127,13 @@ class MonadicApp
 
     begin
       File.open(filepath, "w") do |f|
-        case @method
-        when RESEARCH_MODE
-          m = /\n\n```json\s*(\{.+\})\s*```\n\n/m.match(@template)
+        case @mode
+        when :research
+          m = /JSON:\n+```json\s*(\{.+\})\s*```\n\n/m.match(@template)
           data = JSON.parse(m[1])
           data["messages"] = @messages
           f.write JSON.pretty_generate(data)
-        when NORMAL_MODE
+        when :normal
           f.write JSON.pretty_generate({ "messages" => @messages })
         end
 
@@ -167,15 +167,15 @@ class MonadicApp
       filepath = File.expand_path(input.strip)
       json = File.read(filepath)
       data = JSON.parse(json)
-      case @method
-      when RESEARCH_MODE
+      case @mode
+      when :research
         self.class.name.downcase.split("::")[-1]
 
         raise unless data["mode"] == self.class.name.downcase.split("::")[-1]
 
         @messages = data.delete "messages"
-        @template = @template.sub(/\n\n```json\s*\{.+\}\s*```\n\n/m, "\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
-      when NORMAL_MODE
+        @template = @template.sub(/JSON:\n+```json\s*\{.+\}\s*```\n\n/m, "JSON:\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
+      when :normal
         raise unless data["messages"] && data["messages"][0]["role"]
 
         @messages = data["messages"]

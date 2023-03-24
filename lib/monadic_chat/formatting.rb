@@ -17,7 +17,7 @@ class MonadicApp
     end
 
     @messages.each do |m|
-      accumulator << "#{m["role"].capitalize}: #{m["content"]}".sub("\n\n###\n\n", "")
+      accumulator << "#{m["role"].capitalize}: #{m["content"]}"
     end
 
     h1 = "# Monadic :: Chat / #{self.class.name}"
@@ -31,8 +31,6 @@ class MonadicApp
 
   def show_data
     print PROMPT_SYSTEM.prefix
-
-    wait
 
     res = format_data
     print "\n#{TTY::Markdown.parse(res, indent: 0)}"
@@ -50,7 +48,6 @@ class MonadicApp
   end
 
   def show_html
-    wait
     set_html
     print PROMPT_SYSTEM.prefix
     print "HTML is ready\n"

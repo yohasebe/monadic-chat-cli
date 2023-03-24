@@ -6,25 +6,25 @@ class MonadicApp
   ##################################################
 
   def user_input(text = "")
-    if count_lines_below < 1
-      ask_clear
-      user_input
-    else
-      res = PROMPT_USER.readline(text)
-      print TTY::Cursor.clear_line_after
-      res == "" ? nil : res
-    end
+    # if count_lines_below < 1
+    #   ask_clear
+    #   user_input
+    # else
+    res = PROMPT_USER.readline(text)
+    print TTY::Cursor.clear_line_after
+    res == "" ? nil : res
+    # end
   end
 
   def show_greet
-    current_mode = case @method
-                   when RESEARCH_MODE
+    current_mode = case @mode
+                   when :research
                      PASTEL.red("Research")
-                   when NORMAL_MODE
+                   when :normal
                      PASTEL.green("Normal")
                    end
     greet_md = <<~GREET
-      - You are currently in **#{current_mode}** mode
+      - You are currently in **#{current_mode}** mode (#{@params["model"]})
       - Type **help** or **menu** to see available commands
     GREET
     print PROMPT_SYSTEM.prefix

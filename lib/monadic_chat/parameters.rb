@@ -20,11 +20,7 @@ class MonadicApp
     case parameter
     when "model"
       value = change_model
-      @messages = @messages_initial.dup
-      case @method
-      when RESEARCH_MODE
-        @template = @template_initial.dup
-      end
+      @method = OpenAI.model_to_method(value)
     when "max_tokens"
       value = change_max_tokens
     when "temperature"
@@ -79,13 +75,19 @@ class MonadicApp
     model = PROMPT_SYSTEM.select("Select a model:", per_page: 10, cycle: false, show_help: :never, filter: true, default: 1) do |menu|
       menu.choice "#{BULLET} Cancel", "cancel"
       TTY::Cursor.save
-      print SPINNER
+      SPINNER.auto_spin
       models = @completion.models
-      go_up_and_clear
+      SPINNER.stop
       TTY::Cursor.restore
-      TTY::Cursor.restore
-      models.filter { |m| OpenAI.model_to_method(m["id"]) == @method }.sort_by { |m| -m["created"] }.each do |m|
-        menu.choice "#{BULLET} #{m["id"]}", m["id"]
+      case @mode
+      when :research
+        models.filter { |m| ["completions", "chat/completions"].include? OpenAI.model_to_method(m["id"]) }.sort_by { |m| -m["created"] }.each do |m|
+          menu.choice "#{BULLET} #{m["id"]}", m["id"]
+        end
+      when :normal
+        models.filter { |m| OpenAI.model_to_method(m["id"]) == "chat/completions" }.sort_by { |m| -m["created"] }.each do |m|
+          menu.choice "#{BULLET} #{m["id"]}", m["id"]
+        end
       end
     end
     if model == "cancel"

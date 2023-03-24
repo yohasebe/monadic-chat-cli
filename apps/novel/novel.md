@@ -12,7 +12,7 @@ JSON:
 ```json
 {
   "prompt": "The preface to the novel is presented",
-  "response": "What follows is a story that an AI assistant tells. It is guaranteed that this will be an incredibly realistic and interesting novel.\n\n###\n\n",
+  "response": "What follows is a story that an AI assistant tells. It is guaranteed that this will be an incredibly realistic and interesting novel.",
   "mode": "novel",
   "turns": 1,
   "tokens": 147
@@ -35,6 +35,4 @@ Make sure the following formal requirements are all fulfilled:
 - increment the value of "turns" by 1
 - check the validity of the generated JSON object and correct any possible parsing problems before returning it 
 
-Add "\n\n###\n\n" at the end of the "response" value.
-
-Wrap the JSON object with "<JSON>\n" and "\n</JSON>".
+Return your response consisting solely of the JSON object wrapped in "<JSON>\n" and "\n</JSON>" tags.

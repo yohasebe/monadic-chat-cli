@@ -14,7 +14,7 @@ JSON:
   "mode": "translate",
   "turns": 0,
   "prompt": "これは日本語(Japanese)の文(sentence)です。",
-  "response": "This is a sentence in Japanese.\n\n###\n\n",
+  "response": "This is a sentence in Japanese.",
   "target_lang": "English",
   "tokens": 194
 }
@@ -35,6 +35,4 @@ Make sure the following formal requirements are all fulfilled:
 - increment the value of "turns" by 1
 - check the validity of the generated JSON object and correct any possible parsing problems before returning it 
 
-Add "\n\n###\n\n" at the end of the "response" value.
-
-Wrap the JSON object with "<JSON>\n" and "\n</JSON>".
+Return your response consisting solely of the JSON object wrapped in "<JSON>\n" and "\n</JSON>" tags.

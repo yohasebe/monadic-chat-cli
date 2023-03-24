@@ -8,40 +8,35 @@ class Translate < MonadicApp
 
   attr_accessor :template, :config, :params, :completion
 
-  def initialize(openai_completion, replacements: nil, research_mode: false, stream: true)
+  def initialize(openai_completion, replacements: nil, research_mode: false, stream: true, params: {})
     @num_retained_turns = 10
     params = {
       "temperature" => 0.2,
       "top_p" => 1.0,
       "presence_penalty" => 0.0,
       "frequency_penalty" => 0.0,
-      "model" => OpenAI.model_name(research_mode: research_mode),
+      "model" => openai_completion.model_name(research_mode: research_mode),
       "max_tokens" => 2000,
       "stream" => stream,
       "stop" => nil
-    }
+    }.merge(params)
     replacements ||= {
       "mode" => :interactive,
       "{{TARGET_LANG}}" => "Enter target language"
     }
-    method = OpenAI.model_to_method(params["model"])
-    case method
-    when RESEARCH_MODE
-      tjson = TEMPLATES["normal/translate"]
-      tmarkdown = TEMPLATES["research/translate"]
-    when NORMAL_MODE
-      tjson = TEMPLATES["normal/translate"]
-      tmarkdown = nil
-    end
-    super(params: params,
-          tjson: tjson,
-          tmarkdown: tmarkdown,
+    mode = research_mode ? :research : :normal
+    template_json = TEMPLATES["normal/translate"]
+    template_md = TEMPLATES["research/translate"]
+    super(mode: research_mode ? :research : :normal,
+          params: params,
+          template_json: template_json,
+          template_md: template_md,
           placeholders: replacements,
           prop_accumulator: "messages",
           prop_newdata: "response",
           update_proc: proc do
-            case method
-            when RESEARCH_MODE
+            case mode
+            when :research
               ############################################################
               # Research mode reduder defined here                       #
               # @messages: messages to this point                        #
@@ -55,7 +50,7 @@ class Translate < MonadicApp
 
               @metadata["turns"] = @metadata["turns"].to_i - 1 if conditions.all?
 
-            when NORMAL_MODE
+            when :normal
               ############################################################
               # Normal mode recuder defined here                         #
               # @messages: messages to this point                        #

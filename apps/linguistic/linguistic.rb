@@ -8,36 +8,31 @@ class Linguistic < MonadicApp
 
   attr_accessor :template, :config, :params, :completion
 
-  def initialize(openai_completion, research_mode: false, stream: true)
+  def initialize(openai_completion, research_mode: false, stream: true, params: {})
     @num_retained_turns = 10
     params = {
       "temperature" => 0.0,
       "top_p" => 1.0,
       "presence_penalty" => 0.0,
       "frequency_penalty" => 0.0,
-      "model" => OpenAI.model_name(research_mode: research_mode),
+      "model" => openai_completion.model_name(research_mode: research_mode),
       "max_tokens" => 2000,
       "stream" => stream,
       "stop" => nil
-    }
-    method = OpenAI.model_to_method(params["model"])
-    case method
-    when RESEARCH_MODE
-      tjson = TEMPLATES["normal/linguistic"]
-      tmarkdown = TEMPLATES["research/linguistic"]
-    when NORMAL_MODE
-      tjson = TEMPLATES["normal/linguistic"]
-      tmarkdown = nil
-    end
-    super(params: params,
-          tjson: tjson,
-          tmarkdown: tmarkdown,
+    }.merge(params)
+    mode = research_mode ? :research : :normal
+    template_json = TEMPLATES["normal/linguistic"]
+    template_md = TEMPLATES["research/linguistic"]
+    super(mode: mode,
+          params: params,
+          template_json: template_json,
+          template_md: template_md,
           placeholders: {},
           prop_accumulator: "messages",
           prop_newdata: "response",
           update_proc: proc do
-            case method
-            when RESEARCH_MODE
+            case mode
+            when :research
               ############################################################
               # Research mode reduder defined here                       #
               # @messages: messages to this point                        #
@@ -51,7 +46,7 @@ class Linguistic < MonadicApp
 
               @metadata["turns"] = @metadata["turns"].to_i - 1 if conditions.all?
 
-            when NORMAL_MODE
+            when :normal
               ############################################################
               # Normal mode recuder defined here                         #
               # @messages: messages to this point                        #

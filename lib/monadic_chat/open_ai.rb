@@ -12,7 +12,11 @@ Oj.mimic_JSON
 
 module OpenAI
   def self.model_name(research_mode: false)
-    research_mode ? "text-davinci-003" : "gpt-3.5-turbo"
+    if research_mode
+      "text-davinci-003"
+    else
+      "gpt-3.5-turbo"
+    end
   end
 
   def self.model_to_method(model)
@@ -85,15 +89,25 @@ module OpenAI
   class Completion
     attr_reader :access_token
 
-    def initialize(access_token)
+    def initialize(access_token, normal_mode_model = nil, research_mode_model = nil)
       @access_token = access_token
+      @normal_mode_model = normal_mode_model || OpenAI.model_name(research_mode: false)
+      @research_mode_model = research_mode_model || OpenAI.model_name(research_mode: true)
+    end
+
+    def model_name(research_mode: false)
+      if research_mode
+        @research_mode_model
+      else
+        @normal_mode_model
+      end
     end
 
     def models
       OpenAI.models(@access_token)
     end
 
-    def run(params, num_retry: 1, tmp_json_file: nil, tmp_md_file: nil, &block)
+    def run(params, research_mode: false, num_retry: 1, &block)
       method = OpenAI.model_to_method(params["model"])
 
       response = OpenAI.query(@access_token, "post", method, 60, params, &block)
@@ -103,12 +117,10 @@ module OpenAI
         raise "finished because of length"
       end
 
-      case method
-      when "completions"
-        File.open(tmp_md_file, "w") { |f| f.write params["prompt"] } if tmp_md_file
-        get_json(response["choices"][0]["text"], tmp_json_file: tmp_json_file)
-      when "chat/completions"
-        response ["choices"][0]["text"]
+      if research_mode
+        get_json response["choices"][0]["text"]
+      else
+        response["choices"][0]["text"]
       end
     rescue StandardError => e
       case num_retry
@@ -119,9 +131,9 @@ module OpenAI
       end
     end
 
-    def get_json(data, tmp_json_file: nil)
+    def get_json(data)
       case data
-      when %r{<JSON>\n*(\{.+\})\n*</JSON>}m
+      when %r{<JSON>\n*(\{.+?\})\n*</JSON>}m
         json = Regexp.last_match(1).gsub(/\r\n?/, "\n").gsub(/\r\n/) { "\n" }
         res = JSON.parse(json)
       when /(\{.+\})/m
@@ -130,7 +142,6 @@ module OpenAI
       else
         res = data
       end
-      File.open(tmp_json_file, "w") { |f| f.write json } if tmp_json_file
       res
     end
 
@@ -143,9 +154,9 @@ module OpenAI
       prompts.each do |prompt|
         params["prompt"] = template.sub(replace_key, prompt)
         res = run(params, num_retry: num_retry)
-        json = JSON.pretty_generate(res)
+        json = JSON.pretty_generate(get_json(res))
         bar.advance(1)
-        template = template.sub(/\n\n```json.+?```\n\n/m, "\n\n```json\n#{json}\n```\n\n")
+        template = template.sub(/JSON:\n+```json.+?```\n\n/m, "JSON:\n\n```json\n#{json}\n```\n\n")
       end
       bar.finish
       JSON.parse(json)

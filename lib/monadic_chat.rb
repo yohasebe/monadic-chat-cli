@@ -3,6 +3,7 @@
 require "tty-cursor"
 require "tty-screen"
 require "tty-markdown"
+require "tty-spinner"
 require "tty-prompt"
 require "tty-box"
 require "pastel"
@@ -25,8 +26,6 @@ module MonadicChat
   MIN_LENGTH = 5
   TIMEOUT_SEC = 120
   TITLE_WIDTH = 72
-  NORMAL_MODE = "chat/completions"
-  RESEARCH_MODE = "completions"
 
   APPS_DIR = File.absolute_path(File.join(__dir__, "..", "apps"))
   APPS_DIR_LIST = Dir.entries(APPS_DIR)
@@ -123,15 +122,37 @@ module MonadicChat
   end
 
   def self.authenticate(overwrite: false)
-    check = lambda do |token|
-      print "Checking configuration #{SPINNER} "
+    check = lambda do |token, normal_mode_model, research_mode_model|
+      print "Checking configuration\n"
+      SPINNER.auto_spin
       begin
-        raise if OpenAI.models(token).empty?
+        models = OpenAI.models(token)
+        raise if models.empty?
 
-        print "success\n"
-        OpenAI::Completion.new(token)
+        SPINNER.stop
+
+        print "Success\n"
+
+        if normal_mode_model && !models.map { |m| m["id"] }.index(normal_mode_model)
+          SPINNER.stop
+          print "Normal mode model set in config file not available.\n"
+          normal_mode_model = false
+        end
+        normal_mode_model ||= OpenAI.model_name(research_mode: false)
+        print "Normal mode model: #{normal_mode_model}\n"
+
+        if research_mode_model && !models.map { |m| m["id"] }.index(research_mode_model)
+          SPINNER.stop
+          print "Normal mode model set in config file not available.\n"
+          print "Fallback to the default model (#{OpenAI.model_name(research_mode: true)}).\n"
+        end
+        research_mode_model ||= OpenAI.model_name(research_mode: true)
+        print "Research mode model: #{research_mode_model}\n"
+
+        OpenAI::Completion.new(token, normal_mode_model, research_mode_model)
       rescue StandardError
-        print "failure.\n"
+        SPINNER.stop
+        print "Authentication: failure.\n"
         false
       end
     end
@@ -153,9 +174,16 @@ module MonadicChat
       end
     elsif File.exist?(CONFIG)
       json = File.read(CONFIG)
-      config = JSON.parse(json)
+      begin
+        config = JSON.parse(json)
+      rescue JSON::ParserError
+        puts "Error: config file does not contain a valid JSON object."
+        exit
+      end
       access_token = config["access_token"]
-      completion = check.call(access_token)
+      normal_mode_model = config["normal_mode_model"]
+      research_mode_model = config["research_mode_model"]
+      completion = check.call(access_token, normal_mode_model, research_mode_model)
     else
       access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
       completion = check.call(access_token)
@@ -194,6 +222,8 @@ module MonadicChat
   PROMPT_USER = TTY::PromptX.new(active_color: :blue, prefix: prompt_user)
   PROMPT_SYSTEM = TTY::PromptX.new(active_color: :blue, prefix: "#{prompt_system} ")
   PROMPT_ASSISTANT = TTY::PromptX.new(active_color: :red, prefix: "#{prompt_assistant} ")
-  SPINNER = "▹▹▹▹"
+
+  SPINNER = TTY::Spinner.new(format: :arrow_pulse, clear: true)
+
   BULLET = "\e[33m●\e[0m"
 end

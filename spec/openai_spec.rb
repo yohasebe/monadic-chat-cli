@@ -44,7 +44,7 @@ RSpec.describe OpenAI do
         Wrap the json object with "<JSON>\n" and "\n</JSON>"
       PROMPT
 
-      res = COMPLETION.run(params, num_retry: 1)
+      res = COMPLETION.run(params, research_mode: true, num_retry: 1)
       expect(res.keys).to include "answer"
     end
 
@@ -58,13 +58,14 @@ RSpec.describe OpenAI do
       template = <<~TEMPLATE
         Set the following prompt at the end of the list of the "prompts" property of the JSON object.
         Then respond to the prompt and set your answer at the end of the "responses" list of the JSON object\n
-        Prompt: {{PROMPT}}\n
+        Prompt: {{PROMPT}}\n\n
+        JSON:\n\n
         ```json
         {
           "prompts": ["what is the capital of Japan?"],
           "responses": ["Tokyo"]
         }
-        ```\n
+        ```\n\n
         Wrap the json object with "<JSON>\n" and "\n</JSON>"
       TEMPLATE
 

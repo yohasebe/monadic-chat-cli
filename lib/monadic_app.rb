@@ -8,15 +8,12 @@ require_relative "./monadic_chat/menu"
 require_relative "./monadic_chat/parameters"
 require_relative "./monadic_chat/internals"
 
-Thread.abort_on_exception = false
-
 class MonadicApp
   include MonadicChat
   attr_reader :template, :messages
 
-  def initialize(params:, tjson:, tmarkdown:, placeholders:, prop_accumulator:, prop_newdata:, update_proc:)
-    @threads = Thread::Queue.new
-    @responses = Thread::Queue.new
+  def initialize(mode:, params:, template_json:, template_md:, placeholders:, prop_accumulator:, prop_newdata:, update_proc:)
+    @mode = mode.to_sym
     @placeholders = placeholders
     @prop_accumulator = prop_accumulator
     @prop_newdata = prop_newdata
@@ -26,21 +23,14 @@ class MonadicApp
     @params = @params_initial.dup
     @html = false
 
-    @method = OpenAI.model_to_method @params["model"]
+    @method = OpenAI.model_to_method(@params["model"])
 
     @metadata = {}
-
-    @messages_initial = JSON.parse(File.read(tjson))["messages"]
+    @messages_initial = JSON.parse(File.read(template_json))["messages"]
     @messages = @messages_initial.dup
 
-    case @method
-    when RESEARCH_MODE
-      @template_initial = File.read(tmarkdown)
-      @template = @template_initial.dup
-    when NORMAL_MODE
-      @template_initial = ""
-      @template = ""
-    end
+    @template_initial = File.read(template_md)
+    @template = @template_initial.dup
   end
 
   ##################################################
@@ -75,12 +65,7 @@ class MonadicApp
       else
         if input && confirm_query(input)
           begin
-            case @method
-            when RESEARCH_MODE
-              bind_research_mode(input, num_retry: NUM_RETRY)
-            when NORMAL_MODE
-              bind_normal_mode(input, num_retry: NUM_RETRY)
-            end
+            bind(input, num_retry: NUM_RETRY)
           rescue StandardError => e
             input = ask_retrial(input, e.message)
             next

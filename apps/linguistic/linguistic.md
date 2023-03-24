@@ -14,7 +14,7 @@ JSON:
 ```json
 {
   "prompt": "\"We didn't have a camera.\"",
-  "response": "`[S [NP We] [VP [V didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`\n\n###\n\n",
+  "response": "`[S [NP We] [VP [V didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`",
   "mode": "linguistic",
   "turns": 3,
   "sentence_type": ["declarative"],
@@ -41,6 +41,4 @@ Make sure the following formal requirements are all fulfilled:
 - escape double quotes and other special characters in the text values in the resulting JSON object
 - check the validity of the generated JSON object and correct any possible parsing problems before returning it 
 
-Add "\n\n###\n\n" at the end of the "response" value.
-
-Wrap the JSON object with "<JSON>\n" and "\n</JSON>".
+Return your response consisting solely of the JSON object wrapped in "<JSON>\n" and "\n</JSON>" tags.

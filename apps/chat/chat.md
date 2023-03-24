@@ -13,9 +13,9 @@ JSON:
 ```json
 {
   "prompt": "Can I ask something?",
-  "response": "Sure!\n\n###\n\n",
+  "response": "Sure!",
   "mode": "chat",
-  "turns": 0,
+  "turns": 1,
   "language": "English",
   "topics": [],
   "tokens": 109
@@ -39,7 +39,6 @@ Make sure the following formal requirements are all fulfilled:
 - do not use invalid characters in the JSON object
 - escape double quotes and other special characters in the text values in the resulting JSON object
 - increment the value of "turns" by 1
-- check the validity of the generated JSON object and correct any possible parsing problems before returning it 
-Add "\n\n###\n\n" at the end of the "response" value.
+- check the validity of the generated JSON object and correct any possible parsing problems before returning it
 
-Wrap the JSON object with "<JSON>\n" and "\n</JSON>".
+Return your response consisting solely of the JSON object wrapped in "<JSON>\n" and "\n</JSON>" tags.
