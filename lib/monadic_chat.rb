@@ -163,7 +163,7 @@ module MonadicChat
       access_token = PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
       return false if access_token.to_s == ""
 
-      completion = check.call(access_token)
+      completion = check.call(access_token, nil, nil)
 
       if completion
         File.open(CONFIG, "w") do |f|
@@ -186,7 +186,7 @@ module MonadicChat
       completion = check.call(access_token, normal_mode_model, research_mode_model)
     else
       access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
-      completion = check.call(access_token)
+      completion = check.call(access_token, nil, nil)
       if completion
         File.open(CONFIG, "w") do |f|
           config = { "access_token" => access_token }
