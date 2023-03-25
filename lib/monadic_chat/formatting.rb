@@ -8,7 +8,7 @@ class MonadicApp
     contextual = []
     accumulator = []
 
-    if @method == "completions"
+    if @mode == :research
       objectify.each do |key, val|
         next if %w[prompt response messages].include? key
 
