@@ -120,5 +120,34 @@ module MonadicMenu
   end
 end
 
-MonadicMenu.clear_screen
-MonadicMenu.run
+case ARGV.size
+when 0
+  MonadicMenu.clear_screen
+  MonadicMenu.run
+when 1
+  case ARGV[0]
+  when "readme"
+    MonadicChat.open_readme
+  when "version"
+    puts MonadicChat::VERSION
+  else
+    MonadicChat::APPS.each do |app|
+      next unless app == ARGV[0]
+
+      openai_completion ||= MonadicChat.authenticate(message: false)
+      eval(app.capitalize, binding, __FILE__, __LINE__).new(openai_completion, research_mode: false).run
+      exit
+    end
+    puts "Unknown command"
+  end
+else
+  MonadicChat::APPS.each do |app|
+    next unless app == ARGV[0]
+
+    openai_completion ||= MonadicChat.authenticate(message: false)
+    app_obj = eval(app.capitalize, binding, __FILE__, __LINE__).new(openai_completion, research_mode: false, params: { "model" => "gpt-4" })
+    app_obj.bind(ARGV[1..].join(" "), num_retry: 2)
+    exit
+  end
+  puts "Unknown command"
+end

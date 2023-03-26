@@ -10,11 +10,12 @@
 <kbd><img src="https://user-images.githubusercontent.com/18207/225505520-53e6f2c4-84a8-4128-a005-3fe980ec2449.gif" width="100%" /></kbd>
 </p>
 
-> **Warning**
-> This software is **work in progress** and  **under active development**. It may be unstable, and the latest version may behave slightly differently than this document. Also, specifications may change in the future.
+> **Note**
+> This software is *work in progress* and  *under active development*. It may be unstable, and the latest version may behave slightly differently than this document. Also, specifications may change in the future.
 
 **Change Log**
 
+- [March 26, 2023] Command line options to directly run individual apps 
 - [March 24, 2023] README has revised to reflect the change to version 0.3.0.
 - [March 21, 2023] GPT-4 models supported (in `normal` mode)
 - [March 20, 2023] Text and figure in "How the research mode workds" section updated
@@ -22,11 +23,44 @@
 
 ## Table of Contents
 
-## TOC
-
-- [Table of Contents](#table-of-contents)
-- [TOC](#toc)
 - [Introduction](#introduction)
+- [Dependencies](#dependencies)
+- [Installation](#installation)
+    - [Using RubyGems](#using-rubygems)
+    - [Clone the GitHub Repository](#clone-the-github-repository)
+- [Usage](#usage)
+    - [Authentication](#authentication)
+    - [Main Menu](#main-menu)
+    - [Direct Commands](#direct-commands)
+    - [Roles](#roles)
+    - [System-Wide Functions](#system-wide-functions)
+- [Apps](#apps)
+    - [Chat](#chat)
+    - [Code](#code)
+    - [Novel](#novel)
+    - [Translate](#translate)
+- [Modes](#modes)
+    - [Normal Mode](#normal-mode)
+    - [Research Mode](#research-mode)
+- [What is Research Mode?](#what-is-research-mode)
+    - [How Research Mode Works](#how-research-mode-works)
+    - [Accumulator](#accumulator)
+    - [Reducer](#reducer)
+- [Creating New App](#creating-new-app)
+    - [File Structure](#file-structure)
+    - [Reducer Code](#reducer-code)
+    - [Basic Template](#basic-template)
+    - [Extra Template for `Research` Mode](#extra-template-for-research-mode)
+- [What is Monadic about Monadic Chat?](#what-is-monadic-about-monadic-chat)
+    - [Unit, Map, and Join](#unit-map-and-join)
+    - [Discourse Management Object](#discourse-management-object)
+- [Future Plans](#future-plans)
+- [Bibliographical Data](#bibliographical-data)
+- [Acknowledgments](#acknowledgments)
+- [Contributing](#contributing)
+- [Author](#author)
+- [License](#license)
+
 - [Dependencies](#dependencies)
 - [Installation](#installation)
     - [Using RubyGems](#using-rubygems)
@@ -70,6 +104,8 @@
 The conversation history can be saved in a JSON file, which can be loaded later to continue the conversation. Additionally, the conversation data can be converted to HTML and viewed in a web browser for better readability.
 
 Monadic Chat includes four pre-built apps (`Chat`, `Code`, `Novel`, and `Translate`) that are designed for different types of discourse through interactive conversation with the LLM. Users also have the option to create their own apps by writing new templates.
+
+Monadic Chat's `normal` mode enables ChatGPT-like conversations on the command line. The `research` mode has a mechanism to handle various related information as "state" behind the conversation. This allows, for example, to retrieve the current conversation *topic* at each utterance turn, and to keep its development as a list. 
 
 ## Dependencies
 
@@ -147,7 +183,7 @@ Once the correct access token is verified, the access token is saved in the conf
 
 `$HOME/monadic_chat.conf`
 
-### Select Main Menu Item
+### Main Menu
 
 Upon successful authentication, a menu to select a specific app will appear. Each app generates different types of text through an interactive chat-style conversation between the user and the AI. Four apps are available by default: [`chat`](#chat), [`code`](#code), [`novel`](#novel), and [`translate`](#translate).
 
@@ -162,6 +198,29 @@ Selecting `readme` will take you to the README on the GitHub repository (the doc
 <br />
 
 In the main menu, you can use the cursor keys and the enter key to make a selection. You can also narrow down the choices each time you type a letter.
+
+### Direct Commands
+
+The following commands can be entered to start each app directly on the command line, without using the main menu. 
+
+```
+monadic-chat <app-name>
+```
+
+Each of the four standard applications can be launched as follows. When launched, an interactive chat interface appears.
+
+```
+monadic-chat chat
+monadic-chat code
+monadic-chat novel
+monadic-chat translate
+```
+
+You can also give text input directly to each app in the following format and get only a response to it (without starting the interactive chat interface) 
+
+```
+monadic-chat <app-name> <input-text>
+```
 
 ### Roles
 

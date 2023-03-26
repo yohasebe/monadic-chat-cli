@@ -121,9 +121,9 @@ module MonadicChat
     `#{shellscript}`
   end
 
-  def self.authenticate(overwrite: false)
+  def self.authenticate(overwrite: false, message: true)
     check = lambda do |token, normal_mode_model, research_mode_model|
-      print "Checking configuration\n"
+      print "Checking configuration\n" if message
       SPINNER.auto_spin
       begin
         models = OpenAI.models(token)
@@ -131,28 +131,28 @@ module MonadicChat
 
         SPINNER.stop
 
-        print "Success\n"
+        print "Success\n" if message
 
         if normal_mode_model && !models.map { |m| m["id"] }.index(normal_mode_model)
           SPINNER.stop
-          print "Normal mode model set in config file not available.\n"
+          print "Normal mode model set in config file not available.\n" if message
           normal_mode_model = false
         end
         normal_mode_model ||= OpenAI.model_name(research_mode: false)
-        print "Normal mode model: #{normal_mode_model}\n"
+        print "Normal mode model: #{normal_mode_model}\n" if message
 
         if research_mode_model && !models.map { |m| m["id"] }.index(research_mode_model)
           SPINNER.stop
-          print "Normal mode model set in config file not available.\n"
-          print "Fallback to the default model (#{OpenAI.model_name(research_mode: true)}).\n"
+          print "Normal mode model set in config file not available.\n" if message
+          print "Fallback to the default model (#{OpenAI.model_name(research_mode: true)}).\n" if message
         end
         research_mode_model ||= OpenAI.model_name(research_mode: true)
-        print "Research mode model: #{research_mode_model}\n"
+        print "Research mode model: #{research_mode_model}\n" if message
 
         OpenAI::Completion.new(token, normal_mode_model, research_mode_model)
       rescue StandardError
         SPINNER.stop
-        print "Authentication: failure.\n"
+        print "Authentication: failure.\n" if message
         false
       end
     end
@@ -169,7 +169,7 @@ module MonadicChat
         File.open(CONFIG, "w") do |f|
           config = { "access_token" => access_token }
           f.write(JSON.pretty_generate(config))
-          print "New access token has been saved to #{CONFIG}\n"
+          print "New access token has been saved to #{CONFIG}\n" if message
         end
       end
     elsif File.exist?(CONFIG)
@@ -192,7 +192,7 @@ module MonadicChat
           config = { "access_token" => access_token }
           f.write(JSON.pretty_generate(config))
         end
-        print "Access token has been saved to #{CONFIG}\n"
+        print "Access token has been saved to #{CONFIG}\n" if message
       end
     end
     completion || authenticate(overwrite: true)

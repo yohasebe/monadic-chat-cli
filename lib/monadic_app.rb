@@ -93,6 +93,7 @@ class MonadicApp
   end
 
   def run
+    clear_screen
     banner("MONADIC::CHAT / #{self.class.name}", self.class::DESC, self.class::COLOR)
     show_greet
 

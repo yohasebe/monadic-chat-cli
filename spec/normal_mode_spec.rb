@@ -43,7 +43,6 @@ end
 
 RSpec.describe "Chat" do
   chat = Chat.new(COMPLETION, research_mode: false, params: params)
-  chat.params["model"] = model_to_use
   input1 = "What is the best place to visit in Texas?"
   chat.bind(input1, num_retry: num_retry)
   input2 = "What do people say about the place?"
@@ -58,7 +57,6 @@ end
 
 RSpec.describe "Novel" do
   novel = Novel.new(COMPLETION, research_mode: false, params: params)
-  novel.params["model"] = model_to_use
   input1 = "Tom woke up to the sound of pouring rain."
   novel.bind(input1, num_retry: num_retry)
   input2 = "He decided to call his old friend first time in many years."
@@ -73,7 +71,6 @@ end
 
 RSpec.describe "Code" do
   code = Code.new(COMPLETION, research_mode: false, params: params)
-  code.params["model"] = model_to_use
   input1 = "Write a command line app that shows the current global IP in Ruby."
   code.bind(input1, num_retry: num_retry)
   input2 = "Make the code capable of showing the approximate geographical locatioin."
