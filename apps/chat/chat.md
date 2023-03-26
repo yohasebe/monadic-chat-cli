@@ -18,6 +18,8 @@ JSON:
   "turns": 1,
   "language": "English",
   "topics": [],
+  "confidence": 1.00,
+  "ambiguity": 0.00,
   "tokens": 109
 }
 ```
@@ -30,6 +32,8 @@ Make sure the following content requirements are all fulfilled:
 - if the new prompt is in a language other than the current value of "language", set the name of the new prompt language to "language" and make sure that "response" is in that language
 - make your response in the same language as the new prompt
 - analyze the topic of the new prompt and insert it at the end of the value list of the "topics" property
+- update the value of the "confidence" property based on the factuality of your response, ranging from 0.00 (not at all confident) to 1.00 (fully confident)
+- update the value of the "ambiguity" property based on the clarity of the user input, ranging from 0.00 (not at all ambiguous, clearly stated) to 1.00 (fully ambiguous, nonsensical)
 - avoid giving a response that is the same or similar to one of the previous responses in PAST MESSAGES
 - program code in the response must be embedded in a code block in the markdown text
 - update the value of "tokens" with the number of tokens of the resulting JSON object"

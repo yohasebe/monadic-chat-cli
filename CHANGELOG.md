@@ -17,3 +17,11 @@
 ## [0.2.1] - 2023-03-21
 
 - GPT-4 models supported (in `normal` mode)
+
+## [0.3.0] - 2023-03-24
+
+- `Research` mode now supports chat API in addition to text-completion API
+
+## [0.3.3] - 2023-03-26
+
+- Command line options to directly run individual apps 
