@@ -16,7 +16,7 @@ class Chat < MonadicApp
       "presence_penalty" => 0.2,
       "frequency_penalty" => 0.2,
       "model" => openai_completion.model_name(research_mode: research_mode),
-      "max_tokens" => 2000,
+      "max_tokens" => 1000,
       "stream" => stream,
       "stop" => nil
     }.merge(params)

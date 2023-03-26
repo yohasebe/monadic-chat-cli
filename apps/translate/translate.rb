@@ -16,7 +16,7 @@ class Translate < MonadicApp
       "presence_penalty" => 0.0,
       "frequency_penalty" => 0.0,
       "model" => openai_completion.model_name(research_mode: research_mode),
-      "max_tokens" => 2000,
+      "max_tokens" => 1000,
       "stream" => stream,
       "stop" => nil
     }.merge(params)
