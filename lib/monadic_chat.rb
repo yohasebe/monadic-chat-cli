@@ -105,20 +105,7 @@ module MonadicChat
 
   def self.open_readme
     url = "https://github.com/yohasebe/monadic-chat/"
-    shellscript = <<~SHELL
-      if [[ "$OSTYPE" == "darwin"* ]]; then
-        open "#{url}"
-      elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        if command -v xdg-open >/dev/null 2>&1; then
-          xdg-open "#{url}"
-        else
-          echo "#{url}"
-        fi
-      else
-        echo "#{url}"
-      fi
-    SHELL
-    `#{shellscript}`
+    Launchy.open(url)
   end
 
   def self.authenticate(overwrite: false, message: true)

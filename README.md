@@ -37,9 +37,17 @@ Monadic Chat's `normal` mode enables ChatGPT-like conversations on the command l
 - OpenAI API Token
 - A command line terminal app such as:
   - Terminal or [iTerm2](https://iterm2.com/) (MacOS)
-  - [Windows Terminal](https://apps.microsoft.com/store/detail/windows-terminal) (Windows 11)
-  - GNOME Terminal (Linux)
   - [Alacritty](https://alacritty.org/) (Multi-platform)
+  - [Windows Terminal](https://apps.microsoft.com/store/detail/windows-terminal) (Windows)
+  - GNOME Terminal (Linux)
+
+> **Note on Using Monadic Chat on Windows**  
+> Monadic Chat does not support running on Windows, but you can install and use Linux Destribution on WSL2. Or you can use it without WSL2 by following these steps:
+> 
+> 1. install Windows Terminal
+> 2. install [Git Bash](https://gitforwindows.org/) (make sure to check the `Install profile for Windows Terminal` checkbox
+> 3. install Ruby with [Ruby Installer](https://rubyinstaller.org/)
+> 4. Open Windows Terminal with Git Bash profile and follow the instruction below.
 
 ## Installation
 

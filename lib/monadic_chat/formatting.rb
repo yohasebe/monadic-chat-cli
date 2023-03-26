@@ -65,7 +65,7 @@ class MonadicApp
       "`#{m[1].gsub("<br/>\n") { "\n" }}`"
     end
 
-    `touch #{filepath}` unless File.exist?(filepath)
+    FileUtils.touch(filepath) unless File.exist?(filepath)
     File.open(filepath, "w") do |f|
       html = <<~HTML
         <!doctype html>
