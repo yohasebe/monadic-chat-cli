@@ -8,7 +8,7 @@ model_to_use = "text-davinci-003"
 
 params = {
   "model" => model_to_use,
-  "max_tokens" => 400
+  "max_tokens" => 1000
 }
 
 RSpec.describe "Translate" do
@@ -46,6 +46,7 @@ RSpec.describe "Translate" do
   input12 = "とにかく続けることが大切(essential)だろうな。"
   translate.bind(input12, num_retry: num_retry)
   translate.show_data
+  translate.show_template
 
   it "gives responses in json having certain properties" do
     expect(translate.objectify.keys).to include "mode", "turns", "prompt", "response", "target_lang"
@@ -69,6 +70,7 @@ RSpec.describe "Chat" do
   input4 = "By the way, are there any cities in Japan that have a sister city relationship with Texas cities?"
   chat.bind(input4, num_retry: num_retry)
   chat.show_data
+  chat.show_template
 
   it "gives responses in json having certain properties" do
     expect(chat.objectify.keys).to include "mode", "turns", "response", "language", "topics"
@@ -92,6 +94,7 @@ RSpec.describe "MonadicChat:Novel" do
   input4 = "it turned out that the person was my friend's son"
   novel.bind(input4, num_retry: num_retry)
   novel.show_data
+  novel.show_template
 
   it "gives responses in json having certain properties" do
     expect(novel.objectify.keys).to include "mode", "turns", "response"
@@ -115,6 +118,7 @@ RSpec.describe "Code" do
   input4 = "Write the same program using Python."
   code.bind(input4, num_retry: num_retry)
   code.show_data
+  code.show_template
 
   it "gives responses in json having certain properties" do
     expect(code.objectify.keys).to include "mode", "turns", "prompt", "response"

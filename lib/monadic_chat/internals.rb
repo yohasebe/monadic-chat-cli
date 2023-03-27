@@ -81,6 +81,8 @@ class MonadicApp
                           .sub("{{PROMPT}}", input)
                           .sub("{{MESSAGES}}", messages.strip)
 
+      @template_tokens = count_tokens(template)
+
       File.open(TEMP_MD, "w") { |f| f.write template }
 
       @messages << { "role" => "user", "content" => input }

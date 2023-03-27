@@ -38,15 +38,15 @@ class Novel < MonadicApp
               # @messages: messages to this point                        #
               # @metadata: currently available metdata sent from GPT     #
               ############################################################
-              current_template_tokens = count_tokens(@template)
+              template_tokens = count_tokens(@template)
               conditions = [
                 @messages.size > 1,
-                current_template_tokens > params["max_tokens"].to_i / 2
+                template_tokens > params["max_tokens"].to_i / 2
               ]
 
               if conditions.all?
                 to_delete = []
-                offset = current_template_tokens - params["max_tokens"].to_i / 2
+                offset = template_tokens - params["max_tokens"].to_i / 2
                 @messages.each_with_index do |ele, i|
                   break if offset <= 0
 

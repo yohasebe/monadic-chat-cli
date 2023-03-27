@@ -31,6 +31,8 @@ class MonadicApp
 
     @template_initial = File.read(template_md)
     @template = @template_initial.dup
+
+    @template_tokens = 0
   end
 
   ##################################################

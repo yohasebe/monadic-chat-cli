@@ -4,6 +4,13 @@ class MonadicApp
   ##################################################
   # methods for formatting and presenting
   ##################################################
+
+  def show_template
+    puts "-----------------------------------------"
+    puts @template
+    puts "-----------------------------------------"
+  end
+
   def format_data
     contextual = []
     accumulator = []
@@ -14,7 +21,7 @@ class MonadicApp
 
         contextual << "- **#{key.split("_").map(&:capitalize).join(" ")}**: #{val.to_s.strip}"
       end
-      contextual << "- **Num of Tokens in Template**: #{count_tokens(@template)}"
+      contextual << "- **Num of Tokens in Template**: #{@template_tokens}"
     end
 
     @messages.each do |m|

@@ -57,6 +57,7 @@ class MonadicApp
     @params = @params_initial.dup
     @messages = @messages_initial.dup
     @template = @template_initial.dup
+    @template_tokens = 0
 
     if @placeholders.empty?
       print PROMPT_SYSTEM.prefix
