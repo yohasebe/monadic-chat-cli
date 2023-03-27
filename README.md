@@ -189,7 +189,7 @@ For detailed information on each parameter, please refer to OpenAI's [API Docume
 
 **data/context**
 
-In `normal` mode, this function only displays the conversation history between User and GPT. In `research` mode, metadata (e.g., topics, language being used, number of turns) values are presented.
+In `normal` mode, this function only displays the conversation history between User and GPT. In `research` mode, metadata (e.g., topics, language being used, number of turns) values are presented. In addition to the metadata returned in the API response, the approximate number of tokens in the current template is also displayed.
 
 Program code in the conversation history will be syntax highlighted (if possible). The same applies to output via the `html` command available from the function menu.
 
@@ -505,7 +505,6 @@ Monadic Chat replaces `{{MESSAGES}}` with messages from past conversations when 
   "prompt": "\"We didn't have a camera.\"",
   "response": "`[S [NP We] [VP [V didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`\n\n###\n\n",
   "mode": "linguistic",
-  "tokens": 351
   "turns": 3,
   "sentence_type": ["declarative"],
   "sentiment": ["sad"],
@@ -517,7 +516,7 @@ This is the core of the extra template for `research` mode.
 
 Note that the extra template is written in Markdown format, so the above JSON object is actually separated from the rest of the template as a [fenced code block](https://www.markdownguide.org/extended-syntax/#fenced-code-blocks).
 
-The required properties of this JSON object are `prompt`, `response`, `mode`, and `tokens`. Other properties are optional. The `mode` property is used to check the app name when saving the conversation data or loading from an external file. The `tokens` property is used in the reducer mechanism to check the approximate size of the current JSON object. The `turns` property is also used in the reducer mechanism.
+The required properties of this JSON object are `prompt`, `response`, and `mode`. Other properties are optional. The `mode` property is used to check the app name when saving the conversation data or loading from an external file. The `turns` property is also used in the reducer mechanism.
 
 The JSON object in the `research` mode template is saved in the user’s home directory (`$HOME`) with the file `monadic_chat.json`. The content is overwritten every time the JSON object is updated. Note that this JSON file is created for logging purposes . Modifying its content does not affect the processes carried out by the app.
 
@@ -532,7 +531,6 @@ Make sure the following content requirements are all fulfilled:
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
 - summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words using as many discourse markers such as "because", "therefore", "but", and "so" to show the logical connection between the events.
-- update the value of "tokens" with the number of tokens of the resulting JSON object"
 - increment the value of "turns" by 1
 ```
 

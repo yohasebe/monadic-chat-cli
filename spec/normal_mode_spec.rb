@@ -35,9 +35,27 @@ RSpec.describe "Translate" do
   translate.bind(input2, num_retry: num_retry)
   input3 = "誰か良い(special)名前を付けてくれませんかね。"
   translate.bind(input3, num_retry: num_retry)
+  input4 = "薄暗いじめじめしたところでニャー(meow)と鳴いてたんだ。"
+  translate.bind(input4, num_retry: num_retry)
+  input5 = "そのことは覚えてる(remember)。"
+  translate.bind(input5, num_retry: num_retry)
+  input6 = "で、その時に人間(human)というものに出会った。"
+  translate.bind(input6, num_retry: num_retry)
+  input7 = "それは書生(student)という人間だったそうだ。"
+  translate.bind(input7, num_retry: num_retry)
+  input8 = "すごく残酷(cruel)な種類の人間らしくてね。"
+  translate.bind(input8, num_retry: num_retry)
+  input9 = "ワタシらをときどき捕えて(hunt)煮て食べたりしてたんだって。"
+  translate.bind(input9, num_retry: num_retry)
+  input10 = "まあ(well)、そのときはよくわかんなくてさ。"
+  translate.bind(input10, num_retry: num_retry)
+  input11 = "とくに怖い(scary)気持ちもなかったんだけど。"
+  translate.bind(input11, num_retry: num_retry)
+  input12 = "ただ、手(palm)の上で持ち上げられた時はなんか変な感じだったな。"
+  translate.bind(input12, num_retry: num_retry)
 
   it "gives as many responses as the number of prompts given" do
-    expect(translate.objectify.reject { |m| m["role"] == "system" }.size).to be 3 * 2
+    expect(translate.objectify.reject { |m| m["role"] == "system" }.size).to be (10 + 1) * 2
   end
 end
 

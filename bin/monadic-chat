@@ -126,9 +126,9 @@ when 0
   MonadicMenu.run
 when 1
   case ARGV[0]
-  when "readme"
+  when "readme", "-h"
     MonadicChat.open_readme
-  when "version"
+  when "version", "-v"
     puts MonadicChat::VERSION
   else
     MonadicChat::APPS.each do |app|

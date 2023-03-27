@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "blingfire"
 require "tty-cursor"
 require "tty-screen"
 require "tty-markdown"
@@ -21,6 +22,8 @@ require_relative "./monadic_chat/helper"
 Oj.mimic_JSON
 
 module MonadicChat
+  gpt2model_path = File.absolute_path(File.join(__dir__, "..", "assets", "gpt2.bin"))
+  BLINGFIRE = BlingFire.load_model(gpt2model_path)
   CONFIG = File.join(Dir.home, "monadic_chat.conf")
   NUM_RETRY = 2
   MIN_LENGTH = 5
@@ -204,6 +207,10 @@ module MonadicChat
     color = "red"
     name = "GPT".center(box_width, " ")
     "\n#{PASTEL.send(:"on_#{color}", name)}"
+  end
+
+  def self.tokenize(text)
+    BLINGFIRE.text_to_ids(text)
   end
 
   PROMPT_USER = TTY::PromptX.new(active_color: :blue, prefix: prompt_user)

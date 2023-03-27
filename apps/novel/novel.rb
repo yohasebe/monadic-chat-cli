@@ -38,13 +38,23 @@ class Novel < MonadicApp
               # @messages: messages to this point                        #
               # @metadata: currently available metdata sent from GPT     #
               ############################################################
-
+              current_template_tokens = count_tokens(@template)
               conditions = [
                 @messages.size > 1,
-                @metadata["tokens"].to_i > params["max_tokens"].to_i / 2
+                current_template_tokens > params["max_tokens"].to_i / 2
               ]
 
-              @metadata["turns"] = @metadata["turns"].to_i - 1 if conditions.all?
+              if conditions.all?
+                to_delete = []
+                offset = current_template_tokens - params["max_tokens"].to_i / 2
+                @messages.each_with_index do |ele, i|
+                  break if offset <= 0
+
+                  to_delete << i if ele["role"] != "system"
+                  offset -= count_tokens(ele.to_json)
+                end
+                @messages.delete_if.with_index { |_, i| to_delete.include? i }
+              end
 
             when :normal
               ############################################################
@@ -53,16 +63,21 @@ class Novel < MonadicApp
               ############################################################
 
               conditions = [
+                @messages.size > 1,
                 @messages.size > @num_retained_turns * 2 + 1
               ]
 
               if conditions.all?
+                to_delete = []
+                new_num_messages = @messages.size
                 @messages.each_with_index do |ele, i|
                   if ele["role"] != "system"
-                    @messages.delete_at i
-                    break
+                    to_delete << i
+                    new_num_messages -= 1
                   end
+                  break if new_num_messages <= @num_retained_turns * 2 + 1
                 end
+                @messages.delete_if.with_index { |_, i| to_delete.include? i }
               end
             end
           end

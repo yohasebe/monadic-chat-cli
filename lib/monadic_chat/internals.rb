@@ -5,6 +5,10 @@ class MonadicApp
   # methods for preparation and updating
   ##################################################
 
+  def count_tokens(text)
+    MonadicChat.tokenize(text).size
+  end
+
   def fulfill_placeholders
     input = nil
     replacements = []

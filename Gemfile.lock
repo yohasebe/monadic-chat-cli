@@ -1,12 +1,12 @@
 PATH
   remote: .
   specs:
-    monadic-chat (0.3.0)
+    monadic-chat (0.3.4)
+      blingfire
       http
       kramdown
       launchy
       oj
-      parallel
       pastel
       rouge
       tty-box
@@ -22,6 +22,7 @@ GEM
   specs:
     addressable (2.8.1)
       public_suffix (>= 2.0.2, < 6.0)
+    blingfire (0.1.8)
     diff-lcs (1.5.0)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
@@ -45,7 +46,6 @@ GEM
       ffi-compiler (~> 1.0)
       rake (~> 13.0)
     oj (3.14.2)
-    parallel (1.22.1)
     pastel (0.8.0)
       tty-color (~> 0.5)
     public_suffix (5.0.1)
@@ -116,4 +116,4 @@ DEPENDENCIES
   rspec
 
 BUNDLED WITH
-   2.4.8
+   2.4.9

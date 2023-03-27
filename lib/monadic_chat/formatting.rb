@@ -14,6 +14,7 @@ class MonadicApp
 
         contextual << "- **#{key.split("_").map(&:capitalize).join(" ")}**: #{val.to_s.strip}"
       end
+      contextual << "- **Num of Tokens in Template**: #{count_tokens(@template)}"
     end
 
     @messages.each do |m|

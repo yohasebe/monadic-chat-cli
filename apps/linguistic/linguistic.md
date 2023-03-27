@@ -21,7 +21,6 @@ JSON:
   "sentiment": ["sad"],
   "summary": "The user saw a beautiful sunset, but did not take a picture because the user did not have a camera.",
   "relevance": 0.80
-  "tokens": 351
 }
 ```
 
@@ -33,7 +32,6 @@ Make sure the following content requirements are all fulfilled:
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
 - summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words using as many discourse markers such as "because", "therefore", "but", and "so" to show the logical connection between the events.
-- update the value of "tokens" with the number of tokens of the resulting JSON object"
 - increment the value of "turns" by 
 - update the value of the "relevance" property indicating the degree to which the new input is naturally interpreted based on previous discussions, ranging from 0.0 (extremely difficult) to 1.0 (completely easy)
 

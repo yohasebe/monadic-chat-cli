@@ -15,8 +15,7 @@ JSON:
   "turns": 0,
   "prompt": "これは日本語(Japanese)の文(sentence)です。",
   "response": "This is a sentence in Japanese.",
-  "target_lang": "English",
-  "tokens": 194
+  "target_lang": "English"
 }
 ```
 
@@ -24,9 +23,7 @@ Make sure the following requirements are all fulfilled:
 
 - keep the value of the "mode" property at "translate"
 - set the text in the new prompt presented above to the "prompt" property
-- translate the new prompt text to the language specified in the "target_lang" set it to "response"
- and set the translation to the "response" property
-- update the value of "tokens" with the number of tokens of the resulting JSON object"
+- translate the new prompt text to the language specified in the "target_lang" set it to "response" and set the translation to the "response" property
 
 Make sure the following formal requirements are all fulfilled:
 

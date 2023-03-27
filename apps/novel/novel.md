@@ -14,8 +14,7 @@ JSON:
   "prompt": "The preface to the novel is presented",
   "response": "What follows is a story that an AI assistant tells. It is guaranteed that this will be an incredibly realistic and interesting novel.",
   "mode": "novel",
-  "turns": 1,
-  "tokens": 147
+  "turns": 1
 }
 ```
 
@@ -25,7 +24,6 @@ Make sure the following content requirements are all fulfilled:
 - set the new prompt to the "prompt" property
 - create your new paragraph in response to the new prompt and set it to "response"
 - do not repeat in your response what is already told in "PAST MESSAGES"
-- update the value of "tokens" with the number of tokens of the resulting JSON object"
 - Make your response as detailed as possible within the maximum limit of 200 words
 
 Make sure the following formal requirements are all fulfilled:

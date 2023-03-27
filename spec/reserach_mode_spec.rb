@@ -7,7 +7,8 @@ num_retry = 3
 model_to_use = "text-davinci-003"
 
 params = {
-  "model" => model_to_use
+  "model" => model_to_use,
+  "max_tokens" => 400
 }
 
 RSpec.describe "Translate" do
@@ -28,13 +29,30 @@ RSpec.describe "Translate" do
   translate.bind(input3, num_retry: num_retry)
   input4 = "読みやすく、面白い文章をたくさん読んで勉強するんだ。"
   translate.bind(input4, num_retry: num_retry)
+  input5 = "具体的には(specifically)何を読んだらいいだろう？"
+  translate.bind(input5, num_retry: num_retry)
+  input6 = "何人かの知人(acquaintance)に聞いてみた。"
+  translate.bind(input6, num_retry: num_retry)
+  input7 = "ある人は村上春樹の短編(short story)が良いと言う"
+  translate.bind(input7, num_retry: num_retry)
+  input8 = "別の人は彼の小説よりもエッセイが良いと言う。"
+  translate.bind(input8, num_retry: num_retry)
+  input9 = "どちらも(both)読んでみよう。"
+  translate.bind(input9, num_retry: num_retry)
+  input10 = "後は自分が書いたものを他の人に読んでもらうことだ。"
+  translate.bind(input10, num_retry: num_retry)
+  input11 = "それが一番効果的(effective)かもしれないな。"
+  translate.bind(input11, num_retry: num_retry)
+  input12 = "とにかく続けることが大切(essential)だろうな。"
+  translate.bind(input12, num_retry: num_retry)
+  translate.show_data
 
   it "gives responses in json having certain properties" do
-    expect(translate.objectify.keys).to include "mode", "turns", "prompt", "response", "target_lang", "tokens"
+    expect(translate.objectify.keys).to include "mode", "turns", "prompt", "response", "target_lang"
   end
 
   it "gives as many responses as the number of prompts given" do
-    expect(translate.objectify["turns"].to_i).to eq turns_initial + 4
+    expect(translate.objectify["turns"].to_i).to eq turns_initial + 12
   end
 end
 
@@ -50,9 +68,10 @@ RSpec.describe "Chat" do
   chat.bind(input3, num_retry: num_retry)
   input4 = "By the way, are there any cities in Japan that have a sister city relationship with Texas cities?"
   chat.bind(input4, num_retry: num_retry)
+  chat.show_data
 
   it "gives responses in json having certain properties" do
-    expect(chat.objectify.keys).to include "mode", "turns", "response", "language", "topics", "tokens"
+    expect(chat.objectify.keys).to include "mode", "turns", "response", "language", "topics"
   end
 
   it "gives as many responses as the number of prompts given" do
@@ -72,9 +91,10 @@ RSpec.describe "MonadicChat:Novel" do
   novel.bind(input3, num_retry: num_retry)
   input4 = "it turned out that the person was my friend's son"
   novel.bind(input4, num_retry: num_retry)
+  novel.show_data
 
   it "gives responses in json having certain properties" do
-    expect(novel.objectify.keys).to include "mode", "turns", "response", "tokens"
+    expect(novel.objectify.keys).to include "mode", "turns", "response"
   end
 
   it "gives as many responses as the number of prompts given" do
@@ -94,9 +114,10 @@ RSpec.describe "Code" do
   code.bind(input3, num_retry: num_retry)
   input4 = "Write the same program using Python."
   code.bind(input4, num_retry: num_retry)
+  code.show_data
 
   it "gives responses in json having certain properties" do
-    expect(code.objectify.keys).to include "mode", "turns", "prompt", "response", "tokens"
+    expect(code.objectify.keys).to include "mode", "turns", "prompt", "response"
   end
 
   it "gives as many responses as the number of prompts given" do

@@ -16,8 +16,7 @@ JSON:
   "mode": "chat",
   "turns": 1,
   "language": "English",
-  "topics": [],
-  "tokens": 109
+  "topics": []
 }
 ```
 
@@ -31,7 +30,6 @@ Make sure the following content requirements are all fulfilled:
 - analyze the topic of the new prompt and insert it at the end of the value list of the "topics" property
 - avoid giving a response that is the same or similar to one of the previous responses in "PAST MESSAGES"
 - program code in the response must be embedded in a code block in the markdown text
-- update the value of "tokens" with the number of tokens of the resulting JSON object"
 
 Make sure the following formal requirements are all fulfilled:
 

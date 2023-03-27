@@ -5,7 +5,6 @@ require "oj"
 require "net/http"
 require "uri"
 require "strscan"
-require "parallel"
 require "tty-progressbar"
 
 Oj.mimic_JSON
