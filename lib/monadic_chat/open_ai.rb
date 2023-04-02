@@ -10,7 +10,7 @@ require "tty-progressbar"
 Oj.mimic_JSON
 
 module OpenAI
-  def self.model_name(research_mode: false)
+  def self.default_model(research_mode: false)
     if research_mode
       "text-davinci-003"
     else
@@ -88,18 +88,8 @@ module OpenAI
   class Completion
     attr_reader :access_token
 
-    def initialize(access_token, normal_mode_model = nil, research_mode_model = nil)
+    def initialize(access_token)
       @access_token = access_token
-      @normal_mode_model = normal_mode_model || OpenAI.model_name(research_mode: false)
-      @research_mode_model = research_mode_model || OpenAI.model_name(research_mode: true)
-    end
-
-    def model_name(research_mode: false)
-      if research_mode
-        @research_mode_model
-      else
-        @normal_mode_model
-      end
     end
 
     def models
@@ -126,7 +116,7 @@ module OpenAI
       when 0
         raise e
       else
-        run(params, num_retry: num_retry - 1, &block)
+        run(params, research_mode: research_mode, num_retry: num_retry - 1, &block)
       end
     end
 

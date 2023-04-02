@@ -7,10 +7,11 @@ require_relative "./monadic_chat/interaction"
 require_relative "./monadic_chat/menu"
 require_relative "./monadic_chat/parameters"
 require_relative "./monadic_chat/internals"
+require_relative "./monadic_chat/tools"
 
 class MonadicApp
   include MonadicChat
-  attr_reader :template, :messages
+  attr_reader :template, :messages, :turns
 
   def initialize(mode:, params:, template_json:, template_md:, placeholders:, prop_accumulator:, prop_newdata:, update_proc:)
     @mode = mode.to_sym
@@ -26,9 +27,12 @@ class MonadicApp
     @method = OpenAI.model_to_method(@params["model"])
 
     @metadata = {}
-    @messages_initial = JSON.parse(File.read(template_json))["messages"]
+    json = File.read(template_json)
+               .gsub("{{DATETIME}}", Time.now.strftime("%Y-%m-%d %H:%M:%S"))
+               .gsub("{{DATE}}", Time.now.strftime("%Y-%m-%d"))
+    @messages_initial = JSON.parse(json)["messages"]
     @messages = @messages_initial.dup
-
+    @turns = 0
     @template_initial = File.read(template_md)
     @template = @template_initial.dup
 

@@ -69,7 +69,7 @@ class MonadicApp
 
   def ask_retrial(input, message = nil)
     print PROMPT_SYSTEM.prefix
-    print " Error: #{message.capitalize}\n" if message
+    print "Error: #{message.capitalize}\n" if message
     retrial = PROMPT_USER.select("Do you want to try again?",
                                  show_help: :never) do |menu|
                                    menu.choice "Yes", "yes"

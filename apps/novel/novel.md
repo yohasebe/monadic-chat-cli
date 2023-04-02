@@ -11,26 +11,24 @@ JSON:
 
 ```json
 {
-  "prompt": "The preface to the novel is presented",
   "response": "What follows is a story that an AI assistant tells. It is guaranteed that this will be an incredibly realistic and interesting novel.",
-  "mode": "novel",
-  "turns": 1
+  "summary": "",
+  "mode": "novel"
 }
 ```
 
 Make sure the following content requirements are all fulfilled:
 
 - keep the value of the "mode" property at "novel"
-- set the new prompt to the "prompt" property
 - create your new paragraph in response to the new prompt and set it to "response"
 - do not repeat in your response what is already told in "PAST MESSAGES"
-- Make your response as detailed as possible within the maximum limit of 200 words
+- make your response as detailed as possible within the maximum limit of 200 words
+- summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words
 
 Make sure the following formal requirements are all fulfilled:
 
 - do not use invalid characters in the JSON object
 - escape double quotes and other special characters in the text values in the resulting JSON object
-- increment the value of "turns" by 1
 - check the validity of the generated JSON object and correct any possible parsing problems before returning it 
 
 Return your response consisting solely of the JSON object wrapped in "<JSON>\n" and "\n</JSON>" tags.

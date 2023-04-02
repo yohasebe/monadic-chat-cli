@@ -15,6 +15,7 @@
 
 **Change Log**
 
+- [March 30, 2023] `Chat` app now supports web searches and allows users to talk about recent events 
 - [March 26, 2023] Command line options to directly run individual apps 
 - [March 24, 2023] `Research` mode now supports chat API in addition to text-completion API
 - [March 21, 2023] GPT-4 models supported (in `normal` mode)
@@ -294,7 +295,7 @@ In the default configuration, the dialogue messages are reduced after ten turns 
 
 The current default language model for `research` mode is `gpt-3.5-turbo`.
 
-In `research` mode, the conversation between the user and the large-scale language model is accomplished by a special mechanism that tracks the conversation history in a monadic structure. By default, when the number of tokens in the response from the GPT (which increases with each iteration because of the conversation history) reaches a certain value, the oldest message is deleted.
+In `research` mode, the conversation between the user and the large-scale language model is accomplished with a mechanism that tracks the conversation history in a monadic structure. In the default configuration, the dialogue messages are reduced after ten turns by deleting the oldest ones (but not the messages that the `system` role has given as instructions).
 
 If you wish to specify how the conversation history is handled as the interaction with the GPT model unfolds, you can write a `Proc` object containing Ruby code. Since various metadata are available in this mode, finer-grained control is possible.
 
@@ -393,8 +394,6 @@ Below is a sample HTML displaying the conversation (paris of an input sentence a
 <kbd><img src="./doc/img/linguistic-html.png" width="700px" /></kbd>
 
 <br />
-
-
 
 ### File Structure
 

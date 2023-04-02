@@ -56,10 +56,8 @@ class MonadicApp
     end
   end
 
-  def prepare_params(input)
+  def prepare_params(input_role, input)
     params = @params.dup
-
-    @update_proc.call
 
     case @mode
     when :research
@@ -71,10 +69,8 @@ class MonadicApp
         case role
         when "system"
           system << "#{content}\n"
-        when "assistant", "gpt"
-          messages << "- #{mes["role"].strip}: #{content}\n"
         else
-          messages << "- #{mes["role"].strip}: #{mes["content"]}\n"
+          messages << "- #{mes["role"].strip}: #{content}\n"
         end
       end
       template = @template.dup.sub("{{SYSTEM}}", system)
@@ -85,7 +81,7 @@ class MonadicApp
 
       File.open(TEMP_MD, "w") { |f| f.write template }
 
-      @messages << { "role" => "user", "content" => input }
+      @messages << { "role" => input_role, "content" => input }
 
       case @method
       when "completions"
@@ -95,14 +91,16 @@ class MonadicApp
       end
 
     when :normal
-      @messages << { "role" => "user", "content" => input }
+      @messages << { "role" => input_role, "content" => input }
       params["messages"] = @messages
     end
+
+    @update_proc.call unless input_role == "system"
 
     params
   end
 
-  def update_template(res)
+  def update_template(res, role)
     case @mode
     when :research
       @metadata = res
@@ -113,15 +111,22 @@ class MonadicApp
     when :normal
       @messages << { "role" => "assistant", "content" => res }
     end
+    remove_intermediate_messages if role == "system"
+  end
+
+  def remove_intermediate_messages
+    @messages = @messages.reject { |ele| ele["role"] == "assistant" && /SEARCH\(.+\)/m =~ ele["content"] }
+    @messages = @messages.reject { |ele| ele["role"] == "system" && /^SEARCH SNIPPETS/ =~ ele["content"] }
   end
 
   ##################################################
   # function to bind data
   ##################################################
 
-  def bind(input, num_retry: 0)
+  def bind(input, role: "user", num_retry: 0)
+    @turns += 1 if role == "user"
     print PROMPT_ASSISTANT.prefix, "\n"
-    params = prepare_params(input)
+    params = prepare_params(role, input)
     research_mode = @mode == :research
 
     escaping = +""
@@ -147,7 +152,41 @@ class MonadicApp
     print last_chunk
     print "\n"
 
-    update_template(res)
-    set_html if @html
+    webdata = use_tool(res)
+    update_template(res, role) unless webdata
+    if webdata && role != "system"
+      bind(webdata, role: "system", num_retry: num_retry)
+    elsif @html
+      set_html
+    end
+  end
+
+  ##################################################
+  # function to have GPT use tools
+  ##################################################
+
+  def use_tool(res)
+    case @mode
+    when :normal
+      text = res
+    when :research
+      text = res.is_a?(Hash) ? res["response"] : res
+    end
+
+    case text
+    when /\bSEARCH_WIKI\((.+?)\)/m
+      search_key = Regexp.last_match(1)
+      search_keys = search_key.split(",").map do |key|
+        key.strip.sub(/^"(.+)"$/, '\1')
+      end
+      text = "SEARCH SNIPPETS\n#{wikipedia_search(*search_keys)}"
+      return text
+    when /\bSEARCH_WEB\("?(.+?)"?\)/m
+      search_key = Regexp.last_match(1)
+      text = "SEARCH SNIPPETS\n#{bing_search(search_key)}"
+      return text
+    end
+
+    false
   end
 end

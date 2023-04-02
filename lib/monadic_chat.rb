@@ -14,6 +14,9 @@ require "rouge"
 require "launchy"
 require "io/console"
 require "readline"
+require "nokogiri"
+require "open-uri"
+require "wikipedia"
 
 require_relative "./monadic_chat/version"
 require_relative "./monadic_chat/open_ai"
@@ -22,6 +25,8 @@ require_relative "./monadic_chat/helper"
 Oj.mimic_JSON
 
 module MonadicChat
+  SETTINGS = {}
+  MAX_CHARS_WIKI = 1000
   gpt2model_path = File.absolute_path(File.join(__dir__, "..", "assets", "gpt2.bin"))
   BLINGFIRE = BlingFire.load_model(gpt2model_path)
   CONFIG = File.join(Dir.home, "monadic_chat.conf")
@@ -111,38 +116,71 @@ module MonadicChat
     Launchy.open(url)
   end
 
+  def self.mdprint(str)
+    print TTY::Markdown.parse(str, indent: 0)
+  end
+
   def self.authenticate(overwrite: false, message: true)
-    check = lambda do |token, normal_mode_model, research_mode_model|
-      print "Checking configuration\n" if message
-      SPINNER.auto_spin
+    check = lambda do |token|
+      if message
+        print TTY::Cursor.restore
+        print TTY::Cursor.clear_screen_down
+        print "\n"
+        SPINNER.auto_spin
+      end
+
+      if !token || token.strip == ""
+        if message
+          SPINNER.stop
+          print TTY::Cursor.restore
+          print "\n"
+          mdprint "- Authentication: #{PASTEL.bold.red("Failure")}\n" if message
+        end
+        return false
+      end
+
       begin
         models = OpenAI.models(token)
         raise if models.empty?
 
-        SPINNER.stop
-
-        print "Success\n" if message
-
-        if normal_mode_model && !models.map { |m| m["id"] }.index(normal_mode_model)
+        if message
           SPINNER.stop
-          print "Normal mode model set in config file not available.\n" if message
-          normal_mode_model = false
+          print TTY::Cursor.restore, "\n"
+          mdprint "#{PASTEL.on_green(" System ")} Config file: `#{CONFIG}`\n"
+          print "\n"
+          mdprint "- Authentication: #{PASTEL.bold.green("Success")}\n"
         end
-        normal_mode_model ||= OpenAI.model_name(research_mode: false)
-        print "Normal mode model: #{normal_mode_model}\n" if message
 
-        if research_mode_model && !models.map { |m| m["id"] }.index(research_mode_model)
-          SPINNER.stop
-          print "Normal mode model set in config file not available.\n" if message
-          print "Fallback to the default model (#{OpenAI.model_name(research_mode: true)}).\n" if message
+        if SETTINGS["normal_model"] && !models.map { |m| m["id"] }.index(SETTINGS["normal_model"])
+          if message
+            SPINNER.stop
+            mdprint "- Normal mode model specified in config file not available\n"
+            mdprint "- Fallback to the default model (`#{OpenAI.default_model(research_mode: false)}`)\n"
+          end
+          SETTINGS["normal_model"] = false
         end
-        research_mode_model ||= OpenAI.model_name(research_mode: true)
-        print "Research mode model: #{research_mode_model}\n" if message
+        SETTINGS["normal_model"] ||= OpenAI.default_model(research_mode: false)
+        mdprint "- Normal mode model: `#{SETTINGS["normal_model"]}`\n" if message
 
-        OpenAI::Completion.new(token, normal_mode_model, research_mode_model)
+        if SETTINGS["research_model"] && !models.map { |m| m["id"] }.index(SETTINGS["research_model"])
+          if message
+            SPINNER.stop
+            mdprint "- Research mode model specified in config file not available\n"
+            mdprint "- Fallback to the default model (`#{OpenAI.default_model(research_mode: true)}`)\n"
+          end
+          SETTINGS["research_model"] = false
+        end
+        SETTINGS["research_model"] ||= OpenAI.default_model(research_mode: true)
+        mdprint "- Research mode model: `#{SETTINGS["research_model"]}`\n" if message
+
+        OpenAI::Completion.new(token)
       rescue StandardError
-        SPINNER.stop
-        print "Authentication: failure.\n" if message
+        if message
+          SPINNER.stop
+          print TTY::Cursor.restore
+          print "\n"
+          mdprint "- Authentication: #{PASTEL.bold.red("Failure")}\n" if message
+        end
         false
       end
     end
@@ -150,14 +188,18 @@ module MonadicChat
     completion = nil
 
     if overwrite
-      access_token = PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
+      access_token = PROMPT_SYSTEM.ask("Input your OpenAI access token:")
       return false if access_token.to_s == ""
 
-      completion = check.call(access_token, nil, nil)
+      completion = check.call(access_token)
 
       if completion
         File.open(CONFIG, "w") do |f|
-          config = { "access_token" => access_token }
+          config = {
+            "access_token" => access_token,
+            "normal_model" => SETTINGS["normal_model"],
+            "research_model" => SETTINGS["research_model"]
+          }
           f.write(JSON.pretty_generate(config))
           print "New access token has been saved to #{CONFIG}\n" if message
         end
@@ -170,16 +212,22 @@ module MonadicChat
         puts "Error: config file does not contain a valid JSON object."
         exit
       end
+      SETTINGS["normal_model"] = config["normal_model"] if config["normal_model"]
+      SETTINGS["research_model"] = config["research_model"] if config["research_model"]
       access_token = config["access_token"]
-      normal_mode_model = config["normal_mode_model"]
-      research_mode_model = config["research_mode_model"]
-      completion = check.call(access_token, normal_mode_model, research_mode_model)
+      completion = check.call(access_token)
     else
-      access_token ||= PROMPT_SYSTEM.ask(" Input your OpenAI access token:")
-      completion = check.call(access_token, nil, nil)
+      access_token ||= PROMPT_SYSTEM.ask("Input your OpenAI access token:")
+      return false if access_token.to_s == ""
+
+      completion = check.call(access_token)
       if completion
         File.open(CONFIG, "w") do |f|
-          config = { "access_token" => access_token }
+          config = {
+            "access_token" => access_token,
+            "normal_model" => SETTINGS["normal_model"],
+            "research_model" => SETTINGS["research_model"]
+          }
           f.write(JSON.pretty_generate(config))
         end
         print "Access token has been saved to #{CONFIG}\n" if message

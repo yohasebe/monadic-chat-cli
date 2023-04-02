@@ -15,7 +15,7 @@ class Code < MonadicApp
       "top_p" => 1.0,
       "presence_penalty" => 0.0,
       "frequency_penalty" => 0.0,
-      "model" => openai_completion.model_name(research_mode: research_mode),
+      "model" => research_mode ? SETTINGS["research_model"] : SETTINGS["normal_model"],
       "max_tokens" => 1000,
       "stream" => stream,
       "stop" => nil
@@ -38,24 +38,23 @@ class Code < MonadicApp
               # @messages: messages to this point                        #
               # @metadata: currently available metdata sent from GPT     #
               ############################################################
-              template_tokens = count_tokens(@template)
               conditions = [
                 @messages.size > 1,
-                template_tokens > params["max_tokens"].to_i / 2
+                @messages.size > @num_retained_turns * 2 + 1
               ]
 
               if conditions.all?
                 to_delete = []
-                offset = template_tokens - params["max_tokens"].to_i / 2
+                new_num_messages = @messages.size
                 @messages.each_with_index do |ele, i|
-                  break if offset <= 0
-
-                  to_delete << i if ele["role"] != "system"
-                  offset -= count_tokens(ele.to_json)
+                  if ele["role"] != "system"
+                    to_delete << i
+                    new_num_messages -= 1
+                  end
+                  break if new_num_messages <= @num_retained_turns * 2 + 1
                 end
                 @messages.delete_if.with_index { |_, i| to_delete.include? i }
               end
-
             when :normal
               ############################################################
               # Normal mode recuder defined here                         #

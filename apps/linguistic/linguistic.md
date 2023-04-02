@@ -13,10 +13,8 @@ JSON:
 
 ```json
 {
-  "prompt": "\"We didn't have a camera.\"",
   "response": "`[S [NP We] [VP [V didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`",
   "mode": "linguistic",
-  "turns": 3,
   "sentence_type": ["declarative"],
   "sentiment": ["sad"],
   "summary": "The user saw a beautiful sunset, but did not take a picture because the user did not have a camera.",
@@ -27,12 +25,10 @@ JSON:
 Make sure the following content requirements are all fulfilled:
 
 - keep the value of the "mode" property at "linguistic"
-- set the new prompt to the "prompt" property
 - create your response to the new prompt based on "PAST MESSAGES" and set it to "response"
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
 - summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words using as many discourse markers such as "because", "therefore", "but", and "so" to show the logical connection between the events.
-- increment the value of "turns" by 
 - update the value of the "relevance" property indicating the degree to which the new input is naturally interpreted based on previous discussions, ranging from 0.0 (extremely difficult) to 1.0 (completely easy)
 
 Make sure the following formal requirements are all fulfilled:

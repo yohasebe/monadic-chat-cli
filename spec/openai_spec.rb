@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-PARAMS = {
+params = {
   "model" => "text-davinci-003",
   "max_tokens" => 300,
   "temperature" => 0.0,
@@ -9,7 +9,7 @@ PARAMS = {
   "stop" => nil,
   "presence_penalty" => 0.0,
   "frequency_penalty" => 0.0
-}.freeze
+}
 
 RSpec.describe MonadicChat do
   it "has a version number" do
@@ -28,8 +28,6 @@ RSpec.describe OpenAI do
   end
 
   context "an object specilizing 'completion' created" do
-    params = PARAMS.dup
-
     it "can return a text" do
       params["prompt"] = "What does 'ruby' mean?"
       expect(COMPLETION.run(params)).to be_a String
