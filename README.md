@@ -15,7 +15,7 @@
 
 **Change Log**
 
-- [March 30, 2023] `Chat` app now supports web searches and allows users to talk about recent events 
+- [April 02, 2023] Architecture refined here and there
 - [March 26, 2023] Command line options to directly run individual apps 
 - [March 24, 2023] `Research` mode now supports chat API in addition to text-completion API
 - [March 21, 2023] GPT-4 models supported (in `normal` mode)

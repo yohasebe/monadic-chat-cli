@@ -24,8 +24,8 @@
 
 ## [0.3.3] - 2023-03-26
 
-- Command line options to directly run individual apps 
+- Command line options to directly run individual apps
 
-## [0.3.4] - 2023-03-30
+## [0.3.4] - 2023-04-02
 
-- `Chat` app now supports web searches and allows users to talk about recent events 
+- Architecture refined here and there
