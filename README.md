@@ -15,6 +15,8 @@
 
 **Change Log**
 
+- [April 05, 2023] `Wikipedia` app added (experimental, requires GPT-4)
+- [April 05, 2023] `monadic-chat new/del app_name` command
 - [April 02, 2023] Architecture refined here and there
 - [March 26, 2023] Command line options to directly run individual apps 
 - [March 24, 2023] `Research` mode now supports chat API in addition to text-completion API
@@ -73,7 +75,7 @@ gem update monadic-chat
 
 ### Clone the GitHub Repository
 
-Alternatively, clone the code from the GitHub repository and follow the steps below. At this time, you must take this option to create a new app for Monadic Chat.
+Alternatively, clone the code from the GitHub repository and follow the steps below.
 
 1. Clone the repo
 
@@ -397,39 +399,39 @@ Below is a sample HTML displaying the conversation (paris of an input sentence a
 
 ### File Structure
 
-New Monadic Chat apps must be placed inside the `apps` folder. The folders and files for default apps `chat`, `code`, `novel`, and `translate` are also in this folder.
+New Monadic Chat apps must be placed inside the `user_apps` folder. Experimental apps `wikipedia` and `linguistic`  are also in this folder. `boilerplates` folder and its contents do not constitute an app; these files are copied when a new app is created.
 
 ```text
-apps
-├── chat
-│   ├── chat.json
-│   ├── chat.md
-│   └── chat.rb
-├── code
-│   ├── code.json
-│   ├── code.md
-│   └── code.rb
-├── novel
-│   ├── novel.json
-│   ├── novel.md
-│   └── novel.rb
-└─── translate
-    ├── translate.json
-    ├── translate.md
-    └── translate.rb
-```
-
-Notice in the figure above that three files with the same name but different extensions (`.rb`, `.json`, and `.md`) are stored under each of the four default app folders. Similarly, when creating a new app, you create these three types of files under a folder with the same name as the app name.
-
-```text
-apps
+user_apps
+├── boilerplates
+│   ├── boilerplate.json
+│   ├── boilerplate.md
+│   └── boilerplate.rb
+├── wikipedia
+│   ├── wikipedia.json
+│   ├── wikipedia.md
+│   └── wikipedia.rb
 └─── linguistic
     ├── linguistic.json
     ├── linguistic.md
     └── linguistic.rb
 ```
 
-The purpose of each file is as follows.
+Notice in the figure above that three files with the same name but different extensions (`.rb`, `.json`, and `.md`) are stored under each of the four default app folders.
+
+The following command will create a new folder and the three files within it using this naming convention.
+
+```
+monadic-chat new app_name
+```
+
+If you feel like removing an app that you have created before, run:
+
+```
+monadic-chat del app_name
+```
+
+Let's assume we are creating a new application `linguistic`. In fact, an app with the same name already exists, so this is just for illustrative purposes. Anyway, running `monadic-chat new linguistic` generates the following three files inside `linguistic` folder.
 
 - `linguistic.rb`: Ruby code to define the "reducer"
 - `linguistic.json`: JSON template describing GPT's basic behavior in `normal` and `research` modes
@@ -476,22 +478,21 @@ Below we will look at this extra template for `research` mode of the `linguistic
 
 <div style="highlight highlight-source-gfm"><pre style="white-space : pre-wrap !important;">{{SYSTEM}}
 
-Create a response to "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES". In "PAST MESSAGES", "assistant" refers to you.</pre></div>
+Create a response to "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "MESSAGES". In "MESSAGES", "assistant" refers to you.</pre></div>
 
 Monadic Chat automatically replaces `{{SYSTEM}}} with the message from the `system` role when the template is sent via API. However, the above text also includes a few additional paragpraphs, including the one instructing the response from GPT to be presented as a JSON object.
 
 **New Prompt**
 
 ```markdown
-NEW PROMPT: {{PROMPT}}
+{{PROMPT}}
 ```
 
 Monadic Chat replaces `{{PROMPT}}` with input from the user when sending the template through the API.
 
-**Past Messages**
+**Messages**
 
 ```markdown
-PAST MESSAGES:
 {{MESSAGES}}
 ```
 
@@ -501,10 +502,8 @@ Monadic Chat replaces `{{MESSAGES}}` with messages from past conversations when 
 
 ```json
 {
-  "prompt": "\"We didn't have a camera.\"",
-  "response": "`[S [NP We] [VP [V didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`\n\n###\n\n",
   "mode": "linguistic",
-  "turns": 3,
+  "response": "`[S [NP We] [VP [V didn't] [VP [V have] [NP [Det a] [N camera] ] ] ] ] ]`\n\n###\n\n",
   "sentence_type": ["declarative"],
   "sentiment": ["sad"],
   "summary": "The user saw a beautiful sunset, but did not take a picture because the user did not have a camera.",
@@ -515,7 +514,7 @@ This is the core of the extra template for `research` mode.
 
 Note that the extra template is written in Markdown format, so the above JSON object is actually separated from the rest of the template as a [fenced code block](https://www.markdownguide.org/extended-syntax/#fenced-code-blocks).
 
-The required properties of this JSON object are `prompt`, `response`, and `mode`. Other properties are optional. The `mode` property is used to check the app name when saving the conversation data or loading from an external file. The `turns` property is also used in the reducer mechanism.
+The required properties of this JSON object are `mode` and `response`. Other properties are optional. The `mode` property is used to check the app name when saving the conversation data or loading from an external file. 
 
 The JSON object in the `research` mode template is saved in the user’s home directory (`$HOME`) with the file `monadic_chat.json`. The content is overwritten every time the JSON object is updated. Note that this JSON file is created for logging purposes . Modifying its content does not affect the processes carried out by the app.
 
@@ -526,7 +525,7 @@ Make sure the following content requirements are all fulfilled:
 
 - keep the value of the "mode" property at "linguistic"
 - set the new prompt to the "prompt" property
-- create your response to the new prompt based on "PAST MESSAGES" and set it to "response"
+- create your response to the new prompt based on "MESSAGES" and set it to "response"
 - analyze the new prompt's sentence type and set a sentence type value such as "interrogative", "imperative", "exclamatory", or "declarative" to the "sentence_type" property
 - analyze the new prompt's sentiment and set one or more sentiment types such as "happy", "excited", "troubled", "upset", or "sad" to the "sentiment" property
 - summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words using as many discourse markers such as "because", "therefore", "but", and "so" to show the logical connection between the events.
@@ -581,6 +580,7 @@ In Monadic Chat, responses from OpenAI's language model APIs (chat API and text 
 Thus, the architecture of the `research` mode of Monad Chat, with its ability to generate and manage metadata properties inside the monadic structure, is parallel to the architecture of natural language discourse in general: both can be seen as a kind of "state monad" (Hasebe 2021).
 ## Future Plans
 
+- Refactoring the current implementation code into `unit`, `map`, and `flatten`
 - More test cases to verify command line user interaction behavior
 - Improved error handling mechanism to catch incorrect responses from GPT
 - Develop a DSL to define templates in a more efficient and systematic manner

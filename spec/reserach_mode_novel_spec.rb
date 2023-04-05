@@ -11,7 +11,7 @@ RSpec.describe "MonadicApp::Novel" do
   ]
 
   inputs.each do |input|
-    novel.bind(input, num_retry: NUM_RETRY)
+    novel.bind(input, num_retrials: SETTINGS["num_retrials"])
   end
 
   novel.show_data

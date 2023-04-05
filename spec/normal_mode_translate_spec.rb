@@ -25,7 +25,7 @@ RSpec.describe "Translate" do
   ]
 
   inputs.each do |input|
-    translate.bind(input, num_retry: NUM_RETRY)
+    translate.bind(input, num_retrials: SETTINGS["num_retrials"])
   end
 
   it "gives as many responses as the number of prompts given" do

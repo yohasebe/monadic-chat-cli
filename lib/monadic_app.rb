@@ -71,7 +71,7 @@ class MonadicApp
       else
         if input && confirm_query(input)
           begin
-            bind(input, num_retry: NUM_RETRY)
+            bind(input, num_retrials: SETTINGS["num_retrials"])
           rescue StandardError => e
             input = ask_retrial(input, e.message)
             next

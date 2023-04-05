@@ -10,7 +10,7 @@ RSpec.describe "Novel" do
   ]
 
   inputs.each do |input|
-    novel.bind(input, num_retry: NUM_RETRY)
+    novel.bind(input, num_retrials: SETTINGS["num_retrials"])
   end
 
   it "gives as many responses as the number of prompts given" do

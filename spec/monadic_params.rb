@@ -1,26 +1,21 @@
 # frozen_string_literal: true
 
-require "monadic_chat"
+require_relative "../lib/monadic_chat"
 MonadicChat.require_apps
 
 COMPLETION = MonadicChat.authenticate(message: false)
 
-NUM_RETRY = 3
-
-# model_to_use = "gpt-3.5-turbo"
-model_to_use = "gpt-4"
-
 PARAMS = {
-  "model" => model_to_use
+  # "model" => "gpt-4"
+  "model" => "gpt-3.5-turbo"
+}
+
+SETTINGS = {
+  "num_retrials" => 3
 }
 
 availability = OpenAI.models(COMPLETION.access_token).any? do |model|
-  model["id"] == model_to_use
+  model["id"] == PARAMS["model"]
 end
 
-if availability
-  puts "#{model_to_use} is available to use"
-else
-  puts "#{model_to_use} is not available. Using #{fallback} instead."
-  model_to_use = fallback
-end
+puts "#{PARAMS["model"]} is available to use" if availability

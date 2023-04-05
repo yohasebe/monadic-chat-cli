@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
-params = {
-  "model" => "text-davinci-003",
-  "max_tokens" => 300,
-  "temperature" => 0.0,
-  "top_p" => 1.0,
-  "stream" => false,
-  "stop" => nil,
-  "presence_penalty" => 0.0,
-  "frequency_penalty" => 0.0
-}
+require_relative "./monadic_params"
+
+params = { "model" => "text-davinci-003",
+           "max_tokens" => 300,
+           "temperature" => 0.0,
+           "top_p" => 1.0,
+           "stream" => false,
+           "stop" => nil,
+           "presence_penalty" => 0.0,
+           "frequency_penalty" => 0.0 }
+
+params = PARAMS.merge(params)
 
 RSpec.describe MonadicChat do
   it "has a version number" do
@@ -42,7 +44,7 @@ RSpec.describe OpenAI do
         Wrap the json object with "<JSON>\n" and "\n</JSON>"
       PROMPT
 
-      res = COMPLETION.run(params, research_mode: true, num_retry: 1)
+      res = COMPLETION.run(params, research_mode: true, num_retrials: SETTINGS["num_retrials"])
       expect(res.keys).to include "answer"
     end
 

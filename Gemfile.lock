@@ -16,12 +16,11 @@ PATH
       tty-prompt
       tty-screen
       tty-spinner
-      wikipedia-client
 
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.8.1)
+    addressable (2.8.2)
       public_suffix (>= 2.0.2, < 6.0)
     blingfire (0.1.8)
     diff-lcs (1.5.0)
@@ -104,12 +103,9 @@ GEM
     unf_ext (0.0.8.2)
     unicode-display_width (2.4.2)
     unicode_utils (1.4.0)
-    wikipedia-client (1.17.0)
-      addressable (~> 2.7)
     wisper (2.0.1)
 
 PLATFORMS
-  ruby
   x86_64-darwin-22
 
 DEPENDENCIES
@@ -119,4 +115,4 @@ DEPENDENCIES
   rspec
 
 BUNDLED WITH
-   2.4.9
+   2.4.10

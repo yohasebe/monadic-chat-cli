@@ -14,7 +14,7 @@ RSpec.describe "Chat" do
   ]
 
   inputs.each do |input|
-    chat.bind(input, num_retry: NUM_RETRY)
+    chat.bind(input, num_retrials: SETTINGS["num_retrials"])
   end
 
   it "gives as many responses as the number of prompts given" do

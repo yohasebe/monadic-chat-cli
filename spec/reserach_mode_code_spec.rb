@@ -11,7 +11,7 @@ RSpec.describe "MonadicApp::Code" do
   ]
 
   inputs.each do |input|
-    code.bind(input, num_retry: NUM_RETRY)
+    code.bind(input, num_retrials: SETTINGS["num_retrials"])
   end
 
   code.show_data

@@ -1,10 +1,9 @@
 {{SYSTEM}}
 
-Create a response to "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "PAST MESSAGES". In "PAST MESSAGES", "assistant" refers to you.
+Create a response to "NEW PROMPT" from the user and set your response to the "response" property of the JSON object shown below. The preceding conversation is stored in "MESSAGES". In "MESSAGES", "assistant" refers to you.
 
-NEW PROMPT: {{PROMPT}}
+{{PROMPT}}
 
-PAST MESSAGES:
 {{MESSAGES}}
 
 JSON:
@@ -17,18 +16,18 @@ JSON:
 }
 ```
 
-Make sure the following content requirements are all fulfilled:
-
+Make sure the following content requirements are all fulfilled: ###
 - keep the value of the "mode" property at "novel"
 - create your new paragraph in response to the new prompt and set it to "response"
-- do not repeat in your response what is already told in "PAST MESSAGES"
+- do not repeat in your response what is already told in "MESSAGES"
 - make your response as detailed as possible within the maximum limit of 200 words
 - summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words
+###
 
-Make sure the following formal requirements are all fulfilled:
-
+Make sure the following formal requirements are all fulfilled: ###
 - do not use invalid characters in the JSON object
 - escape double quotes and other special characters in the text values in the resulting JSON object
 - check the validity of the generated JSON object and correct any possible parsing problems before returning it 
+###
 
 Return your response consisting solely of the JSON object wrapped in "<JSON>\n" and "\n</JSON>" tags.

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "./monadic_params"
+
 RSpec.describe "MonadicApp::Translate" do
   replacements = {
     "mode" => :replace,
@@ -24,7 +26,7 @@ RSpec.describe "MonadicApp::Translate" do
   ]
 
   inputs.each do |input|
-    translate.bind(input, num_retry: NUM_RETRY)
+    translate.bind(input, num_retrials: SETTINGS["num_retrials"])
   end
 
   translate.show_data

@@ -12,7 +12,7 @@ Oj.mimic_JSON
 module OpenAI
   def self.default_model(research_mode: false)
     if research_mode
-      "text-davinci-003"
+      "gpt-3.5-turbo"
     else
       "gpt-3.5-turbo"
     end
@@ -96,10 +96,10 @@ module OpenAI
       OpenAI.models(@access_token)
     end
 
-    def run(params, research_mode: false, num_retry: 1, &block)
+    def run(params, research_mode: false, timeout_sec: 60, num_retrials: 1, &block)
       method = OpenAI.model_to_method(params["model"])
 
-      response = OpenAI.query(@access_token, "post", method, 60, params, &block)
+      response = OpenAI.query(@access_token, "post", method, timeout_sec, params, &block)
       if response["error"]
         raise response["error"]["message"]
       elsif response["choices"][0]["finish_reason"] == "length"
@@ -112,11 +112,11 @@ module OpenAI
         response["choices"][0]["text"]
       end
     rescue StandardError => e
-      case num_retry
+      case num_retrials
       when 0
         raise e
       else
-        run(params, research_mode: research_mode, num_retry: num_retry - 1, &block)
+        run(params, research_mode: research_mode, timeout_sec: timeout_sec, num_retrials: num_retrials - 1, &block)
       end
     end
 
@@ -134,7 +134,7 @@ module OpenAI
       res
     end
 
-    def run_iteration(params, prompts, template, replace_key = "{{PROMPT}}", num_retry: 0)
+    def run_iteration(params, prompts, template, replace_key = "{{PROMPT}}", timeout_sec: 60, num_retrials: 0)
       bar = TTY::ProgressBar.new("[:bar] :current/:total :total_byte :percent ET::elapsed ETA::eta",
                                  total: prompts.size,
                                  bar_format: :box)
@@ -142,7 +142,7 @@ module OpenAI
       json = ""
       prompts.each do |prompt|
         params["prompt"] = template.sub(replace_key, prompt)
-        res = run(params, num_retry: num_retry)
+        res = run(params, timeout_sec: timeout_sec, num_retrials: num_retrials)
         json = JSON.pretty_generate(get_json(res))
         bar.advance(1)
         template = template.sub(/JSON:\n+```json.+?```\n\n/m, "JSON:\n\n```json\n#{json}\n```\n\n")

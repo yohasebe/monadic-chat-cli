@@ -6,14 +6,9 @@ class MonadicApp
   ##################################################
 
   def user_input(text = "")
-    # if count_lines_below < 1
-    #   ask_clear
-    #   user_input
-    # else
     res = PROMPT_USER.readline(text)
     print TTY::Cursor.clear_line_after
     res == "" ? nil : res
-    # end
   end
 
   def show_greet
@@ -32,7 +27,7 @@ class MonadicApp
   end
 
   def confirm_query(input)
-    if input.size < MIN_LENGTH
+    if input.size < SETTINGS["min_query_size"]
       PROMPT_SYSTEM.yes?("Would you like to proceed with this (very short) prompt?")
     else
       true

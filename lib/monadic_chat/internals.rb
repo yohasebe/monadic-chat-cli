@@ -59,6 +59,13 @@ class MonadicApp
   def prepare_params(input_role, input)
     params = @params.dup
 
+    delimited_input = case input_role
+                      when "user"
+                        "NEW PROMPT: ###\n#{input}\n###"
+                      when "system" # i.e. search engine
+                        "SEARCH SNIPPETS: ###\n#{input}\n###"
+                      end
+
     case @mode
     when :research
       messages = +""
@@ -68,14 +75,16 @@ class MonadicApp
         content = mes["content"]
         case role
         when "system"
-          system << "#{content}\n"
+          system << "#{content}\n" if system == ""
         else
           messages << "- #{mes["role"].strip}: #{content}\n"
         end
       end
+
+      delimited_messages = "MESSAGES: ###\n#{messages}\n###"
       template = @template.dup.sub("{{SYSTEM}}", system)
-                          .sub("{{PROMPT}}", input)
-                          .sub("{{MESSAGES}}", messages.strip)
+                          .sub("{{PROMPT}}", delimited_input)
+                          .sub("{{MESSAGES}}", delimited_messages.strip)
 
       @template_tokens = count_tokens(template)
 
@@ -104,27 +113,40 @@ class MonadicApp
     case @mode
     when :research
       @metadata = res
-      @messages << { "role" => "assistant", "content" => @metadata["response"] }
+      @messages << { "role" => role, "content" => @metadata["response"] }
       json = @metadata.to_json.strip
       File.open(TEMP_JSON, "w") { |f| f.write json }
       @template.sub!(/JSON:\n+```json.+```\n\n/m, "JSON:\n\n```json\n#{json}\n```\n\n")
     when :normal
       @messages << { "role" => "assistant", "content" => res }
     end
-    remove_intermediate_messages if role == "system"
   end
 
-  def remove_intermediate_messages
-    @messages = @messages.reject { |ele| ele["role"] == "assistant" && /SEARCH\(.+\)/m =~ ele["content"] }
-    @messages = @messages.reject { |ele| ele["role"] == "system" && /^SEARCH SNIPPETS/ =~ ele["content"] }
+  ##################################################
+  # function to package plain text into a unit
+  ##################################################
+
+  def unit(input)
+    if input.instance_of?(Hash)
+      input
+    else
+      @metadata["response"] = input
+      @metadata
+    end
   end
 
   ##################################################
   # function to bind data
   ##################################################
 
-  def bind(input, role: "user", num_retry: 0)
-    @turns += 1 if role == "user"
+  def bind(input, role: "user", num_retrials: 0)
+    case role
+    when "user"
+      @turns += 1
+    when "system" # i.e. search engine
+      input = "\n\n#{input}"
+    end
+
     print PROMPT_ASSISTANT.prefix, "\n"
     params = prepare_params(role, input)
     research_mode = @mode == :research
@@ -132,7 +154,10 @@ class MonadicApp
     escaping = +""
     last_chunk = +""
 
-    res = @completion.run(params, research_mode: research_mode, num_retry: num_retry) do |chunk|
+    res = @completion.run(params,
+                          research_mode: research_mode,
+                          timeout_sec: SETTINGS["timeout_sec"],
+                          num_retrials: num_retrials) do |chunk|
       if escaping
         chunk = escaping + chunk
         escaping = ""
@@ -152,13 +177,31 @@ class MonadicApp
     print last_chunk
     print "\n"
 
-    webdata = use_tool(res)
-    update_template(res, role) unless webdata
-    if webdata && role != "system"
-      bind(webdata, role: "system", num_retry: num_retry)
-    elsif @html
-      set_html
-    end
+    message = case role
+              when "system" # i.e. search engine; the response given above should be by "assistant"
+                { role: "assistant", content: @mode == :research ? unit(res) : res }
+              when "user" # the response give above should be either "assistant"
+                searched = use_tool(res)
+                # but if the response is a search query, it should be by "system" (search engine)
+                if searched
+                  @messages << { "role" => "assistant",
+                                 "content" => @mode == :research ? unit(res)["response"] : res }
+                  if searched == "empty"
+                    print PROMPT_SYSTEM.prefix, "Search results are empty", "\n"
+                    return
+                  else
+                    bind(searched, role: "system")
+                    return
+                  end
+                # otherwise, it should be by "assistant"
+                else
+                  { role: "assistant", content: @mode == :researh ? unit(res) : res }
+                end
+              end
+
+    update_template(message[:content], message[:role])
+
+    set_html if @html
   end
 
   ##################################################
@@ -174,19 +217,16 @@ class MonadicApp
     end
 
     case text
-    when /\bSEARCH_WIKI\((.+?)\)/m
+    when /\bSEARCH_WIKI\("?(.+?)"?\)/m
+      @wiki_search_cache ||= {}
       search_key = Regexp.last_match(1)
-      search_keys = search_key.split(",").map do |key|
-        key.strip.sub(/^"(.+)"$/, '\1')
-      end
-      text = "SEARCH SNIPPETS\n#{wikipedia_search(*search_keys)}"
-      return text
+      wikipedia_search(search_key, @wiki_search_cache)
     when /\bSEARCH_WEB\("?(.+?)"?\)/m
+      @web_search_cache ||= {}
       search_key = Regexp.last_match(1)
-      text = "SEARCH SNIPPETS\n#{bing_search(search_key)}"
-      return text
+      bing_search(search_key, @web_searh_cache)
+    else
+      false
     end
-
-    false
   end
 end

@@ -29,3 +29,8 @@
 ## [0.3.4] - 2023-04-02
 
 - Architecture refined here and there
+
+## [0.3.5] - 2023-04-05
+
+- `Wikipedia` app added (experimental, requires GPT-4)
+- `monadic-chat new/del app_name` command added
