@@ -3,7 +3,7 @@
 require_relative "../../lib/monadic_app"
 
 class Wikipedia < MonadicApp
-  DESC = "Sarches Wikipedia for you (experimental, requires GPT-4)"
+  DESC = "Searches Wikipedia for you (experimental, requires GPT-4)"
   COLOR = "white"
 
   attr_accessor :template, :config, :params, :completion
