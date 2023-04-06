@@ -3,10 +3,12 @@
 require_relative "./monadic_params"
 
 RSpec.describe "MonadicApp::Wikipedia" do
-  wikipedia = Wikipedia.new(COMPLETION, research_mode: true, stream: true, params: PARAMS)
+  params = PARAMS.dup
+  params["model"] = "gpt-4"
+  wikipedia = Wikipedia.new(COMPLETION, research_mode: true, stream: true, params: params)
 
   inputs = [
-    "Which team won 2023 World Baseball Classic?",
+    "Which team won the 2023 World Baseball Classic?",
     "When did Ryuichi Sakamoto pass away?",
     "What are currently going on to regulate AI research?"
   ]
