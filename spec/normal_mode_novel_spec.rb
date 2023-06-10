@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "./monadic_params"
+
 RSpec.describe "Novel" do
   novel = Novel.new(COMPLETION, research_mode: false, params: PARAMS)
 

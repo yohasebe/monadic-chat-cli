@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    monadic-chat (0.3.4)
+    monadic-chat (0.3.5)
       blingfire
       http
       kramdown
@@ -20,7 +20,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.8.2)
+    addressable (2.8.4)
       public_suffix (>= 2.0.2, < 6.0)
     blingfire (0.1.8)
     diff-lcs (1.5.0)
@@ -45,7 +45,7 @@ GEM
     llhttp-ffi (0.4.0)
       ffi-compiler (~> 1.0)
       rake (~> 13.0)
-    oj (3.14.2)
+    oj (3.14.3)
     pastel (0.8.0)
       tty-color (~> 0.5)
     public_suffix (5.0.1)
@@ -106,6 +106,7 @@ GEM
     wisper (2.0.1)
 
 PLATFORMS
+  ruby
   x86_64-darwin-22
 
 DEPENDENCIES
