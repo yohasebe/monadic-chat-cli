@@ -1,8 +1,16 @@
 <p>&nbsp;</p>
 
-<p align="center"><img src="./doc/img/monadic-chat.svg" width="500px"/></p>
+<p align="center"><img src="./doc/img/monadic-chat.png" width="500px"/></p>
 
 <p align="center"><b>Highly configurable CLI client app for OpenAI chat/text-completion API</b></p>
+
+<p>&nbsp;</p>
+
+> **Note**
+> Monadic Chat is currently being actively developed as a web browser application. The command-line version has been renamed to **Monadic Chat CLI**. New features will mainly be implemented in the web application version. At present, both versions have many common features, but please note that the format of the exported data files and the specifications for creating custom applications are different from each other.
+
+- Monadic Chat: [https://github.com/yohasebe/monadic-chat](https://github.com/yohasebe/monadic-chat) (under preparation)
+- Monadic Chat CLI: [https://github.com/yohasebe/monadic-chat-cli](https://github.com/yohasebe/monadic-chat-cli)
 
 <p>&nbsp;</p>
 
@@ -14,11 +22,11 @@
 <kbd><img src="https://user-images.githubusercontent.com/18207/225505520-53e6f2c4-84a8-4128-a005-3fe980ec2449.gif" width="100%" /></kbd>
 </p>
 
-> **Note**
-> This software is *work in progress* and  *under active development*. It may be unstable, and the latest version may behave slightly differently than this document. Also, specifications may change in the future.
+<p>&nbsp;</p>
 
 **Change Log**
 
+- [June 11, 2023] The repository renamed to `monadic-chat-cli`
 - [April 05, 2023] `Wikipedia` app added (experimental, requires GPT-4)
 - [April 05, 2023] `monadic-chat new/del app_name` command
 - [April 02, 2023] Architecture refined here and there
