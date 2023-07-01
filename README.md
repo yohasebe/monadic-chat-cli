@@ -10,8 +10,8 @@
 >
 > **Monadic Chat** is currently being actively developed as a web browser application. The command-line version has been renamed to **Monadic Chat CLI**. New features will mainly be implemented in the web application version. At present, both versions have many common features, but please note that the format of the exported data files and the specifications for creating custom applications are different from each other.
 
-- Monadic Chat: [https://github.com/yohasebe/monadic-chat](https://github.com/yohasebe/monadic-chat) (under preparation)
-- Monadic Chat CLI: [https://github.com/yohasebe/monadic-chat-cli](https://github.com/yohasebe/monadic-chat-cli)
+- Monadic Chat: [https://github.com/yohasebe/monadic-chat](https://github.com/yohasebe/monadic-chat) (active)
+- Monadic Chat CLI: [https://github.com/yohasebe/monadic-chat-cli](https://github.com/yohasebe/monadic-chat-cli) (this repo; less active)
 
 <p>&nbsp;</p>
 
