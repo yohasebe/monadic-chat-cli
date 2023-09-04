@@ -22,11 +22,13 @@ module OpenAI
     {
       "text-davinci-003" => "completions",
       "gpt-4" => "chat/completions",
-      "gpt-4-0314" => "chat/completions",
+      "gpt-4-0613" => "chat/completions",
       "gpt-4-32K" => "chat/completions",
-      "gpt-4-32k-0314" => "chat/completions",
+      "gpt-4-32k-0613" => "chat/completions",
       "gpt-3.5-turbo" => "chat/completions",
-      "gpt-3.5-turbo-0301" => "chat/completions"
+      "gpt-3.5-turbo-0613" => "chat/completions",
+      "gpt-3.5-turbo-16k" => "chat/completions",
+      "gpt-3.5-turbo-16k-0613" => "chat/completions"
     }[model]
   end
 

@@ -85,7 +85,7 @@ class MonadicApp
           menu.choice "#{BULLET} #{m["id"]}", m["id"]
         end
       when :normal
-        models.filter { |m| OpenAI.model_to_method(m["id"]) == "chat/completions" }.sort_by { |m| -m["created"] }.each do |m|
+        models.filter { |m| OpenAI.model_to_method(m["id"]) == "chat/completions" && OpenAI.model_to_method(m["id"]) }.sort_by { |m| -m["created"] }.each do |m|
           menu.choice "#{BULLET} #{m["id"]}", m["id"]
         end
       end

@@ -83,7 +83,9 @@ module MonadicChat
         File.open(CONFIG, "w") do |f|
           SETTINGS["access_token"] = access_token
           f.write(JSON.pretty_generate(SETTINGS))
-          print "New access token has been saved to #{CONFIG}\n" if message
+          print "New access token has been saved to #{CONFIG}\n\n" if message
+          print "Please #{PASTEL.bold.green("restart")} Monadic Chat\n"
+          exit
         end
       end
     elsif File.exist?(CONFIG)
@@ -107,7 +109,9 @@ module MonadicChat
           SETTINGS["access_token"] = access_token
           f.write(JSON.pretty_generate(SETTINGS))
         end
-        print "Access token has been saved to #{CONFIG}\n" if message
+        print "Access token has been saved to #{CONFIG}\n\n" if message
+        print "Please #{PASTEL.bold.green("restart")} Monadic Chat\n"
+        exit
       end
     end
     completion || authenticate(overwrite: true)
