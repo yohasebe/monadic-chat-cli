@@ -27,6 +27,7 @@
 
 **Change Log**
 
+- [October 07, 2023] Stability improvement; default model changed to `gpt-3.5-turbo-0613`
 - [June 11, 2023] The repository renamed to `monadic-chat-cli`
 - [April 05, 2023] `Wikipedia` app added (experimental)
 - [April 05, 2023] `monadic-chat new/del app_name` command
