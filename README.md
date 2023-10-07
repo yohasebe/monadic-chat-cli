@@ -28,7 +28,7 @@
 **Change Log**
 
 - [June 11, 2023] The repository renamed to `monadic-chat-cli`
-- [April 05, 2023] `Wikipedia` app added (experimental, requires GPT-4)
+- [April 05, 2023] `Wikipedia` app added (experimental)
 - [April 05, 2023] `monadic-chat new/del app_name` command
 - [April 02, 2023] Architecture refined here and there
 - [March 26, 2023] Command line options to directly run individual apps 

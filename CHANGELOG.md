@@ -32,5 +32,5 @@
 
 ## [0.3.5] - 2023-04-05
 
-- `Wikipedia` app added (experimental, requires GPT-4)
+- `Wikipedia` app added (experimental)
 - `monadic-chat new/del app_name` command added

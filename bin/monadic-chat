@@ -159,7 +159,7 @@ else
       next unless app == ARGV[0]
 
       openai_completion ||= MonadicChat.authenticate(message: false)
-      app_obj = eval(app.capitalize, binding, __FILE__, __LINE__).new(openai_completion, research_mode: false, params: { "model" => "gpt-4" })
+      app_obj = eval(app.capitalize, binding, __FILE__, __LINE__).new(openai_completion, research_mode: false, params: {})
       app_obj.bind(ARGV[1..].join(" "), num_retrials: 2)
       exit
     end
