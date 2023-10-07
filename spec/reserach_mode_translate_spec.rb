@@ -32,7 +32,7 @@ RSpec.describe "MonadicApp::Translate" do
   translate.show_data
 
   it "gives responses in json having certain properties" do
-    expect(translate.objectify.keys).to include "mode", "response", "target_lang"
+    expect(translate.objectify.keys).to include "mode", "response", "target_lang", "dictionary"
   end
 
   it "gives as many responses as the number of prompts given" do

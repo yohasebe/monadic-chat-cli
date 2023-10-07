@@ -12,15 +12,15 @@ Oj.mimic_JSON
 module OpenAI
   def self.default_model(research_mode: false)
     if research_mode
-      "gpt-3.5-turbo"
+      "gpt-3.5-turbo-0613"
     else
-      "gpt-3.5-turbo"
+      "gpt-3.5-turbo-0613"
     end
   end
 
   def self.model_to_method(model)
     {
-      "text-davinci-003" => "completions",
+      "gpt-3.5-turbo-instruct" => "completions",
       "gpt-4" => "chat/completions",
       "gpt-4-0613" => "chat/completions",
       "gpt-4-32K" => "chat/completions",
@@ -51,11 +51,16 @@ module OpenAI
     if query["stream"]
       json = nil
       res.body.each do |chunk|
-        chunk.split("\n\n").each do |data|
-          content = data.strip[6..]
+        chunk.scan(/data: (\{.*\})/i).flatten.each do |data|
+          content = data.strip
           break if content == "[DONE]"
 
-          stream = JSON.parse(content)
+          begin
+            stream = JSON.parse(content)
+          rescue JSON::ParserError
+            next
+          end
+
           fragment = case method
                      when "completions"
                        stream["choices"][0]["text"]
@@ -74,11 +79,23 @@ module OpenAI
               json["choices"][0]["text"] << fragment
             end
           end
+        rescue JSON::ParserError
+          res = { "type" => "error", "content" => "Error: JSON Parsing" }
+          pp res
+          block&.call res
+          res
         end
       end
       json
     else
-      JSON.parse res.body
+      begin
+        JSON.parse res.body
+      rescue JSON::ParserError
+        res = { "type" => "error", "content" => "Error: JSON Parsing" }
+        pp res
+        block&.call res
+        res
+      end
     end
   end
 

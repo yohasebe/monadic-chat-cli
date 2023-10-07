@@ -12,9 +12,9 @@ JSON:
 
 ```json
 {
+  "mode": "chat",
   "response": "Sure!",
   "summary": "",
-  "mode": "chat",
   "language": "English",
   "topics": [],
   "confidence": 1.00,
@@ -33,6 +33,7 @@ Make sure the following content requirements are all fulfilled: ###
 - update the value of the "ambiguity" property based on the clarity of the user input, ranging from 0.00 (not at all ambiguous, clearly stated) to 1.00 (fully ambiguous, nonsensical)
 - avoid giving a response that is the same or similar to one of the previous responses in MESSAGES
 - program code in the response must be embedded in a code block in the markdown text
+- the output JSON object must contain "mode", "response", "summary", "language", "topics", "confidence", and "ambiguity"
 ###
 
 Make sure the following formal requirements are all fulfilled: ###

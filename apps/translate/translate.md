@@ -11,9 +11,9 @@ JSON:
 ```json
 {
   "mode": "translate",
+  "target_lang": "English",
   "response": "This is a sentence in Japanese.",
-  "dictioanry": {"日本語": "Japanese", "文": "sentence"},
-  "target_lang": "English"
+  "dictioanry": {"日本語": "Japanese", "文": "sentence"}
 }
 ```
 
@@ -22,6 +22,7 @@ Make sure the following requirements are all fulfilled: ###
 - translate the new prompt text to the language specified in the "target_lang" set it to "response" and set the translation to the "response" property
 - update the "dictionary" property with translation suggested by the user (using parentheses) for specific expressions
 - add user-suggested translations (translations in parentheses) to the "dictionary" property
+- the output JSON object must contain "mode", "target_lang", "response", and "dictionary"
 ###
 
 Make sure the following formal requirements are all fulfilled: ###

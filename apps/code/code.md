@@ -10,9 +10,9 @@ JSON:
 
 ```json
 {
+  "mode": "chat",
   "response": "Sure!",
   "summary": "",
-  "mode": "chat",
   "language": "English",
   "topics": []
 }
@@ -27,6 +27,7 @@ Make sure the following content requirements are all fulfilled: ###
 - summarize the user's messages so far and update the "summary" property with a text of fewer than 100 words
 - avoid giving a response that is the same or similar to one of the previous responses in "MESSAGES"
 - program code in the response must be embedded in a code block in the markdown text
+- the output JSON object must contain "mode", "response", "summary", "language", and "topics"
 ###
 
 Make sure the following formal requirements are all fulfilled: ###

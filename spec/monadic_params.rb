@@ -6,8 +6,7 @@ MonadicChat.require_apps
 COMPLETION = MonadicChat.authenticate(message: false)
 
 PARAMS = {
-  "model" => "gpt-4"
-  # "model" => "gpt-3.5-turbo"
+  "model" => "gpt-3.5-turbo-0613"
 }
 
 SETTINGS = {
