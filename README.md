@@ -27,6 +27,7 @@
 
 **Change Log**
 
+- [November 10, 2023] Stability improvement; default model changed to `gpt-3.5-turbo`
 - [October 07, 2023] Stability improvement; default model changed to `gpt-3.5-turbo-0613`
 - [June 11, 2023] The repository renamed to `monadic-chat-cli`
 - [April 05, 2023] `Wikipedia` app added (experimental)
@@ -303,13 +304,13 @@ Monadic Chat has two modes. The `normal` mode utilizes OpenAI's chat API to achi
 
 ### Normal Mode
 
-The current default language model for `normal` mode is `gpt-3.5-turbo-613`.
+The current default language model for `normal` mode is `gpt-3.5-turbo`.
 
 In the default configuration, the dialogue messages are reduced after ten turns by deleting the oldest ones (but not the messages that the `system` role has given as instructions).
 
 ### Research Mode
 
-The current default language model for `research` mode is `gpt-3.5-turbo-0613`.
+The current default language model for `research` mode is `gpt-3.5-turbo`.
 
 In `research` mode, the conversation between the user and the large-scale language model is accomplished with a mechanism that tracks the conversation history in a monadic structure. In the default configuration, the dialogue messages are reduced after ten turns by deleting the oldest ones (but not the messages that the `system` role has given as instructions).
 

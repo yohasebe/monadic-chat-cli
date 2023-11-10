@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# frozen_string_literal: false
 
 require "http"
 require "oj"
@@ -9,27 +9,43 @@ require "tty-progressbar"
 
 Oj.mimic_JSON
 
+OPEN_TIMEOUT = 10
+RETRY_MAX_COUNT = 10
+RETRY_WAIT_TIME_SEC = 1
+
 module OpenAI
   def self.default_model(research_mode: false)
     if research_mode
-      "gpt-3.5-turbo-0613"
+      "gpt-3.5-turbo"
     else
-      "gpt-3.5-turbo-0613"
+      "gpt-3.5-turbo"
     end
   end
 
   def self.model_to_method(model)
-    {
-      "gpt-3.5-turbo-instruct" => "completions",
+    res = {
+      "gpt-3.5-turbo-1106" => "chat/completions",
+      "gpt-3.5-turbo" => "chat/completions",
+      "gpt-3.5-turbo-16k" => "chat/completions",
+      "gpt-4-1106-preview" => "chat/completions",
       "gpt-4" => "chat/completions",
       "gpt-4-0613" => "chat/completions",
       "gpt-4-32K" => "chat/completions",
       "gpt-4-32k-0613" => "chat/completions",
-      "gpt-3.5-turbo" => "chat/completions",
       "gpt-3.5-turbo-0613" => "chat/completions",
-      "gpt-3.5-turbo-16k" => "chat/completions",
       "gpt-3.5-turbo-16k-0613" => "chat/completions"
     }[model]
+    if res.nil?
+      puts ""
+      puts "============================================================="
+      puts "Model #{model} not found."
+      puts "Maybe you are trying to use a model not available any more."
+      puts "Check your monadic_chat.conf and try again."
+      puts "============================================================="
+      puts ""
+      exit 1
+    end
+    res
   end
 
   def self.query(access_token, mode, method, timeout_sec = 60, query = {}, &block)
@@ -41,49 +57,59 @@ module OpenAI
     headers["Accept"] = "text/event-stream" if query["stream"]
     http = HTTP.headers(headers)
 
+    timeout_settings = {
+      connect: OPEN_TIMEOUT,
+      write: timeout_sec,
+      read: timeout_sec
+    }
+
     case mode
     when "post"
-      res = http.timeout(timeout_sec).post(target_uri, json: query)
+      res = http.timeout(timeout_settings).post(target_uri, json: query)
     when "get"
-      res = http.timeout(timeout_sec).get(target_uri)
+      res = http.timeout(timeout_settings).get(target_uri)
     end
 
     if query["stream"]
       json = nil
+      buffer = ""
+      break_flag = false
       res.body.each do |chunk|
-        chunk.scan(/data: (\{.*\})/i).flatten.each do |data|
-          content = data.strip
-          break if content == "[DONE]"
+        break if break_flag
 
-          begin
-            stream = JSON.parse(content)
-          rescue JSON::ParserError
-            next
-          end
+        buffer << chunk
+        break_flag = true if /\Rdata: [DONE]\R/ =~ buffer
+        scanner = StringScanner.new(buffer)
+        pattern = /data: (\{.*?\})(?=\n|\z)/m
+        until scanner.eos?
+          matched = scanner.scan_until(pattern)
+          if matched
+            json_data = matched.match(pattern)[1]
 
-          fragment = case method
-                     when "completions"
-                       stream["choices"][0]["text"]
-                     when "chat/completions"
-                       stream["choices"][0]["delta"]["content"] || ""
-                     end
-          block&.call fragment
-          if !json
-            json = stream
-          else
-            case method
-            when "completions"
-              json["choices"][0]["text"] << fragment
-            when "chat/completions"
-              json["choices"][0]["text"] ||= +""
-              json["choices"][0]["text"] << fragment
+            begin
+              res = JSON.parse(json_data)
+              choice = res.dig("choices", 0) || {}
+              fragment = choice.dig("delta", "content").to_s
+
+              block&.call fragment
+              if !json
+                json = res
+              else
+                json["choices"][0]["text"] ||= +""
+                json["choices"][0]["text"] << fragment
+              end
+
+              break if choice["finish_reason"] == "length" || choice["finish_reason"] == "stop"
+            rescue JSON::ParserError
+              res = { "type" => "error", "content" => "Error: JSON Parsing" }
+              pp res
+              block&.call res
+              res
             end
+          else
+            buffer = scanner.rest
+            break
           end
-        rescue JSON::ParserError
-          res = { "type" => "error", "content" => "Error: JSON Parsing" }
-          pp res
-          block&.call res
-          res
         end
       end
       json
@@ -96,6 +122,17 @@ module OpenAI
         block&.call res
         res
       end
+    end
+  rescue HTTP::Error, HTTP::TimeoutError
+    if num_retrial < MAX_RETRIES
+      num_retrial += 1
+      sleep RETRY_DELAY
+      retry
+    else
+      res = { "type" => "error", "content" => "Error: Timeout" }
+      pp res
+      block&.call res
+      res
     end
   end
 

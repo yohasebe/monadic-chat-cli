@@ -39,3 +39,10 @@
 
 - Default model changed to `gpt-3.5-turbo-0613`
 - Stability improvement
+
+## [0.4.0] - 2023-11-10
+
+- Default model changed to `gpt-3.5-turbo`
+- Support for OpenAI's latest models
+- Missing character issue addressed
+- API access timeout/retry mechanism improved
