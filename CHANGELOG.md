@@ -46,3 +46,7 @@
 - Support for OpenAI's latest models
 - Missing character issue addressed
 - API access timeout/retry mechanism improved
+
+## [0.4.1] - 2024-01-27
+
+- New models of January 2024 supported

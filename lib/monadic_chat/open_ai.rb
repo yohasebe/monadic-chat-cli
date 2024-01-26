@@ -16,9 +16,9 @@ RETRY_WAIT_TIME_SEC = 1
 module OpenAI
   def self.default_model(research_mode: false)
     if research_mode
-      "gpt-3.5-turbo"
+      "gpt-4-turbo-preview"
     else
-      "gpt-3.5-turbo"
+      "gpt-4"
     end
   end
 
@@ -27,13 +27,12 @@ module OpenAI
       "gpt-3.5-turbo-1106" => "chat/completions",
       "gpt-3.5-turbo" => "chat/completions",
       "gpt-3.5-turbo-16k" => "chat/completions",
+      "gpt-4-0125-preview" => "chat/completions",
+      "gpt-4-turbo-preview" => "chat/completions",
       "gpt-4-1106-preview" => "chat/completions",
       "gpt-4" => "chat/completions",
       "gpt-4-0613" => "chat/completions",
-      "gpt-4-32K" => "chat/completions",
-      "gpt-4-32k-0613" => "chat/completions",
-      "gpt-3.5-turbo-0613" => "chat/completions",
-      "gpt-3.5-turbo-16k-0613" => "chat/completions"
+      "gpt-4-32K" => "chat/completions"
     }[model]
     if res.nil?
       puts ""
@@ -73,12 +72,16 @@ module OpenAI
     if query["stream"]
       json = nil
       buffer = ""
-      break_flag = false
+      # break_flag = false
+
       res.body.each do |chunk|
-        break if break_flag
+        break if /\Rdata: [DONE]\R/ =~ chunk
+
+        # break if break_flag
 
         buffer << chunk
-        break_flag = true if /\Rdata: [DONE]\R/ =~ buffer
+        # break_flag = true if /\Rdata: [DONE]\R/ =~ buffer
+
         scanner = StringScanner.new(buffer)
         pattern = /data: (\{.*?\})(?=\n|\z)/m
         until scanner.eos?
@@ -92,6 +95,7 @@ module OpenAI
               fragment = choice.dig("delta", "content").to_s
 
               block&.call fragment
+
               if !json
                 json = res
               else
@@ -99,7 +103,11 @@ module OpenAI
                 json["choices"][0]["text"] << fragment
               end
 
-              break if choice["finish_reason"] == "length" || choice["finish_reason"] == "stop"
+              if choice["finish_reason"] == "length" || choice["finish_reason"] == "stop"
+                finish = { "type" => "message", "content" => "DONE" }
+                block&.call finish
+                break
+              end
             rescue JSON::ParserError
               res = { "type" => "error", "content" => "Error: JSON Parsing" }
               pp res
@@ -156,6 +164,7 @@ module OpenAI
       method = OpenAI.model_to_method(params["model"])
 
       response = OpenAI.query(@access_token, "post", method, timeout_sec, params, &block)
+
       if response["error"]
         raise response["error"]["message"]
       elsif response["choices"][0]["finish_reason"] == "length"

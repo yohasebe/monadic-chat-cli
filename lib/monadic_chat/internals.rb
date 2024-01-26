@@ -152,29 +152,31 @@ class MonadicApp
     research_mode = @mode == :research
 
     escaping = +""
-    last_chunk = +""
+    finished = false
 
     res = @completion.run(params,
                           research_mode: research_mode,
                           timeout_sec: SETTINGS["timeout_sec"],
                           num_retrials: num_retrials) do |chunk|
-      if escaping
-        chunk = escaping + chunk
-        escaping = ""
-      end
+      if chunk.instance_of?(Hash) && chunk["content"] == "DONE"
+        finished = true
+      elsif chunk.instance_of?(String) && !finished
+        if escaping
+          chunk = escaping + chunk
+          escaping = ""
+        end
 
-      if /(?:\\\z)/ =~ chunk
-        escaping += chunk
-        next
-      else
-        chunk = chunk.gsub('\\n') { "\n" }
-      end
+        if /(?:\\\z)/ =~ chunk
+          escaping += chunk
+          next
+        else
+          chunk = chunk.gsub('\\n') { "\n" }
+        end
 
-      print last_chunk
-      last_chunk = chunk
+        print chunk
+      end
     end
 
-    print last_chunk
     print "\n"
 
     message = case role

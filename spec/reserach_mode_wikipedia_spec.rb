@@ -4,7 +4,7 @@ require_relative "./monadic_params"
 
 RSpec.describe "MonadicApp::Wikipedia" do
   params = PARAMS.dup
-  params["model"] = "gpt-3.5-turbo"
+  params["model"] = "gpt-4-turbo-preview"
   wikipedia = Wikipedia.new(COMPLETION, research_mode: true, stream: true, params: params)
 
   inputs = [
