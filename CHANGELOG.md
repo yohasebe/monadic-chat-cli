@@ -50,3 +50,4 @@
 ## [0.4.1] - 2024-01-27
 
 - New models of January 2024 supported
+- Default model changed to `gpt-4`
