@@ -24,6 +24,7 @@ module OpenAI
 
   def self.model_to_method(model)
     res = {
+      "gpt-3.5-turbo-0125" => "chat/completions",
       "gpt-3.5-turbo-1106" => "chat/completions",
       "gpt-3.5-turbo" => "chat/completions",
       "gpt-3.5-turbo-16k" => "chat/completions",
@@ -72,16 +73,11 @@ module OpenAI
     if query["stream"]
       json = nil
       buffer = ""
-      # break_flag = false
 
       res.body.each do |chunk|
         break if /\Rdata: [DONE]\R/ =~ chunk
 
-        # break if break_flag
-
         buffer << chunk
-        # break_flag = true if /\Rdata: [DONE]\R/ =~ buffer
-
         scanner = StringScanner.new(buffer)
         pattern = /data: (\{.*?\})(?=\n|\z)/m
         until scanner.eos?
@@ -92,16 +88,15 @@ module OpenAI
             begin
               res = JSON.parse(json_data)
               choice = res.dig("choices", 0) || {}
+
               fragment = choice.dig("delta", "content").to_s
+              next if !fragment || fragment == ""
 
               block&.call fragment
 
-              if !json
-                json = res
-              else
-                json["choices"][0]["text"] ||= +""
-                json["choices"][0]["text"] << fragment
-              end
+              json ||= res
+              json["choices"][0]["text"] ||= +""
+              json["choices"][0]["text"] << fragment
 
               if choice["finish_reason"] == "length" || choice["finish_reason"] == "stop"
                 finish = { "type" => "message", "content" => "DONE" }

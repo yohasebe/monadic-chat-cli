@@ -27,7 +27,7 @@ Oj.mimic_JSON
 
 module MonadicChat
   SETTINGS = {
-    "normal_model" => "gpt-4",
+    "normal_model" => "gpt-3.5-turbo-0125",
     "research_model" => "gpt-4-turbo-preview",
     "max_tokens_wiki" => 1000,
     "num_retrials" => 2,

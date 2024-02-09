@@ -51,3 +51,8 @@
 
 - New models of January 2024 supported
 - Default model changed to `gpt-4`
+
+## [0.4.2] - 2024-02-09
+
+- Issue of redundant token addition addressed
+- Default model changed to `gpt-3.5-turbo-0125`
