@@ -6,7 +6,7 @@ MonadicChat.require_apps
 COMPLETION = MonadicChat.authenticate(message: false)
 
 PARAMS = {
-  "model" => "gpt-4-turbo-preview"
+  "model" => "gpt-4o"
 }
 
 SETTINGS = {

@@ -56,3 +56,7 @@
 
 - Issue of redundant token addition addressed
 - Default model changed to `gpt-3.5-turbo-0125`
+
+## [0.4.3] - 2024-5-13
+
+- `gpt-4o` set as default model for both `normal` and `research` modes

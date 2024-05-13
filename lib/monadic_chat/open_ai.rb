@@ -16,9 +16,9 @@ RETRY_WAIT_TIME_SEC = 1
 module OpenAI
   def self.default_model(research_mode: false)
     if research_mode
-      "gpt-4-turbo-preview"
-    else
-      "gpt-4"
+      "gpt-4o"
+    else # normal mode
+      "gpt-4o"
     end
   end
 
@@ -28,6 +28,8 @@ module OpenAI
       "gpt-3.5-turbo-1106" => "chat/completions",
       "gpt-3.5-turbo" => "chat/completions",
       "gpt-3.5-turbo-16k" => "chat/completions",
+      "gpt-4o" => "chat/completions",
+      "gpt-4o-2024-05-13" => "chat/completions",
       "gpt-4-0125-preview" => "chat/completions",
       "gpt-4-turbo-preview" => "chat/completions",
       "gpt-4-1106-preview" => "chat/completions",
