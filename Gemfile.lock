@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    monadic-chat (0.4.2)
+    monadic-chat (0.4.3)
       blingfire
       http
       kramdown
