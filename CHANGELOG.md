@@ -60,3 +60,7 @@
 ## [0.4.3] - 2024-5-13
 
 - `gpt-4o` set as default model for both `normal` and `research` modes
+
+## [0.4.4] - 2024-7-18
+
+- `gpt-4o-mini` set as default model for `normal` mode

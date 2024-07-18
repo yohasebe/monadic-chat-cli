@@ -18,7 +18,7 @@ module OpenAI
     if research_mode
       "gpt-4o"
     else # normal mode
-      "gpt-4o"
+      "gpt-4o-mini"
     end
   end
 
@@ -28,6 +28,8 @@ module OpenAI
       "gpt-3.5-turbo-1106" => "chat/completions",
       "gpt-3.5-turbo" => "chat/completions",
       "gpt-3.5-turbo-16k" => "chat/completions",
+      "gpt-4o-mini-2024-07-18" => "chat/completions",
+      "gpt-4o-mini" => "chat/completions",
       "gpt-4o" => "chat/completions",
       "gpt-4o-2024-05-13" => "chat/completions",
       "gpt-4-0125-preview" => "chat/completions",

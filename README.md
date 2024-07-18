@@ -27,6 +27,7 @@
 
 **Change Log**
 
+- [July 19, 2024] `gpt-4o-mini` set as the default model for `normal` mode
 - [May 13, 2024] `gpt-4o` set as the default model for both `normal` and `research` modes
 - [February 9, 2024] Minor update; default model changed to `gpt-3.5-turbo-0125`
 - [November 10, 2023] Stability improvement; default model changed to `gpt-3.5-turbo`
@@ -306,7 +307,7 @@ Monadic Chat has two modes. The `normal` mode utilizes OpenAI's chat API to achi
 
 ### Normal Mode
 
-The current default language model for `normal` mode is `gpt-4o`.
+The current default language model for `normal` mode is `gpt-4o-mini`.
 
 In the default configuration, the dialogue messages are reduced after ten turns by deleting the oldest ones (but not the messages that the `system` role has given as instructions).
 
