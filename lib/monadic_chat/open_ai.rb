@@ -16,7 +16,7 @@ RETRY_WAIT_TIME_SEC = 1
 module OpenAI
   def self.default_model(research_mode: false)
     if research_mode
-      "chatgpt-4o-latest"
+      "gpt-4o-2024-08-06"
     else # normal mode
       "gpt-4o-mini"
     end

@@ -1,13 +1,14 @@
 PATH
   remote: .
   specs:
-    monadic-chat (0.4.5)
+    monadic-chat (0.4.6b)
       blingfire
       http
       kramdown
       launchy
       oj
       pastel
+      rexml (>= 3.3.6)
       rouge
       tty-box
       tty-cursor
@@ -60,7 +61,7 @@ GEM
       tty-color (~> 0.5)
     public_suffix (6.0.1)
     rake (13.2.1)
-    rexml (3.3.5)
+    rexml (3.3.6)
       strscan
     rouge (4.3.0)
     rspec (3.13.0)
@@ -69,7 +70,7 @@ GEM
       rspec-mocks (~> 3.13.0)
     rspec-core (3.13.0)
       rspec-support (~> 3.13.0)
-    rspec-expectations (3.13.1)
+    rspec-expectations (3.13.2)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
     rspec-mocks (3.13.1)

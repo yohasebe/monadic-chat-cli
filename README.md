@@ -27,6 +27,7 @@
 
 **Change Log**
 
+- [August 27, 2024] `gpt-4o-2024-08-06` set as the default model for `research` mode again
 - [August 15, 2024] `chatgpt-4o-latest` set as the default model for `research` mode
 - [July 19, 2024] `gpt-4o-mini` set as the default model for `normal` mode
 - [May 13, 2024] `gpt-4o` set as the default model for both `normal` and `research` modes
@@ -314,7 +315,7 @@ In the default configuration, the dialogue messages are reduced after ten turns 
 
 ### Research Mode
 
-The current default language model for `research` mode is `chatgpt-4o-latest`.
+The current default language model for `research` mode is `gpt-4o-2024-08-06`.
 
 In `research` mode, the conversation between the user and the large-scale language model is accomplished with a mechanism that tracks the conversation history in a monadic structure. In the default configuration, the dialogue messages are reduced after ten turns by deleting the oldest ones (but not the messages that the `system` role has given as instructions).
 

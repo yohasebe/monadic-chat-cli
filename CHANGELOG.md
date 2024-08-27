@@ -68,5 +68,5 @@
 ## [0.4.5] - 2024-08-07
 - `gpt-4o-2024-08-06` set as the default model for `research` mode
 
-## [0.4.6a] - 2024-08-15
-- `chatgpt-4o-latest` set as the default model for `research` mode
+## [0.4.6b] - 2024-08-15
+- `gpt-4o-2024-08-06` set as the default model for `research` mode again
