@@ -85,7 +85,6 @@ module OpenAI
               end
             rescue JSON::ParserError
               res = { "type" => "error", "content" => "Error: JSON Parsing" }
-              pp res
               block&.call res
               res
             end
@@ -101,7 +100,6 @@ module OpenAI
         JSON.parse res.body
       rescue JSON::ParserError
         res = { "type" => "error", "content" => "Error: JSON Parsing" }
-        pp res
         block&.call res
         res
       end
@@ -115,7 +113,6 @@ module OpenAI
     else
       @retry_count = 0
       res = { "type" => "error", "content" => "Error: #{e.class} - #{e.message}" }
-      pp res
       block&.call res
       res
     end
@@ -192,7 +189,6 @@ module OpenAI
                 block&.call finish
               elsif parsed["error"]
                 error_res = { "type" => "error", "content" => "Error: #{parsed["error"]["message"]}" }
-                pp error_res
                 block&.call error_res
                 return { "error" => parsed["error"] }
               elsif parsed["output_text"]
