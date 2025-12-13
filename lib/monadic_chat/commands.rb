@@ -18,16 +18,14 @@ module MonadicChat
 
   def self.prompt_user
     box_width = 6
-    color = "blue"
     name = "User".center(box_width, " ")
-    "\n#{PASTEL.send(:"on_#{color}", name)}"
+    "\n#{PASTEL.black.on_bright_blue(name)}"
   end
 
   def self.prompt_assistant
-    box_width = 5
-    color = "red"
-    name = "GPT".center(box_width, " ")
-    "\n#{PASTEL.send(:"on_#{color}", name)}"
+    box_width = 11
+    name = "Assistant".center(box_width, " ")
+    "\n#{PASTEL.black.on_bright_red(name)}"
   end
 
   def self.tokenize(text)

@@ -258,80 +258,117 @@ module OpenAI
       json = nil
       buffer = ""
       output_text = +""
+      current_event = nil
 
       res.body.each do |chunk|
         buffer << chunk
 
-        # Parse SSE events (Responses API uses event: and data: format)
-        while (match = buffer.match(/(?:event: ([^\n]*)\n)?data: (\{.*?\})\n\n/m))
-          event_type = match[1]
-          json_data = match[2]
-          buffer = match.post_match
+        # Process complete lines
+        while buffer.include?("\n")
+          line, buffer = buffer.split("\n", 2)
+          line = line.strip
 
-          begin
-            parsed = JSON.parse(json_data)
+          if line.start_with?("event:")
+            current_event = line.sub("event:", "").strip
+          elsif line.start_with?("data:")
+            data_str = line.sub("data:", "").strip
 
-            # Handle different event types
-            case event_type
-            when "response.output_text.delta"
-              # Streaming text delta
-              fragment = parsed["delta"].to_s
-              next if fragment.empty?
+            # Skip [DONE] marker
+            next if data_str == "[DONE]"
 
-              block&.call fragment
-              output_text << fragment
-            when "response.done", nil
-              # Final response or non-event data
-              if parsed["output_text"]
-                # Non-streaming or final response
-                json = parsed
-              elsif parsed["type"] == "response.done"
+            begin
+              parsed = JSON.parse(data_str)
+
+              # Handle based on event type or response structure
+              if current_event == "response.output_text.delta" || parsed["type"] == "response.output_text.delta"
+                fragment = parsed["delta"].to_s
+                unless fragment.empty?
+                  block&.call fragment
+                  output_text << fragment
+                end
+              elsif current_event == "response.completed" || parsed["type"] == "response.completed"
+                json = parsed["response"] || parsed
                 finish = { "type" => "message", "content" => "DONE" }
                 block&.call finish
+              elsif current_event == "response.done" || parsed["type"] == "response.done"
+                finish = { "type" => "message", "content" => "DONE" }
+                block&.call finish
+              elsif parsed["error"]
+                error_res = { "type" => "error", "content" => "Error: #{parsed["error"]["message"]}" }
+                pp error_res
+                block&.call error_res
+                return { "error" => parsed["error"] }
+              elsif parsed["output_text"]
+                # Direct response with output_text
+                json = parsed
+              elsif parsed["output"]
+                # Response with output array
+                json = parsed
+                # Extract text from output array
+                parsed["output"]&.each do |item|
+                  if item["type"] == "message" && item["content"]
+                    item["content"].each do |content|
+                      if content["type"] == "output_text"
+                        output_text << content["text"].to_s
+                      end
+                    end
+                  end
+                end
               end
-            when "response.created"
-              # Response created event - initialize json
-              json ||= parsed
-            when "error"
-              res = { "type" => "error", "content" => "Error: #{parsed["message"]}" }
-              pp res
-              block&.call res
-              return res
+
+              current_event = nil
+            rescue JSON::ParserError
+              # Incomplete JSON or invalid data, skip
             end
-          rescue JSON::ParserError
-            # Incomplete JSON, continue buffering
-            buffer = match[0] + buffer
-            break
+          elsif line.empty?
+            current_event = nil
           end
         end
       end
 
       # Build final response structure compatible with existing code
-      if json
-        json["output_text"] ||= output_text unless output_text.empty?
-        # Create a choices-like structure for compatibility
+      final_text = output_text.empty? ? json&.dig("output_text") : output_text
+      if json || !output_text.empty?
+        json ||= {}
+        json["output_text"] ||= final_text
         json["choices"] = [{
-          "text" => json["output_text"] || output_text,
-          "finish_reason" => json["status"] == "completed" ? "stop" : json["status"]
+          "text" => final_text,
+          "finish_reason" => json["status"] == "completed" ? "stop" : (json["status"] || "stop")
         }]
       end
       json
     else
       begin
         parsed = JSON.parse(res.body)
-        # Add choices structure for compatibility with existing code
-        if parsed["output_text"]
-          parsed["choices"] = [{
-            "text" => parsed["output_text"],
-            "finish_reason" => parsed["status"] == "completed" ? "stop" : parsed["status"]
-          }]
+
+        # Check for API error
+        if parsed["error"]
+          return { "error" => parsed["error"] }
         end
+
+        # Extract text from output array if present
+        output_text = parsed["output_text"]
+        if output_text.nil? && parsed["output"]
+          texts = []
+          parsed["output"]&.each do |item|
+            if item["type"] == "message" && item["content"]
+              item["content"].each do |content|
+                texts << content["text"] if content["type"] == "output_text"
+              end
+            end
+          end
+          output_text = texts.join("")
+        end
+
+        # Add choices structure for compatibility with existing code
+        parsed["output_text"] ||= output_text
+        parsed["choices"] = [{
+          "text" => output_text,
+          "finish_reason" => parsed["status"] == "completed" ? "stop" : (parsed["status"] || "stop")
+        }]
         parsed
-      rescue JSON::ParserError
-        res = { "type" => "error", "content" => "Error: JSON Parsing" }
-        pp res
-        block&.call res
-        res
+      rescue JSON::ParserError => e
+        { "type" => "error", "content" => "Error: JSON Parsing - #{e.message}" }
       end
     end
   rescue HTTP::Error, HTTP::TimeoutError => e
@@ -342,10 +379,7 @@ module OpenAI
       retry
     else
       @retry_count = 0
-      res = { "type" => "error", "content" => "Error: #{e.class} - #{e.message}" }
-      pp res
-      block&.call res
-      res
+      { "type" => "error", "content" => "Error: #{e.class} - #{e.message}" }
     end
   end
 
