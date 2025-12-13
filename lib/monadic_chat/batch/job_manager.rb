@@ -153,6 +153,27 @@ module MonadicChat
           job
         end
 
+        # Set results for sequential jobs (stored in separate file)
+        # @param job_id [String] The job ID
+        # @param results [Array<Hash>] Array of result objects
+        def set_results(job_id, results)
+          ensure_directory
+          results_path = File.join(BATCHES_DIR, "#{job_id}_results.json")
+          File.write(results_path, JSON.pretty_generate(results))
+        end
+
+        # Get results for sequential jobs
+        # @param job_id [String] The job ID
+        # @return [Array<Hash>, nil] Array of results or nil if not found
+        def get_results(job_id)
+          results_path = File.join(BATCHES_DIR, "#{job_id}_results.json")
+          return nil unless File.exist?(results_path)
+
+          JSON.parse(File.read(results_path), symbolize_names: true)
+        rescue JSON::ParserError
+          nil
+        end
+
         # List all jobs
         # @param status [String, nil] Filter by status (optional)
         # @return [Array<Hash>] Array of job metadata

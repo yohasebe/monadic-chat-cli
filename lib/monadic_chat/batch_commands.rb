@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "tty-progressbar"
 require_relative "batch"
 
 module MonadicChat
@@ -56,6 +57,22 @@ module MonadicChat
         # Parse options
         options = parse_options(args[1..])
 
+        # Validate mode
+        mode = options[:mode] || "parallel"
+        unless %w[parallel sequential].include?(mode)
+          print_error("Invalid mode: #{mode}. Must be 'parallel' or 'sequential'")
+          return
+        end
+
+        # Validate accumulation_mode for sequential mode
+        if mode == "sequential" && options[:accumulation_mode]
+          valid_modes = %w[none append replace summary]
+          unless valid_modes.include?(options[:accumulation_mode])
+            print_error("Invalid accumulation mode: #{options[:accumulation_mode]}. Must be one of: #{valid_modes.join(', ')}")
+            return
+          end
+        end
+
         # Validate profile if specified
         if options[:profile] && !Batch::ProfileManager.exists?(options[:profile])
           print_error("Profile not found: #{options[:profile]}")
@@ -70,8 +87,6 @@ module MonadicChat
           return
         end
 
-        processor = Batch::Processor.new(openai_completion.access_token)
-
         # Parse input to show preview
         parser = Batch::InputParser.new(input_path)
         records = parser.parse
@@ -80,6 +95,7 @@ module MonadicChat
         puts "Input: #{parser.source_path}"
         puts "Type: #{parser.source_type}"
         puts "Records: #{records.size}"
+        puts "Mode: #{pastel.bold(mode)}"
         puts ""
 
         # Show sample records
@@ -99,11 +115,25 @@ module MonadicChat
         puts "  Model: #{config[:model]}"
         puts "  Max tokens: #{config[:max_tokens]}"
         puts "  System prompt: #{config[:system_prompt] ? 'Yes' : 'None'}"
+
+        # Sequential mode specific options
+        if mode == "sequential"
+          puts "  Accumulation: #{config[:accumulation_mode] || 'none'}"
+          puts "  Context window: #{config[:context_window] || 1}" if config[:accumulation_mode] && config[:accumulation_mode] != "none"
+          puts "  Placeholder: #{config[:accumulation_placeholder]}" if config[:accumulation_mode] == "replace"
+        end
         puts ""
 
-        # Estimate cost (rough)
-        estimated_cost = estimate_cost(records.size, config[:model])
-        puts "Estimated cost: $#{format('%.2f', estimated_cost)} - $#{format('%.2f', estimated_cost * 2)} (Batch API 50% discount applied)"
+        # Estimate cost
+        if mode == "parallel"
+          estimated_cost = estimate_cost(records.size, config[:model])
+          puts "Estimated cost: $#{format('%.2f', estimated_cost)} - $#{format('%.2f', estimated_cost * 2)} (Batch API 50% discount applied)"
+        else
+          # Sequential mode uses standard API pricing
+          estimated_cost = estimate_cost(records.size, config[:model]) * 2 # No batch discount
+          puts "Estimated cost: $#{format('%.2f', estimated_cost)} - $#{format('%.2f', estimated_cost * 2)} (standard API pricing)"
+          puts pastel.yellow("Note: Sequential mode processes one record at a time in real-time")
+        end
         puts ""
 
         # Confirm
@@ -112,8 +142,18 @@ module MonadicChat
           return
         end
 
-        # Start the job
-        print_info("Starting batch job...")
+        # Start the job based on mode
+        if mode == "sequential"
+          start_sequential_job(openai_completion, input_path, config, records.size)
+        else
+          start_parallel_job(openai_completion.access_token, input_path, config)
+        end
+      end
+
+      def start_parallel_job(access_token, input_path, config)
+        print_info("Starting parallel batch job...")
+
+        processor = Batch::Processor.new(access_token)
 
         begin
           job = processor.start(input_path: input_path, config: config)
@@ -127,6 +167,45 @@ module MonadicChat
           puts "Get results:  monadic-chat batch result #{job['job_id']}"
         rescue StandardError => e
           print_error("Failed to start batch job: #{e.message}")
+        end
+      end
+
+      def start_sequential_job(completion, input_path, config, total_records)
+        print_info("Starting sequential batch job...")
+        puts ""
+
+        processor = Batch::SequentialProcessor.new(completion)
+
+        # Create progress bar
+        bar = TTY::ProgressBar.new(
+          "Processing [:bar] :current/:total :percent ET::elapsed ETA::eta",
+          total: total_records,
+          bar_format: :box,
+          width: 40
+        )
+        bar.start
+
+        begin
+          job = processor.start(input_path: input_path, config: config) do |progress|
+            bar.advance
+            if progress[:error]
+              puts pastel.red("  Error on record #{progress[:index] + 1}: #{progress[:error].message}")
+            end
+          end
+          bar.finish
+
+          puts ""
+          print_success("Sequential batch job completed!")
+          puts ""
+          puts "Job ID: #{pastel.bold(job['job_id'])}"
+          puts "Status: #{format_status(job['status'])}"
+          puts "Completed: #{job.dig('stats', 'completed')}/#{job.dig('stats', 'total')}"
+          puts "Failed: #{job.dig('stats', 'failed')}"
+          puts ""
+          puts "Get results: monadic-chat batch result #{job['job_id']}"
+        rescue StandardError => e
+          bar.stop
+          print_error("Failed to complete sequential job: #{e.message}")
         end
       end
 
@@ -252,20 +331,32 @@ module MonadicChat
           return
         end
 
-        processor = Batch::Processor.new(openai_completion.access_token)
-
         begin
-          # First check status
-          job = processor.check_status(job_id)
+          # First load job to check mode
+          job = Batch::JobManager.load(job_id)
 
-          unless job['status'] == 'completed'
+          unless job
+            print_error("Job not found: #{job_id}")
+            return
+          end
+
+          unless job["status"] == "completed"
             print_error("Job is not completed yet. Status: #{job['status']}")
             print_info("Use 'monadic-chat batch status #{job_id}' to check progress")
             return
           end
 
           print_info("Retrieving results...")
-          results = processor.retrieve_results(job_id)
+
+          # Retrieve results based on mode
+          if job["mode"] == "sequential"
+            results = Batch::JobManager.get_results(job_id) || []
+          else
+            processor = Batch::Processor.new(openai_completion.access_token)
+            # Update status from OpenAI first
+            job = processor.check_status(job_id)
+            results = processor.retrieve_results(job_id)
+          end
 
           success_count = results.count { |r| r[:text] && !r[:error] }
           error_count = results.count { |r| r[:error] }
@@ -650,11 +741,27 @@ module MonadicChat
             profile           Manage saved profiles
             help              Show this help
 
+          #{pastel.bold('Processing Modes:')}
+            parallel          Process all records asynchronously via Batch API (50% cost savings)
+            sequential        Process records one by one, passing context between requests
+
           #{pastel.bold('Options for start:')}
+            --mode            Processing mode: parallel (default) or sequential
             --profile, -p     Use saved profile
             --model, -m       Model to use (default: gpt-5-mini)
             --max-tokens, -t  Max tokens (default: 2000)
             --system, -s      System prompt
+
+          #{pastel.bold('Sequential Mode Options:')}
+            --accumulation, -a   Context passing: none (default), append, replace, summary
+            --context-window, -w Number of previous results to include (default: 1)
+            --placeholder        Placeholder text for replace mode (default: {{PREVIOUS}})
+
+          #{pastel.bold('Accumulation Modes:')}
+            none              Each request is independent
+            append            Previous results prepended to input: "Previous results: ... Current input: ..."
+            replace           Replace placeholder in input with previous results
+            summary           Summary of all previous results prepended to input
 
           #{pastel.bold('Options for list:')}
             --status          Filter by status (completed, failed, in_progress, etc.)
@@ -667,8 +774,14 @@ module MonadicChat
             --format, -f      Output format: text, json, csv (default: text)
 
           #{pastel.bold('Examples:')}
+            # Parallel mode (default) - async processing with 50% cost savings
             monadic-chat batch start ./documents/
             monadic-chat batch start input.txt --profile translator
+
+            # Sequential mode - real-time processing with context passing
+            monadic-chat batch start ./chapters/ --mode sequential --accumulation append
+            monadic-chat batch start prompts.txt --mode sequential -a replace --placeholder "{{PREV}}"
+
             monadic-chat batch list
             monadic-chat batch wait batch_20241213120000_abc12345
             monadic-chat batch result batch_20241213120000_abc12345 --output ./results/
@@ -696,6 +809,18 @@ module MonadicChat
           when "--system", "-s"
             options[:system_prompt] = args[i + 1]
             i += 2
+          when "--mode"
+            options[:mode] = args[i + 1]
+            i += 2
+          when "--accumulation", "-a"
+            options[:accumulation_mode] = args[i + 1]
+            i += 2
+          when "--placeholder"
+            options[:accumulation_placeholder] = args[i + 1]
+            i += 2
+          when "--context-window", "-w"
+            options[:context_window] = args[i + 1].to_i
+            i += 2
           when "--status"
             options[:status] = args[i + 1]
             i += 2
@@ -722,11 +847,18 @@ module MonadicChat
         base_config = Batch::ProfileManager.get_merged(profile_name)
 
         # Command-line options override profile settings
-        {
+        config = {
           model: options[:model] || base_config["model"] || "gpt-5-mini",
           max_tokens: options[:max_tokens] || base_config["max_tokens"] || 2000,
           system_prompt: options[:system_prompt] || base_config["system_prompt"]
         }
+
+        # Add sequential mode options if specified
+        config[:accumulation_mode] = options[:accumulation_mode] if options[:accumulation_mode]
+        config[:accumulation_placeholder] = options[:accumulation_placeholder] if options[:accumulation_placeholder]
+        config[:context_window] = options[:context_window] if options[:context_window]
+
+        config
       end
 
       def estimate_cost(record_count, model)

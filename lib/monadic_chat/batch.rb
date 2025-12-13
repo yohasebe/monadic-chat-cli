@@ -8,6 +8,7 @@ require_relative "batch/jsonl_builder"
 require_relative "batch/job_manager"
 require_relative "batch/api_client"
 require_relative "batch/processor"
+require_relative "batch/sequential_processor"
 require_relative "batch/profile_manager"
 
 module MonadicChat
