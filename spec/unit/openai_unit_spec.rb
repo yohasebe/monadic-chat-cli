@@ -263,9 +263,9 @@ RSpec.describe OpenAI do
       expect(result["input"].size).to eq(3)
     end
 
-    it "copies compatible parameters" do
+    it "copies compatible parameters for non-reasoning models" do
       params = {
-        "model" => "gpt-5",
+        "model" => "gpt-4.1",
         "messages" => [{ "role" => "user", "content" => "Hello" }],
         "stream" => true,
         "temperature" => 0.7,
@@ -275,6 +275,22 @@ RSpec.describe OpenAI do
       expect(result["stream"]).to be true
       expect(result["temperature"]).to eq(0.7)
       expect(result["max_output_tokens"]).to eq(1000)
+    end
+
+    it "excludes temperature/top_p for reasoning models (gpt-5)" do
+      params = {
+        "model" => "gpt-5",
+        "messages" => [{ "role" => "user", "content" => "Hello" }],
+        "stream" => true,
+        "temperature" => 0.7,
+        "top_p" => 0.9,
+        "max_tokens" => 1000
+      }
+      result = OpenAI.convert_to_responses_format(params)
+      expect(result["stream"]).to be true
+      expect(result["max_output_tokens"]).to eq(1000)
+      expect(result).not_to have_key("temperature")
+      expect(result).not_to have_key("top_p")
     end
   end
 

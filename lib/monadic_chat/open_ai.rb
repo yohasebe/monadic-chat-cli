@@ -254,6 +254,17 @@ module OpenAI
 
     res = http.timeout(timeout_settings).post(target_uri, json: query)
 
+    # Check response status
+    unless res.status.success?
+      error_body = res.body.to_s rescue "Unable to read body"
+      begin
+        error_json = JSON.parse(error_body)
+        return { "error" => error_json["error"] }
+      rescue JSON::ParserError
+        return { "error" => { "message" => "API returned status #{res.status}: #{error_body}" } }
+      end
+    end
+
     if query["stream"]
       json = nil
       buffer = ""
@@ -383,10 +394,20 @@ module OpenAI
     end
   end
 
+  # Models that don't support temperature/top_p parameters (reasoning models)
+  REASONING_MODELS = %w[
+    gpt-5 gpt-5-mini gpt-5-nano
+    gpt-5.1 gpt-5.1-mini gpt-5.1-nano
+    gpt-5.2 gpt-5.2-mini gpt-5.2-nano
+    o1 o1-mini o1-pro
+    o3 o3-mini o3-pro
+  ].freeze
+
   # Convert Chat Completions format to Responses API format
   def self.convert_to_responses_format(params)
+    model = params["model"]
     responses_params = {
-      "model" => params["model"]
+      "model" => model
     }
 
     # Convert messages to input format
@@ -417,9 +438,13 @@ module OpenAI
 
     # Copy over compatible parameters
     responses_params["stream"] = params["stream"] if params.key?("stream")
-    responses_params["temperature"] = params["temperature"] if params.key?("temperature")
-    responses_params["top_p"] = params["top_p"] if params.key?("top_p")
     responses_params["max_output_tokens"] = params["max_tokens"] if params.key?("max_tokens")
+
+    # Only include temperature/top_p for non-reasoning models
+    unless REASONING_MODELS.include?(model)
+      responses_params["temperature"] = params["temperature"] if params.key?("temperature")
+      responses_params["top_p"] = params["top_p"] if params.key?("top_p")
+    end
 
     responses_params
   end
