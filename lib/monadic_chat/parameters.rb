@@ -6,12 +6,26 @@ class MonadicApp
   ##################################################
 
   def change_parameter
-    parameter = PROMPT_SYSTEM.select("Select the parmeter to be set:", per_page: 7, cycle: true, show_help: :never, filter: true, default: 1) do |menu|
+    # Check if current model supports reasoning_effort and verbosity
+    model = @params["model"]
+    reasoning_available = OpenAI.reasoning_model?(model)
+    verbosity_available = OpenAI.supports_verbosity?(model)
+    current_effort = @params["reasoning_effort"] || OpenAI.default_reasoning_effort(model)
+    current_verbosity = @params["verbosity"] || OpenAI.default_verbosity(model)
+
+    parameter = PROMPT_SYSTEM.select("Select the parameter to be set:", per_page: 10, cycle: true, show_help: :never, default: 1) do |menu|
       menu.choice "#{BULLET} Cancel", "cancel"
       menu.choice "#{BULLET} model: #{@params["model"]}", "model"
       menu.choice "#{BULLET} max_tokens: #{@params["max_tokens"]}", "max_tokens"
-      menu.choice "#{BULLET} temperature: #{@params["temperature"]}", "temperature"
-      menu.choice "#{BULLET} top_p: #{@params["top_p"]}", "top_p"
+      if reasoning_available
+        menu.choice "#{BULLET} reasoning_effort: #{current_effort}", "reasoning_effort"
+      else
+        menu.choice "#{BULLET} temperature: #{@params["temperature"]}", "temperature"
+        menu.choice "#{BULLET} top_p: #{@params["top_p"]}", "top_p"
+      end
+      if verbosity_available
+        menu.choice "#{BULLET} verbosity: #{current_verbosity}", "verbosity"
+      end
       menu.choice "#{BULLET} frequency_penalty: #{@params["frequency_penalty"]}", "frequency_penalty"
       menu.choice "#{BULLET} presence_penalty: #{@params["presence_penalty"]}", "presence_penalty"
     end
@@ -20,9 +34,13 @@ class MonadicApp
     case parameter
     when "model"
       value = change_model
-      @method = OpenAI.model_to_method(value)
+      @method = OpenAI.model_to_method(value) if value
     when "max_tokens"
       value = change_max_tokens
+    when "reasoning_effort"
+      value = change_reasoning_effort
+    when "verbosity"
+      value = change_verbosity
     when "temperature"
       value = change_temperature
     when "top_p"
@@ -37,10 +55,61 @@ class MonadicApp
   end
 
   def change_max_tokens
-    PROMPT_SYSTEM.ask("Set value of max tokens [1000 to 8000]:", convert: :int) do |q|
-      q.in "1000-8000"
-      q.messages[:range?] = "Value out of expected range [1000 to 2048]"
+    PROMPT_SYSTEM.ask("Set value of max tokens [1000 to 16000]:", convert: :int) do |q|
+      q.in "1000-16000"
+      q.messages[:range?] = "Value out of expected range [1000 to 16000]"
     end
+  end
+
+  def change_reasoning_effort
+    model = @params["model"]
+    available = OpenAI.available_reasoning_efforts(model)
+    current = @params["reasoning_effort"] || OpenAI.default_reasoning_effort(model)
+
+    unless available
+      print PASTEL.red("This model does not support reasoning_effort\n")
+      return nil
+    end
+
+    effort = PROMPT_SYSTEM.select("Select reasoning effort:", per_page: 6, cycle: true, show_help: :never, default: 1) do |menu|
+      menu.choice "#{BULLET} Cancel", "cancel"
+      available.each do |e|
+        label = e == current ? "#{e} (current)" : e
+        menu.choice "#{BULLET} #{label}", e
+      end
+    end
+    return nil if effort == "cancel"
+
+    effort
+  end
+
+  def change_verbosity
+    model = @params["model"]
+    available = OpenAI.available_verbosities(model)
+
+    unless available
+      print PASTEL.red("This model does not support verbosity\n")
+      return nil
+    end
+
+    # If only one option is available, inform the user
+    if available.size == 1
+      print PASTEL.yellow("This model only supports verbosity: #{available[0]}\n")
+      return nil
+    end
+
+    current = @params["verbosity"] || OpenAI.default_verbosity(model)
+
+    verbosity = PROMPT_SYSTEM.select("Select verbosity level:", per_page: 6, cycle: true, show_help: :never, default: 1) do |menu|
+      menu.choice "#{BULLET} Cancel", "cancel"
+      available.each do |v|
+        label = v == current ? "#{v} (current)" : v
+        menu.choice "#{BULLET} #{label}", v
+      end
+    end
+    return nil if verbosity == "cancel"
+
+    verbosity
   end
 
   def change_temperature
@@ -72,23 +141,30 @@ class MonadicApp
   end
 
   def change_model
-    model = PROMPT_SYSTEM.select("Select a model:", per_page: 10, cycle: false, show_help: :never, filter: true, default: 1) do |menu|
+    model = PROMPT_SYSTEM.select("Select a model:", per_page: 12, cycle: false, show_help: :never, default: 1) do |menu|
       menu.choice "#{BULLET} Cancel", "cancel"
       TTY::Cursor.save
       SPINNER.auto_spin
-      models = @completion.models
+      api_models = @completion.models
       SPINNER.stop
       TTY::Cursor.restore
-      case @mode
-      when :research
-        models.filter { |m| ["completions", "chat/completions"].include? OpenAI.model_to_method(m["id"]) }.sort_by { |m| -m["created"] }.each do |m|
-          menu.choice "#{BULLET} #{m["id"]}", m["id"]
-        end
-      when :normal
-        models.filter { |m| OpenAI.model_to_method(m["id"]) == "chat/completions" && OpenAI.model_to_method(m["id"]) }.sort_by { |m| -m["created"] }.each do |m|
-          menu.choice "#{BULLET} #{m["id"]}", m["id"]
-        end
+
+      # Filter to only GPT-5 series models
+      supported_models = api_models
+        .select { |m| OpenAI.model_available?(m["id"]) && m["id"].start_with?("gpt-5") }
+
+      # Sort: gpt-5.2 first, then gpt-5.1, then gpt-5, by creation date
+      sorted_models = supported_models.sort_by do |m|
+        priority = case m["id"]
+                   when /^gpt-5\.2/ then 0
+                   when /^gpt-5\.1/ then 1
+                   when /^gpt-5/ then 2
+                   else 3
+                   end
+        [priority, -m["created"]]
       end
+
+      sorted_models.each { |m| menu.choice "#{BULLET} #{m["id"]}", m["id"] }
     end
     return nil if model == "cancel"
 

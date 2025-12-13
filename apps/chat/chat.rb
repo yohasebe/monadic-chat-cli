@@ -10,13 +10,16 @@ class Chat < MonadicApp
 
   def initialize(openai_completion, research_mode: false, stream: true, params: {})
     @num_retained_turns = 10
+    # GPT-5 reasoning models need higher max_tokens for reasoning + output
+    # GPT-5.2 with medium reasoning_effort needs even more tokens
+    max_tokens = research_mode ? 8000 : 2000
     params = {
       "temperature" => 0.3,
       "top_p" => 1.0,
       "presence_penalty" => 0.2,
       "frequency_penalty" => 0.2,
       "model" => research_mode ? SETTINGS["research_model"] : SETTINGS["normal_model"],
-      "max_tokens" => 1000,
+      "max_tokens" => max_tokens,
       "stream" => stream,
       "stop" => nil
     }.merge(params)

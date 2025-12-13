@@ -27,6 +27,12 @@
 
 **Change Log**
 
+- [December 13, 2024] **Version 0.6.0**: Major update with GPT-5 and Responses API support
+  - Added support for OpenAI's Responses API (`/v1/responses`)
+  - Default models updated: `gpt-5-mini` (normal), `gpt-5` (research)
+  - Added support for GPT-5 series, GPT-4.1 series, and O-series reasoning models
+  - Model specifications now synced with Monadic Chat (non-CLI)
+  - Improved reasoning model parameter handling (excludes temperature for reasoning models)
 - [August 27, 2024] `gpt-4o-2024-08-06` set as the default model for `research` mode again
 - [August 15, 2024] `chatgpt-4o-latest` set as the default model for `research` mode
 - [July 19, 2024] `gpt-4o-mini` set as the default model for `normal` mode
@@ -38,7 +44,7 @@
 - [April 05, 2023] `Wikipedia` app added (experimental)
 - [April 05, 2023] `monadic-chat new/del app_name` command
 - [April 02, 2023] Architecture refined here and there
-- [March 26, 2023] Command line options to directly run individual apps 
+- [March 26, 2023] Command line options to directly run individual apps
 - [March 24, 2023] `Research` mode now supports chat API in addition to text-completion API
 - [March 21, 2023] GPT-4 models supported (in `normal` mode)
 - [March 20, 2023] Text and figure in "How the research mode workds" section updated
@@ -309,13 +315,13 @@ Monadic Chat has two modes. The `normal` mode utilizes OpenAI's chat API to achi
 
 ### Normal Mode
 
-The current default language model for `normal` mode is `gpt-4o-mini`.
+The current default language model for `normal` mode is `gpt-5-mini`.
 
 In the default configuration, the dialogue messages are reduced after ten turns by deleting the oldest ones (but not the messages that the `system` role has given as instructions).
 
 ### Research Mode
 
-The current default language model for `research` mode is `gpt-4o-2024-08-06`.
+The current default language model for `research` mode is `gpt-5`.
 
 In `research` mode, the conversation between the user and the large-scale language model is accomplished with a mechanism that tracks the conversation history in a monadic structure. In the default configuration, the dialogue messages are reduced after ten turns by deleting the oldest ones (but not the messages that the `system` role has given as instructions).
 

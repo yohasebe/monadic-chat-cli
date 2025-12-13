@@ -62,7 +62,6 @@ module MonadicMenu
       parameter = PROMPT_SYSTEM.select("Current mode: #{print_mode.call(mode)}\n\nSelect item:",
                                        per_page: 10,
                                        cycle: true,
-                                       filter: true,
                                        default: 1,
                                        show_help: :never) do |menu|
         APPS.each do |app|

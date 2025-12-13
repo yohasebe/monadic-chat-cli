@@ -139,13 +139,13 @@ RSpec.describe "Export/Import Format" do
       end
 
       it "accepts all current GPT-5.1 models (Responses API)" do
-        %w[gpt-5.1 gpt-5.1-mini gpt-5.1-nano].each do |model|
+        %w[gpt-5.1 gpt-5.1-codex].each do |model|
           expect(OpenAI::AVAILABLE_MODELS).to have_key(model)
         end
       end
 
       it "accepts all current GPT-5.2 models (Responses API)" do
-        %w[gpt-5.2 gpt-5.2-mini gpt-5.2-nano].each do |model|
+        %w[gpt-5.2 gpt-5.2-pro].each do |model|
           expect(OpenAI::AVAILABLE_MODELS).to have_key(model)
         end
       end

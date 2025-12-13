@@ -94,7 +94,10 @@ class MonadicApp
       case @method
       when "completions"
         params["prompt"] = template
-      when "chat/completions"
+      when "chat/completions", "responses"
+        # For both Chat Completions API and Responses API,
+        # set messages with template as system message
+        # (Responses API will convert this via convert_to_responses_format)
         params["messages"] = [{ "role" => "system", "content" => template }]
       end
 
@@ -150,13 +153,28 @@ class MonadicApp
     params = prepare_params(role, input)
     research_mode = @mode == :research
 
+    # Get structured output schema for research mode
+    # NOTE: Structured output is currently disabled pending further testing
+    # To enable, set MONADIC_STRUCTURED_OUTPUT=1 environment variable
+    structured_output = nil
+    if research_mode && ENV["MONADIC_STRUCTURED_OUTPUT"]
+      model = params["model"]
+      method = OpenAI.model_to_method(model)
+      if method == OpenAI::API_RESPONSES
+        structured_output = MonadicChat.research_schema_for_responses_api(@app_name)
+      else
+        structured_output = MonadicChat.research_schema_for_chat_completions_api(@app_name)
+      end
+    end
+
     escaping = +""
     finished = false
 
     res = @completion.run(params,
                           research_mode: research_mode,
                           timeout_sec: SETTINGS["timeout_sec"],
-                          num_retrials: num_retrials) do |chunk|
+                          num_retrials: num_retrials,
+                          structured_output: structured_output) do |chunk|
       if chunk.instance_of?(Hash) && chunk["content"] == "DONE"
         finished = true
       elsif chunk.instance_of?(String) && !finished

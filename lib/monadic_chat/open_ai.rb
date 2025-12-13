@@ -6,6 +6,7 @@ require "net/http"
 require "uri"
 require "strscan"
 require "tty-progressbar"
+require_relative "model_specs"
 
 Oj.mimic_JSON
 
@@ -14,132 +15,17 @@ RETRY_MAX_COUNT = 10
 RETRY_WAIT_TIME_SEC = 1
 
 module OpenAI
-  # API types
-  API_CHAT_COMPLETIONS = "chat/completions"
-  API_RESPONSES = "responses"
-
-  # Default models for different modes
-  # Updated: December 2025
-  def self.default_model(research_mode: false)
-    if research_mode
-      "gpt-5"
-    else # normal mode
-      "gpt-5-mini"
-    end
-  end
-
-  # Available models and their supported API endpoints
-  # Models are mapped to their preferred API (Responses API for GPT-5+, Chat Completions for older)
-  # GPT-5 series also supports Chat Completions as fallback
-  AVAILABLE_MODELS = {
-    # GPT-5.2 series (Responses API preferred, Chat Completions supported)
-    "gpt-5.2" => API_RESPONSES,
-    "gpt-5.2-mini" => API_RESPONSES,
-    "gpt-5.2-nano" => API_RESPONSES,
-    # GPT-5.1 series (Responses API preferred, Chat Completions supported)
-    "gpt-5.1" => API_RESPONSES,
-    "gpt-5.1-mini" => API_RESPONSES,
-    "gpt-5.1-nano" => API_RESPONSES,
-    # GPT-5 series (Responses API preferred, Chat Completions supported)
-    "gpt-5" => API_RESPONSES,
-    "gpt-5-mini" => API_RESPONSES,
-    "gpt-5-nano" => API_RESPONSES,
-    # GPT-4.1 series (Chat Completions)
-    "gpt-4.1" => API_CHAT_COMPLETIONS,
-    "gpt-4.1-mini" => API_CHAT_COMPLETIONS,
-    "gpt-4.1-nano" => API_CHAT_COMPLETIONS,
-    # GPT-4o series (Chat Completions)
-    "gpt-4o" => API_CHAT_COMPLETIONS,
-    "gpt-4o-mini" => API_CHAT_COMPLETIONS,
-    "gpt-4o-2024-11-20" => API_CHAT_COMPLETIONS,
-    # GPT-4 Turbo (legacy but still available)
-    "gpt-4-turbo" => API_CHAT_COMPLETIONS
+  # Legacy constant for backward compatibility with tests
+  # Maps model name to api_type string
+  AVAILABLE_MODELS = MODEL_SPECS.transform_values { |spec|
+    spec["api_type"] || API_CHAT_COMPLETIONS
   }.freeze
-
-  # Models that ONLY work with Responses API (no Chat Completions fallback)
-  RESPONSES_API_ONLY_MODELS = %w[
-    gpt-5-codex
-    gpt-5.1-codex
-    gpt-5.2-codex
-  ].freeze
 
   # Models that support both APIs (can use Chat Completions as fallback)
   # GPT-5 series supports both, but Responses API is preferred for better features
-  DUAL_API_MODELS = %w[
-    gpt-5 gpt-5-mini gpt-5-nano
-    gpt-5.1 gpt-5.1-mini gpt-5.1-nano
-    gpt-5.2 gpt-5.2-mini gpt-5.2-nano
-  ].freeze
-
-  # Expensive models that require user confirmation before use
-  # These models have significantly higher costs per token
-  # Pattern matching is used to catch model variants (e.g., gpt-5-pro, gpt-5.2-pro)
-  EXPENSIVE_MODEL_PATTERNS = [
-    /\bgpt-5.*-pro\b/i,       # GPT-5 Pro variants (extremely expensive)
-    /\bo3-pro\b/i,            # o3-pro (extremely expensive)
-    /\bgpt-5-codex-max\b/i,   # GPT-5 Codex Max
-    /\bo1-pro\b/i             # o1-pro
-  ].freeze
-
-  # Check if a model is expensive and requires confirmation
-  def self.expensive_model?(model)
-    EXPENSIVE_MODEL_PATTERNS.any? { |pattern| pattern.match?(model) }
-  end
-
-  # Get warning message for expensive models
-  def self.expensive_model_warning(model)
-    <<~WARNING
-      ============================================================
-      WARNING: High-cost model selected!
-
-      Model: #{model}
-
-      This model has significantly higher costs compared to
-      standard models. A single conversation could cost $10-100+.
-
-      Please ensure you understand the pricing before proceeding.
-      ============================================================
-    WARNING
-  end
-
-  # Check if a model uses Responses API
-  def self.responses_api?(model)
-    AVAILABLE_MODELS[model] == API_RESPONSES || RESPONSES_API_ONLY_MODELS.include?(model)
-  end
-
-  # Check if a model supports Chat Completions API (either primary or fallback)
-  def self.chat_completions_api?(model)
-    AVAILABLE_MODELS[model] == API_CHAT_COMPLETIONS || DUAL_API_MODELS.include?(model)
-  end
-
-  # Get the API method/endpoint for a model
-  # Returns the preferred API, but can be overridden with force_chat_completions for dual-API models
-  def self.model_to_method(model, force_chat_completions: false)
-    res = AVAILABLE_MODELS[model]
-    if res.nil?
-      puts ""
-      puts "============================================================="
-      if RESPONSES_API_ONLY_MODELS.include?(model)
-        puts "Model #{model} requires the Responses API."
-        puts "Responses API is now supported in Monadic Chat CLI."
-        puts "However, this specific model may not be available yet."
-      else
-        puts "Model #{model} not found."
-        puts "Maybe you are trying to use a model not available any more."
-        puts "Check your monadic_chat.conf and try again."
-      end
-      puts "============================================================="
-      puts ""
-      exit 1
-    end
-
-    # Allow forcing Chat Completions API for dual-API models
-    if force_chat_completions && DUAL_API_MODELS.include?(model)
-      return API_CHAT_COMPLETIONS
-    end
-
-    res
-  end
+  DUAL_API_MODELS = MODEL_SPECS.select { |model, spec|
+    model.start_with?("gpt-5") && spec["api_type"] == API_RESPONSES
+  }.keys.freeze
 
   # Query method for Chat Completions API
   def self.query(access_token, mode, method, timeout_sec = 60, query = {}, &block)
@@ -394,17 +280,9 @@ module OpenAI
     end
   end
 
-  # Models that don't support temperature/top_p parameters (reasoning models)
-  REASONING_MODELS = %w[
-    gpt-5 gpt-5-mini gpt-5-nano
-    gpt-5.1 gpt-5.1-mini gpt-5.1-nano
-    gpt-5.2 gpt-5.2-mini gpt-5.2-nano
-    o1 o1-mini o1-pro
-    o3 o3-mini o3-pro
-  ].freeze
-
   # Convert Chat Completions format to Responses API format
-  def self.convert_to_responses_format(params)
+  # structured_output: optional hash with "format" key for JSON schema
+  def self.convert_to_responses_format(params, structured_output: nil)
     model = params["model"]
     responses_params = {
       "model" => model
@@ -416,22 +294,30 @@ module OpenAI
 
       # Extract system message as instructions
       system_msgs = messages.select { |m| m["role"] == "system" }
-      if system_msgs.any?
-        responses_params["instructions"] = system_msgs.map { |m| m["content"] }.join("\n")
-      end
-
       # Convert user/assistant messages to input
       non_system_msgs = messages.reject { |m| m["role"] == "system" }
-      if non_system_msgs.size == 1 && non_system_msgs[0]["role"] == "user"
-        # Simple single user message - use string input
-        responses_params["input"] = non_system_msgs[0]["content"]
+
+      if non_system_msgs.empty? && system_msgs.any?
+        # Research mode: only system message with full template
+        # Use the template as input directly (not as instructions)
+        responses_params["input"] = system_msgs.map { |m| m["content"] }.join("\n")
       else
-        # Multiple messages - use array input
-        responses_params["input"] = non_system_msgs.map do |msg|
-          {
-            "role" => msg["role"],
-            "content" => msg["content"]
-          }
+        # Normal mode: separate instructions and input
+        if system_msgs.any?
+          responses_params["instructions"] = system_msgs.map { |m| m["content"] }.join("\n")
+        end
+
+        if non_system_msgs.size == 1 && non_system_msgs[0]["role"] == "user"
+          # Simple single user message - use string input
+          responses_params["input"] = non_system_msgs[0]["content"]
+        elsif non_system_msgs.any?
+          # Multiple messages - use array input
+          responses_params["input"] = non_system_msgs.map do |msg|
+            {
+              "role" => msg["role"],
+              "content" => msg["content"]
+            }
+          end
         end
       end
     end
@@ -440,11 +326,39 @@ module OpenAI
     responses_params["stream"] = params["stream"] if params.key?("stream")
     responses_params["max_output_tokens"] = params["max_tokens"] if params.key?("max_tokens")
 
-    # Only include temperature/top_p for non-reasoning models
-    unless REASONING_MODELS.include?(model)
+    # Only include temperature/top_p for models that support it
+    if supports_temperature?(model)
       responses_params["temperature"] = params["temperature"] if params.key?("temperature")
       responses_params["top_p"] = params["top_p"] if params.key?("top_p")
     end
+
+    # Set reasoning effort for reasoning models (GPT-5 series, o-series, etc.)
+    # Uses the model's default reasoning effort from models.json
+    # Can be overridden via params["reasoning_effort"]
+    default_effort = default_reasoning_effort(model)
+    if default_effort
+      effort = params["reasoning_effort"] || default_effort
+      responses_params["reasoning"] = { "effort" => effort }
+    end
+
+    # Build text parameter for Responses API
+    # Can include: verbosity (low/medium/high) and/or format (structured output)
+    text_params = {}
+
+    # Add verbosity for models that support it (GPT-5 series)
+    if supports_verbosity?(model)
+      verbosity = params["verbosity"] || default_verbosity(model)
+      text_params["verbosity"] = verbosity
+    end
+
+    # Add structured output format for Responses API
+    # Format: { "format" => { "type" => "json_schema", "name" => "...", "schema" => {...}, "strict" => true } }
+    if structured_output && structured_output["format"]
+      text_params["format"] = structured_output["format"]
+    end
+
+    # Only add text parameter if there's something to include
+    responses_params["text"] = text_params unless text_params.empty?
 
     responses_params
   end
@@ -467,16 +381,24 @@ module OpenAI
 
     # Run a completion request, automatically selecting the appropriate API
     # based on the model (Responses API for GPT-5+, Chat Completions for older models)
-    def run(params, research_mode: false, timeout_sec: 60, num_retrials: 1, force_chat_completions: false, &block)
+    #
+    # structured_output: optional structured output schema
+    #   For Responses API: { "format" => { "type" => "json_schema", ... } }
+    #   For Chat Completions API: { "type" => "json_schema", "json_schema" => { ... } }
+    def run(params, research_mode: false, timeout_sec: 60, num_retrials: 1, force_chat_completions: false, structured_output: nil, &block)
       model = params["model"]
       method = OpenAI.model_to_method(model, force_chat_completions: force_chat_completions)
 
       response = if method == OpenAI::API_RESPONSES && !force_chat_completions
                    # Use Responses API for GPT-5+ models
-                   responses_params = OpenAI.convert_to_responses_format(params)
+                   responses_params = OpenAI.convert_to_responses_format(params, structured_output: structured_output)
                    OpenAI.query_responses(@access_token, timeout_sec, responses_params, &block)
                  else
                    # Use Chat Completions API for older models or when forced
+                   # Add structured output as response_format if provided
+                   if structured_output && structured_output["json_schema"]
+                     params = params.merge("response_format" => structured_output)
+                   end
                    OpenAI.query(@access_token, "post", method, timeout_sec, params, &block)
                  end
 
@@ -489,9 +411,21 @@ module OpenAI
         raise "finished because of length"
       end
 
-      text = response.dig("choices", 0, "text")
+      # Extract text from response - handle different response formats
+      # Chat Completions API (non-streaming): choices[0].message.content
+      # Chat Completions API (streaming): choices[0].text (built up by query method)
+      # Responses API: choices[0].text (built up by query_responses method)
+      text = response.dig("choices", 0, "text") ||
+             response.dig("choices", 0, "message", "content")
+
       if research_mode
-        get_json text
+        # When using structured output, the response is already valid JSON
+        # When not using structured output, parse JSON from text (legacy behavior)
+        if structured_output
+          parse_structured_json(text)
+        else
+          get_json(text)
+        end
       else
         text
       end
@@ -500,13 +434,17 @@ module OpenAI
       when 0
         raise e
       else
-        run(params, research_mode: research_mode, timeout_sec: timeout_sec, num_retrials: num_retrials - 1, force_chat_completions: force_chat_completions, &block)
+        run(params, research_mode: research_mode, timeout_sec: timeout_sec, num_retrials: num_retrials - 1, force_chat_completions: force_chat_completions, structured_output: structured_output, &block)
       end
     end
 
     def get_json(data)
       case data
       when %r{<JSON>\n*(\{.+?\})\n*</JSON>}m
+        json = Regexp.last_match(1).gsub(/\r\n?/, "\n").gsub(/\r\n/) { "\n" }
+        res = JSON.parse(json)
+      when /```json\s*(\{.+\})\s*```/m
+        # Handle markdown code block format
         json = Regexp.last_match(1).gsub(/\r\n?/, "\n").gsub(/\r\n/) { "\n" }
         res = JSON.parse(json)
       when /(\{.+\})/m
@@ -516,6 +454,20 @@ module OpenAI
         res = data
       end
       res
+    end
+
+    # Parse structured output JSON
+    # With structured output, the response is guaranteed to be valid JSON
+    def parse_structured_json(data)
+      return data if data.is_a?(Hash)
+
+      json_str = data.to_s.strip
+      # Remove any wrapper if present (shouldn't happen with structured output, but just in case)
+      json_str = json_str.sub(/\A<JSON>\n?/, "").sub(/\n?<\/JSON>\z/, "")
+      JSON.parse(json_str)
+    rescue JSON::ParserError => e
+      # Fallback to legacy parsing if structured output somehow fails
+      get_json(data)
     end
 
     def run_iteration(params, prompts, template, replace_key = "{{PROMPT}}", timeout_sec: 60, num_retrials: 0)
