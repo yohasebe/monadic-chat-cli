@@ -39,6 +39,12 @@ RSpec.describe OpenAI do
       expect(OpenAI::AVAILABLE_MODELS).to be_frozen
     end
 
+    it "contains GPT-5 series models" do
+      expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5")
+      expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5-mini")
+      expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5-nano")
+    end
+
     it "contains GPT-4.1 series models" do
       expect(OpenAI::AVAILABLE_MODELS).to include("gpt-4.1")
       expect(OpenAI::AVAILABLE_MODELS).to include("gpt-4.1-mini")
@@ -71,18 +77,50 @@ RSpec.describe OpenAI do
       expect(OpenAI::AVAILABLE_MODELS).not_to include("chatgpt-4o-latest")
     end
 
+    it "does not contain gpt-5-codex (Responses API only)" do
+      expect(OpenAI::AVAILABLE_MODELS).not_to include("gpt-5-codex")
+    end
+
     it "all models use chat/completions endpoint" do
       OpenAI::AVAILABLE_MODELS.each do |_model, endpoint|
         expect(endpoint).to eq("chat/completions")
       end
     end
 
-    it "has exactly 7 models" do
-      expect(OpenAI::AVAILABLE_MODELS.size).to eq(7)
+    it "has exactly 10 models" do
+      expect(OpenAI::AVAILABLE_MODELS.size).to eq(10)
+    end
+  end
+
+  describe "RESPONSES_API_ONLY_MODELS" do
+    it "is a frozen array" do
+      expect(OpenAI::RESPONSES_API_ONLY_MODELS).to be_frozen
+    end
+
+    it "contains gpt-5-codex" do
+      expect(OpenAI::RESPONSES_API_ONLY_MODELS).to include("gpt-5-codex")
+    end
+
+    it "models are not in AVAILABLE_MODELS" do
+      OpenAI::RESPONSES_API_ONLY_MODELS.each do |model|
+        expect(OpenAI::AVAILABLE_MODELS).not_to include(model)
+      end
     end
   end
 
   describe ".model_to_method" do
+    it "returns chat/completions for gpt-5" do
+      expect(OpenAI.model_to_method("gpt-5")).to eq("chat/completions")
+    end
+
+    it "returns chat/completions for gpt-5-mini" do
+      expect(OpenAI.model_to_method("gpt-5-mini")).to eq("chat/completions")
+    end
+
+    it "returns chat/completions for gpt-5-nano" do
+      expect(OpenAI.model_to_method("gpt-5-nano")).to eq("chat/completions")
+    end
+
     it "returns chat/completions for gpt-4o-mini" do
       expect(OpenAI.model_to_method("gpt-4o-mini")).to eq("chat/completions")
     end
@@ -105,6 +143,10 @@ RSpec.describe OpenAI do
 
     it "exits with error for deprecated model" do
       expect { OpenAI.model_to_method("gpt-3.5-turbo") }.to raise_error(SystemExit)
+    end
+
+    it "exits with error for Responses API only model (gpt-5-codex)" do
+      expect { OpenAI.model_to_method("gpt-5-codex") }.to raise_error(SystemExit)
     end
   end
 

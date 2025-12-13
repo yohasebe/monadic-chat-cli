@@ -25,19 +25,30 @@ module OpenAI
   end
 
   # Available models for Chat Completions API
-  # Note: GPT-5 series uses the new Responses API and is not compatible with this CLI (yet)
+  # Note: gpt-5-codex requires Responses API only (not supported here yet)
+  # For full GPT-5 features (chain-of-thought, etc.), consider using Responses API
   AVAILABLE_MODELS = {
-    # GPT-4.1 series (latest, recommended)
+    # GPT-5 series (supports both Chat Completions and Responses API)
+    "gpt-5" => "chat/completions",
+    "gpt-5-mini" => "chat/completions",
+    "gpt-5-nano" => "chat/completions",
+    # GPT-4.1 series
     "gpt-4.1" => "chat/completions",
     "gpt-4.1-mini" => "chat/completions",
     "gpt-4.1-nano" => "chat/completions",
-    # GPT-4o series (current mainstream)
+    # GPT-4o series
     "gpt-4o" => "chat/completions",
     "gpt-4o-mini" => "chat/completions",
     "gpt-4o-2024-11-20" => "chat/completions",
     # GPT-4 Turbo (legacy but still available)
     "gpt-4-turbo" => "chat/completions"
   }.freeze
+
+  # Models that require Responses API (not yet supported)
+  # These models cannot be used with Chat Completions API
+  RESPONSES_API_ONLY_MODELS = %w[
+    gpt-5-codex
+  ].freeze
 
   # Expensive models that require user confirmation before use
   # These models have significantly higher costs per token
@@ -75,9 +86,15 @@ module OpenAI
     if res.nil?
       puts ""
       puts "============================================================="
-      puts "Model #{model} not found."
-      puts "Maybe you are trying to use a model not available any more."
-      puts "Check your monadic_chat.conf and try again."
+      if RESPONSES_API_ONLY_MODELS.include?(model)
+        puts "Model #{model} requires the Responses API."
+        puts "This model is not yet supported by Monadic Chat CLI."
+        puts "Please use a different model (e.g., gpt-5, gpt-5-mini)."
+      else
+        puts "Model #{model} not found."
+        puts "Maybe you are trying to use a model not available any more."
+        puts "Check your monadic_chat.conf and try again."
+      end
       puts "============================================================="
       puts ""
       exit 1
