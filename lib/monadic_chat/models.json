@@ -606,14 +606,6 @@
       1,
       128000
     ],
-    "reasoning_effort": [
-      [
-        "medium",
-        "high",
-        "xhigh"
-      ],
-      "medium"
-    ],
     "tool_capability": true,
     "vision_capability": false,
     "supports_structured_output": false,
