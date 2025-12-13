@@ -14,10 +14,14 @@ module MonadicChat
       # Accumulation modes for passing context between requests
       ACCUMULATION_MODES = %w[none append replace summary].freeze
 
+      # Default prompt for AI summarization
+      SUMMARY_PROMPT = "Summarize the following text concisely, preserving key information and context that would be relevant for subsequent tasks. Keep the summary brief but comprehensive."
+
       # @param completion [OpenAI::Completion] The completion instance
       def initialize(completion)
         @completion = completion
         @job = nil
+        @current_summary = nil
       end
 
       # Start a sequential batch job
@@ -29,6 +33,7 @@ module MonadicChat
       # @option config [String] :accumulation_mode How to pass context (none, append, replace, summary)
       # @option config [String] :accumulation_placeholder Placeholder for replace mode (default: {{PREVIOUS}})
       # @option config [Integer] :context_window How many previous results to include (default: 1)
+      # @option config [String] :summary_prompt Custom prompt for AI summarization (summary mode only)
       # @yield [Hash] Called after each record with progress info
       # @return [Hash] The job metadata with results
       def start(input_path:, config: {}, &block)
@@ -50,6 +55,10 @@ module MonadicChat
 
         placeholder = config[:accumulation_placeholder] || "{{PREVIOUS}}"
         context_window = config[:context_window] || 1
+        summary_prompt = config[:summary_prompt] || SUMMARY_PROMPT
+
+        # Reset summary for new job
+        @current_summary = nil
 
         # Create job record
         @job = JobManager.create(
@@ -96,7 +105,12 @@ module MonadicChat
             results << result
             previous_results << response_text
 
-            # Keep only context_window results
+            # Update summary if in summary mode (for next iteration)
+            if accumulation_mode == "summary"
+              update_summary(response_text, summary_prompt, config)
+            end
+
+            # Keep only context_window results for non-summary modes
             previous_results = previous_results.last(context_window) if previous_results.size > context_window
 
             # Update job progress
@@ -205,12 +219,11 @@ module MonadicChat
             content.gsub(placeholder, context)
           end
         when "summary"
-          # For summary mode, include a condensed version of all previous results
-          if previous_results.empty?
+          # For summary mode, use AI-generated summary of previous results
+          if @current_summary.nil? || @current_summary.empty?
             content
           else
-            summary = previous_results.map.with_index { |r, i| "#{i + 1}. #{r[0, 200]}..." }.join("\n")
-            "Summary of previous #{previous_results.size} results:\n#{summary}\n\n---\n\nCurrent input:\n#{content}"
+            "Summary of previous results:\n#{@current_summary}\n\n---\n\nCurrent input:\n#{content}"
           end
         else
           content
@@ -227,6 +240,45 @@ module MonadicChat
           "max_tokens" => config[:max_tokens] || config["max_tokens"] || 2000,
           "stream" => true
         }
+      end
+
+      # Update the running summary with new result using AI
+      # @param new_result [String] The new result to incorporate
+      # @param summary_prompt [String] The prompt for summarization
+      # @param config [Hash] Configuration options
+      def update_summary(new_result, summary_prompt, config)
+        # Build content to summarize
+        content_to_summarize = if @current_summary.nil? || @current_summary.empty?
+                                 "New result:\n#{new_result}"
+                               else
+                                 "Current summary:\n#{@current_summary}\n\n---\n\nNew result to incorporate:\n#{new_result}"
+                               end
+
+        # Build summarization request
+        params = {
+          "model" => config[:model] || config["model"] || "gpt-5-mini",
+          "messages" => [
+            { "role" => "system", "content" => summary_prompt },
+            { "role" => "user", "content" => content_to_summarize }
+          ],
+          "max_tokens" => config[:summary_max_tokens] || 500,
+          "stream" => true
+        }
+
+        # Execute summarization
+        @current_summary = @completion.run(
+          params,
+          research_mode: false,
+          timeout_sec: config[:timeout_sec] || 60,
+          num_retrials: config[:num_retrials] || 1
+        )
+      rescue StandardError => e
+        # If summarization fails, fall back to truncated summary
+        @current_summary = if @current_summary.nil? || @current_summary.empty?
+                             new_result[0, 500]
+                           else
+                             "#{@current_summary}\n\n#{new_result[0, 200]}"
+                           end
       end
     end
   end

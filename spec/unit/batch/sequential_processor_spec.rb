@@ -199,6 +199,81 @@ RSpec.describe MonadicChat::Batch::SequentialProcessor do
       end
     end
 
+    context "with accumulation mode summary" do
+      it "uses AI to generate summary of previous results" do
+        call_count = 0
+        received_prompts = []
+        allow(mock_completion).to receive(:run) do |params, **_kwargs|
+          received_prompts << params["messages"].last["content"]
+          call_count += 1
+          if params["messages"].first&.dig("content")&.include?("Summarize")
+            # This is a summarization request
+            "Summary of result #{call_count / 2}"
+          else
+            # This is the main request
+            "Response #{call_count}"
+          end
+        end
+
+        processor.start(
+          input_path: input_file,
+          config: { model: "gpt-5-mini", accumulation_mode: "summary" }
+        )
+
+        # First prompt has no summary
+        expect(received_prompts[0]).to eq("First prompt")
+
+        # After first result, summarization is called, then second prompt includes summary
+        # Find prompts that include "Summary of previous results"
+        prompts_with_summary = received_prompts.select { |p| p.include?("Summary of previous results") }
+        expect(prompts_with_summary).not_to be_empty
+      end
+
+      it "calls AI for each summarization step" do
+        call_count = 0
+        summarization_calls = 0
+        allow(mock_completion).to receive(:run) do |params, **_kwargs|
+          if params["messages"].first&.dig("content")&.include?("Summarize")
+            summarization_calls += 1
+            "Summary #{summarization_calls}"
+          else
+            call_count += 1
+            "Response #{call_count}"
+          end
+        end
+
+        processor.start(
+          input_path: input_file,
+          config: { model: "gpt-5-mini", accumulation_mode: "summary" }
+        )
+
+        # 3 main requests + 3 summarization requests (one after each result)
+        expect(call_count).to eq(3)
+        expect(summarization_calls).to eq(3)
+      end
+
+      it "uses custom summary_prompt if provided" do
+        received_system_prompts = []
+        allow(mock_completion).to receive(:run) do |params, **_kwargs|
+          system_content = params["messages"].first&.dig("content")
+          received_system_prompts << system_content if system_content
+          "Response"
+        end
+
+        custom_prompt = "Create a brief summary focusing on key decisions."
+        processor.start(
+          input_path: input_file,
+          config: {
+            model: "gpt-5-mini",
+            accumulation_mode: "summary",
+            summary_prompt: custom_prompt
+          }
+        )
+
+        expect(received_system_prompts).to include(custom_prompt)
+      end
+    end
+
     context "with empty input" do
       let(:empty_file) do
         path = File.join(temp_input_dir, "empty.txt")

@@ -756,12 +756,13 @@ module MonadicChat
             --accumulation, -a   Context passing: none (default), append, replace, summary
             --context-window, -w Number of previous results to include (default: 1)
             --placeholder        Placeholder text for replace mode (default: {{PREVIOUS}})
+            --summary-prompt     Custom prompt for AI summarization (summary mode only)
 
           #{pastel.bold('Accumulation Modes:')}
             none              Each request is independent
             append            Previous results prepended to input: "Previous results: ... Current input: ..."
             replace           Replace placeholder in input with previous results
-            summary           Summary of all previous results prepended to input
+            summary           AI-generated summary of previous results prepended to input
 
           #{pastel.bold('Options for list:')}
             --status          Filter by status (completed, failed, in_progress, etc.)
@@ -821,6 +822,9 @@ module MonadicChat
           when "--context-window", "-w"
             options[:context_window] = args[i + 1].to_i
             i += 2
+          when "--summary-prompt"
+            options[:summary_prompt] = args[i + 1]
+            i += 2
           when "--status"
             options[:status] = args[i + 1]
             i += 2
@@ -857,6 +861,7 @@ module MonadicChat
         config[:accumulation_mode] = options[:accumulation_mode] if options[:accumulation_mode]
         config[:accumulation_placeholder] = options[:accumulation_placeholder] if options[:accumulation_placeholder]
         config[:context_window] = options[:context_window] if options[:context_window]
+        config[:summary_prompt] = options[:summary_prompt] if options[:summary_prompt]
 
         config
       end
