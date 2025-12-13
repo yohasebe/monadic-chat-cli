@@ -2,7 +2,10 @@
 
 require_relative "./monadic_params"
 
-RSpec.describe "Translate" do
+# Integration tests requiring OpenAI API authentication
+# Run with: INTEGRATION=1 bundle exec rspec
+
+RSpec.describe "Translate", :integration do
   replacements = {
     "mode" => :replace,
     "{{TARGET_LANG}}" => "English"

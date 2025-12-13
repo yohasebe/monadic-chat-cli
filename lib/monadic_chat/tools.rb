@@ -5,19 +5,23 @@ class MonadicApp
   # method for web search
   ##################################################
 
-  def bing_search(query, num_retrial: 3)
+  def bing_search(query, cache = {}, num_retrial: 3)
+    return cache[query] if cache.key?(query)
+
     base_uri = "https://www.bing.com/search?setlang=en"
     css_selector = "#b_results"
 
     q = URI.encode_www_form(q: query)
     doc = Nokogiri::HTML(URI.parse([base_uri, q].join("&")).read)
     doc.css("script, link").each(&:remove)
-    doc.css(css_selector).text.squeeze(" \n")
-  rescue StandardError
+    result = doc.css(css_selector).text.squeeze(" \n")
+    cache[query] = result
+    result
+  rescue StandardError => e
     num_retrial -= 1
     if num_retrial.positive?
       sleep 1
-      bing_search(keywords, num_retrial: num_retrial)
+      bing_search(query, cache, num_retrial: num_retrial)
     else
       "empty"
     end
@@ -75,11 +79,11 @@ class MonadicApp
     cache[title] = text
 
     text
-  rescue StandardError
+  rescue StandardError => e
     num_retrial -= 1
     if num_retrial.positive?
       sleep 1
-      wikipedia_search(keywords, num_retrial: num_retrial)
+      wikipedia_search(keywords, cache, num_retrial: num_retrial)
     else
       "empty"
     end

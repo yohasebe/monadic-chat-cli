@@ -14,33 +14,64 @@ RETRY_MAX_COUNT = 10
 RETRY_WAIT_TIME_SEC = 1
 
 module OpenAI
+  # Default models for different modes
+  # Updated: December 2025
   def self.default_model(research_mode: false)
     if research_mode
-      "gpt-4o-2024-08-06"
+      "gpt-4o"
     else # normal mode
       "gpt-4o-mini"
     end
   end
 
+  # Available models for Chat Completions API
+  # Note: GPT-5 series uses the new Responses API and is not compatible with this CLI (yet)
+  AVAILABLE_MODELS = {
+    # GPT-4.1 series (latest, recommended)
+    "gpt-4.1" => "chat/completions",
+    "gpt-4.1-mini" => "chat/completions",
+    "gpt-4.1-nano" => "chat/completions",
+    # GPT-4o series (current mainstream)
+    "gpt-4o" => "chat/completions",
+    "gpt-4o-mini" => "chat/completions",
+    "gpt-4o-2024-11-20" => "chat/completions",
+    # GPT-4 Turbo (legacy but still available)
+    "gpt-4-turbo" => "chat/completions"
+  }.freeze
+
+  # Expensive models that require user confirmation before use
+  # These models have significantly higher costs per token
+  # Pattern matching is used to catch model variants (e.g., gpt-5-pro, gpt-5.2-pro)
+  EXPENSIVE_MODEL_PATTERNS = [
+    /\bgpt-5.*-pro\b/i,       # GPT-5 Pro variants (extremely expensive)
+    /\bo3-pro\b/i,            # o3-pro (extremely expensive)
+    /\bgpt-5-codex-max\b/i,   # GPT-5 Codex Max
+    /\bo1-pro\b/i             # o1-pro
+  ].freeze
+
+  # Check if a model is expensive and requires confirmation
+  def self.expensive_model?(model)
+    EXPENSIVE_MODEL_PATTERNS.any? { |pattern| pattern.match?(model) }
+  end
+
+  # Get warning message for expensive models
+  def self.expensive_model_warning(model)
+    <<~WARNING
+      ============================================================
+      WARNING: High-cost model selected!
+
+      Model: #{model}
+
+      This model has significantly higher costs compared to
+      standard models. A single conversation could cost $10-100+.
+
+      Please ensure you understand the pricing before proceeding.
+      ============================================================
+    WARNING
+  end
+
   def self.model_to_method(model)
-    res = {
-      "gpt-3.5-turbo-0125" => "chat/completions",
-      "gpt-3.5-turbo-1106" => "chat/completions",
-      "gpt-3.5-turbo" => "chat/completions",
-      "gpt-3.5-turbo-16k" => "chat/completions",
-      "gpt-4o-mini-2024-07-18" => "chat/completions",
-      "gpt-4o-mini" => "chat/completions",
-      "gpt-4o" => "chat/completions",
-      "chatgpt-4o-latest" => "chat/completions",
-      "gpt-4o-2024-08-06" => "chat/completions",
-      "gpt-4o-2024-05-13" => "chat/completions",
-      "gpt-4-0125-preview" => "chat/completions",
-      "gpt-4-turbo-preview" => "chat/completions",
-      "gpt-4-1106-preview" => "chat/completions",
-      "gpt-4" => "chat/completions",
-      "gpt-4-0613" => "chat/completions",
-      "gpt-4-32K" => "chat/completions"
-    }[model]
+    res = AVAILABLE_MODELS[model]
     if res.nil?
       puts ""
       puts "============================================================="
@@ -132,13 +163,15 @@ module OpenAI
         res
       end
     end
-  rescue HTTP::Error, HTTP::TimeoutError
-    if num_retrial < MAX_RETRIES
-      num_retrial += 1
-      sleep RETRY_DELAY
+  rescue HTTP::Error, HTTP::TimeoutError => e
+    @retry_count ||= 0
+    @retry_count += 1
+    if @retry_count < RETRY_MAX_COUNT
+      sleep RETRY_WAIT_TIME_SEC
       retry
     else
-      res = { "type" => "error", "content" => "Error: Timeout" }
+      @retry_count = 0
+      res = { "type" => "error", "content" => "Error: #{e.class} - #{e.message}" }
       pp res
       block&.call res
       res

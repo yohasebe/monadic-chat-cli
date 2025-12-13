@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
+# Integration tests requiring OpenAI API authentication
+# Run with: INTEGRATION=1 bundle exec rspec spec/normal_mode_chat_spec.rb
+
 require_relative "./monadic_params"
 
-RSpec.describe "Chat" do
+RSpec.describe "Chat", :integration do
   chat = Chat.new(COMPLETION, research_mode: false, params: PARAMS)
 
   inputs = [

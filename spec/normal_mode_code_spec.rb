@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
-RSpec.describe "Code" do
+# Integration tests requiring OpenAI API authentication
+# Run with: INTEGRATION=1 bundle exec rspec
+
+RSpec.describe "Code", :integration do
   code = Code.new(COMPLETION, research_mode: false, params: PARAMS)
 
   inputs = [

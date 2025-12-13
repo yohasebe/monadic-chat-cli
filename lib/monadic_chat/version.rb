@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module MonadicChat
-  VERSION = "0.4.6b"
+  VERSION = "0.5.0"
 end

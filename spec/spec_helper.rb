@@ -10,4 +10,10 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  # Filter integration tests unless INTEGRATION env var is set
+  config.filter_run_excluding integration: true unless ENV["INTEGRATION"]
+
+  # Output formatting
+  config.formatter = :documentation if ENV["VERBOSE"]
 end

@@ -2,7 +2,10 @@
 
 require_relative "./monadic_params"
 
-RSpec.describe "MonadicApp::Wikipedia" do
+# Integration tests requiring OpenAI API authentication
+# Run with: INTEGRATION=1 bundle exec rspec
+
+RSpec.describe "MonadicApp::Wikipedia", :integration do
   wikipedia = Wikipedia.new(COMPLETION, research_mode: false, params: PARAMS)
 
   inputs = [

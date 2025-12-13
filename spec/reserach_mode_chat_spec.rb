@@ -2,7 +2,10 @@
 
 require_relative "./monadic_params"
 
-RSpec.describe "MonadicApp::Chat" do
+# Integration tests requiring OpenAI API authentication
+# Run with: INTEGRATION=1 bundle exec rspec
+
+RSpec.describe "MonadicApp::Chat", :integration do
   chat = Chat.new(COMPLETION, research_mode: true, stream: true, params: PARAMS)
 
   inputs = [

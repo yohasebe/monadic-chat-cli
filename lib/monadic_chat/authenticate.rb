@@ -54,7 +54,7 @@ module MonadicChat
         SETTINGS["research_model"] ||= OpenAI.default_model(research_mode: true)
         mdprint "- Research mode model: `#{SETTINGS["research_model"]}`\n" if message
 
-        SETTINGS["max_tokens_wiki"] = 1000 unless SETTINGS["max_chars_wiki"].to_i.between?(100, 4000)
+        SETTINGS["max_tokens_wiki"] = 1000 unless SETTINGS["max_tokens_wiki"].to_i.between?(100, 4000)
         SETTINGS["num_retrials"] = 2 unless SETTINGS["num_retrials"].to_i.between?(1, 10)
         SETTINGS["min_query_size"] = 5 unless SETTINGS["min_query_size"].to_i.between?(1, 20)
         SETTINGS["timeout_sec"] = 120 unless SETTINGS["timeout_sec"].to_i.between?(10, 600)

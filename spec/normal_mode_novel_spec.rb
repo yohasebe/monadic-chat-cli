@@ -2,7 +2,10 @@
 
 require_relative "./monadic_params"
 
-RSpec.describe "Novel" do
+# Integration tests requiring OpenAI API authentication
+# Run with: INTEGRATION=1 bundle exec rspec
+
+RSpec.describe "Novel", :integration do
   novel = Novel.new(COMPLETION, research_mode: false, params: PARAMS)
 
   inputs = [

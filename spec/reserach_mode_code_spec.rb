@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
-RSpec.describe "MonadicApp::Code" do
+# Integration tests requiring OpenAI API authentication
+# Run with: INTEGRATION=1 bundle exec rspec
+
+RSpec.describe "MonadicApp::Code", :integration do
   code = Code.new(COMPLETION, research_mode: true, stream: true, params: PARAMS)
 
   inputs = [

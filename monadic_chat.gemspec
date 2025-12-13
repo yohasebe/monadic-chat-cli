@@ -41,6 +41,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "http"
   spec.add_dependency "kramdown"
   spec.add_dependency "launchy"
+  spec.add_dependency "nokogiri"
   spec.add_dependency "oj"
   spec.add_dependency "pastel"
   spec.add_dependency "rexml", ">= 3.3.6"

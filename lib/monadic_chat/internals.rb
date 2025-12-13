@@ -37,7 +37,6 @@ class MonadicApp
     else
       replacements.each do |key, value|
         @messages[0]["content"].gsub!(key, value)
-        messages[0]["content"]
       end
       true
     end
@@ -197,7 +196,7 @@ class MonadicApp
                   end
                 # otherwise, it should be by "assistant"
                 else
-                  { role: "assistant", content: @mode == :researh ? unit(res) : res }
+                  { role: "assistant", content: @mode == :research ? unit(res) : res }
                 end
               end
 
@@ -226,7 +225,7 @@ class MonadicApp
     when /\bSEARCH_WEB\("?(.+?)"?\)/m
       @web_search_cache ||= {}
       search_key = Regexp.last_match(1)
-      bing_search(search_key, @web_searh_cache)
+      bing_search(search_key, @web_search_cache)
     else
       false
     end

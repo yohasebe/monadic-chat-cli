@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "securerandom"
+
 class MonadicApp
   ##################################################
   # methods for showing menu and menu items
@@ -128,21 +130,42 @@ class MonadicApp
 
     begin
       File.open(filepath, "w") do |f|
-        case @mode
-        when :research
-          m = /JSON:\n+```json\s*(\{.+\})\s*```\n\n/m.match(@template)
-          data = JSON.parse(m[1])
-          data["messages"] = @messages
-          f.write JSON.pretty_generate(data)
-        when :normal
-          f.write JSON.pretty_generate({ "messages" => @messages })
+        # Convert messages to Monadic Chat format (using 'text' instead of 'content')
+        formatted_messages = @messages.map do |msg|
+          {
+            "role" => msg["role"],
+            "text" => msg["content"] || msg["text"],
+            "mid" => msg["mid"] || SecureRandom.hex(4)
+          }
         end
 
-        print "Data has been saved successfully\n"
+        # Build export data in Monadic Chat format
+        export_data = {
+          "parameters" => {
+            "app_name" => self.class.name,
+            "model" => @params["model"],
+            "temperature" => @params["temperature"],
+            "max_tokens" => @params["max_tokens"],
+            "mode" => @mode.to_s
+          },
+          "messages" => formatted_messages
+        }
+
+        # For research mode, also include template data
+        if @mode == :research
+          m = /JSON:\n+```json\s*(\{.+\})\s*```\n\n/m.match(@template)
+          if m
+            template_data = JSON.parse(m[1])
+            export_data["parameters"].merge!(template_data.reject { |k, _| k == "messages" })
+          end
+        end
+
+        f.write JSON.pretty_generate(export_data)
+        print "Data has been saved successfully (Monadic Chat format)\n"
       end
       true
-    rescue StandardError
-      print "Error: Something went wrong"
+    rescue StandardError => e
+      print "Error: #{e.message}\n"
       false
     end
   end
@@ -168,23 +191,54 @@ class MonadicApp
       filepath = File.expand_path(input.strip)
       json = File.read(filepath)
       data = JSON.parse(json)
-      case @mode
-      when :research
-        self.class.name.downcase.split("::")[-1]
 
-        raise unless data["mode"] == self.class.name.downcase.split("::")[-1]
+      # Support both Monadic Chat format and legacy format
+      messages = if data["messages"]
+                   data["messages"]
+                 elsif data["parameters"] && data["messages"]
+                   data["messages"]
+                 else
+                   raise "Invalid format: no messages found"
+                 end
 
-        @messages = data.delete "messages"
-        @template = @template.sub(/JSON:\n+```json\s*\{.+\}\s*```\n\n/m, "JSON:\n\n```json\n#{JSON.pretty_generate(data).strip}\n```\n\n")
-      when :normal
-        raise unless data["messages"] && data["messages"][0]["role"]
-
-        @messages = data["messages"]
+      # Convert messages from Monadic Chat format ('text') to CLI format ('content')
+      @messages = messages.map do |msg|
+        {
+          "role" => msg["role"],
+          "content" => msg["text"] || msg["content"],
+          "mid" => msg["mid"] || SecureRandom.hex(4)
+        }
       end
-      print "Data has been loaded successfully\n"
+
+      # Validate messages
+      raise "Invalid messages structure" unless @messages.first && @messages.first["role"]
+
+      # Handle research mode template updates
+      if @mode == :research && data["parameters"]
+        params_for_template = data["parameters"].reject { |k, _| %w[app_name messages].include?(k) }
+        unless params_for_template.empty?
+          @template = @template.sub(
+            /JSON:\n+```json\s*\{.+\}\s*```\n\n/m,
+            "JSON:\n\n```json\n#{JSON.pretty_generate(params_for_template).strip}\n```\n\n"
+          )
+        end
+      end
+
+      # Update model if specified in loaded data
+      if data["parameters"] && data["parameters"]["model"]
+        loaded_model = data["parameters"]["model"]
+        if OpenAI::AVAILABLE_MODELS.key?(loaded_model)
+          @params["model"] = loaded_model
+          print "Model set to: #{loaded_model}\n"
+        else
+          print "Warning: Model '#{loaded_model}' not available, keeping current model\n"
+        end
+      end
+
+      print "Data has been loaded successfully (#{@messages.size} messages)\n"
       true
-    rescue StandardError
-      print "The data structure is not valid for this app\n"
+    rescue StandardError => e
+      print "Error loading data: #{e.message}\n"
       false
     end
   end

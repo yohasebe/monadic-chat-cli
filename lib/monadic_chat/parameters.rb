@@ -2,7 +2,7 @@
 
 class MonadicApp
   ##################################################
-  # methods for parametter setting
+  # methods for parameter setting
   ##################################################
 
   def change_parameter
@@ -90,11 +90,21 @@ class MonadicApp
         end
       end
     end
-    if model == "cancel"
-      nil
-    else
-      model
+    return nil if model == "cancel"
+
+    # Check if the selected model is expensive and requires confirmation
+    if OpenAI.expensive_model?(model)
+      print "\n"
+      print PASTEL.bold.red(OpenAI.expensive_model_warning(model))
+      print "\n"
+      confirmed = PROMPT_SYSTEM.yes?("Are you sure you want to use this expensive model?", default: false)
+      unless confirmed
+        print PASTEL.yellow("Model selection cancelled.\n")
+        return nil
+      end
     end
+
+    model
   end
 
   def show_params
@@ -104,7 +114,7 @@ class MonadicApp
 
       params_md += "- #{key}: #{val}\n"
     end
-    print prompt_system, "\n"
+    print PROMPT_SYSTEM.prefix, "\n"
     print "#{TTY::Markdown.parse(params_md, indent: 0).strip}\n\n"
   end
 end
