@@ -25,12 +25,12 @@ end
 
 RSpec.describe OpenAI do
   describe ".default_model" do
-    it "returns gpt-4o-mini for normal mode" do
-      expect(OpenAI.default_model(research_mode: false)).to eq("gpt-4o-mini")
+    it "returns gpt-5-mini for normal mode" do
+      expect(OpenAI.default_model(research_mode: false)).to eq("gpt-5-mini")
     end
 
-    it "returns gpt-4o for research mode" do
-      expect(OpenAI.default_model(research_mode: true)).to eq("gpt-4o")
+    it "returns gpt-5 for research mode" do
+      expect(OpenAI.default_model(research_mode: true)).to eq("gpt-5")
     end
   end
 

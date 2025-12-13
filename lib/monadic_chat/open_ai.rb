@@ -22,9 +22,9 @@ module OpenAI
   # Updated: December 2025
   def self.default_model(research_mode: false)
     if research_mode
-      "gpt-4o"
+      "gpt-5"
     else # normal mode
-      "gpt-4o-mini"
+      "gpt-5-mini"
     end
   end
 
