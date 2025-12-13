@@ -130,6 +130,10 @@ when 1
     MonadicChat.open_readme
   when "version", "-v"
     print MonadicChat::PROMPT_SYSTEM.prefix, MonadicChat::VERSION, "\n"
+  when "batch"
+    # batch help
+    require_relative "../lib/monadic_chat/batch_commands"
+    MonadicChat::BatchCommands.run([])
   else
     MonadicChat::APPS.each do |app|
       next unless app == ARGV[0]
@@ -141,7 +145,11 @@ when 1
     print MonadicChat::PROMPT_SYSTEM.prefix, "Unknown command", "\n"
   end
 else
-  if ARGV[0] == "new"
+  if ARGV[0] == "batch"
+    # batch subcommands
+    require_relative "../lib/monadic_chat/batch_commands"
+    MonadicChat::BatchCommands.run(ARGV[1..])
+  elsif ARGV[0] == "new"
     if ARGV[1].to_s != "" && !MonadicChat::APPS.include?(ARGV[1])
       MonadicChat.create_app(ARGV[1])
     else

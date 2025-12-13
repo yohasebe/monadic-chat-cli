@@ -13,7 +13,7 @@ module MonadicChat
   def self.prompt_system
     box_width = 8
     name = "System".center(box_width, " ")
-    "\n#{PASTEL.black.on_bright_green(name)}"
+    "\n#{PASTEL.white.on_green(name)}"
   end
 
   def self.prompt_user
