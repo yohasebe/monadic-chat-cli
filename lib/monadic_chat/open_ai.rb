@@ -151,6 +151,37 @@ module OpenAI
     end
   end
 
+  # Extract text from Responses API output array structure
+  # @param output [Array] The output array from Responses API
+  # @return [String] Concatenated text from all output_text items
+  def self.extract_output_text(output)
+    return "" unless output.is_a?(Array)
+
+    texts = []
+    output.each do |item|
+      next unless item["type"] == "message" && item["content"]
+
+      item["content"].each do |content|
+        texts << content["text"] if content["type"] == "output_text"
+      end
+    end
+    texts.join("")
+  end
+
+  # Build choices structure for compatibility with Chat Completions API format
+  # @param parsed [Hash] The parsed response
+  # @param output_text [String] The extracted output text
+  # @return [Hash] The response with choices structure added
+  def self.build_choices_response(parsed, output_text)
+    parsed ||= {}
+    parsed["output_text"] ||= output_text
+    parsed["choices"] = [{
+      "text" => output_text,
+      "finish_reason" => parsed["status"] == "completed" ? "stop" : (parsed["status"] || "stop")
+    }]
+    parsed
+  end
+
   # Query method for Responses API
   # Handles the different request/response format of the Responses API
   def self.query_responses(access_token, timeout_sec = 60, query = {}, &block)
@@ -220,16 +251,7 @@ module OpenAI
               elsif parsed["output"]
                 # Response with output array
                 json = parsed
-                # Extract text from output array
-                parsed["output"]&.each do |item|
-                  if item["type"] == "message" && item["content"]
-                    item["content"].each do |content|
-                      if content["type"] == "output_text"
-                        output_text << content["text"].to_s
-                      end
-                    end
-                  end
-                end
+                output_text << extract_output_text(parsed["output"])
               end
 
               current_event = nil
@@ -244,45 +266,19 @@ module OpenAI
 
       # Build final response structure compatible with existing code
       final_text = output_text.empty? ? json&.dig("output_text") : output_text
-      if json || !output_text.empty?
-        json ||= {}
-        json["output_text"] ||= final_text
-        json["choices"] = [{
-          "text" => final_text,
-          "finish_reason" => json["status"] == "completed" ? "stop" : (json["status"] || "stop")
-        }]
-      end
-      json
+      (json || !output_text.empty?) ? build_choices_response(json, final_text) : json
     else
       begin
         parsed = JSON.parse(res.body)
 
         # Check for API error
-        if parsed["error"]
-          return { "error" => parsed["error"] }
-        end
+        return { "error" => parsed["error"] } if parsed["error"]
 
         # Extract text from output array if present
-        output_text = parsed["output_text"]
-        if output_text.nil? && parsed["output"]
-          texts = []
-          parsed["output"]&.each do |item|
-            if item["type"] == "message" && item["content"]
-              item["content"].each do |content|
-                texts << content["text"] if content["type"] == "output_text"
-              end
-            end
-          end
-          output_text = texts.join("")
-        end
+        output_text = parsed["output_text"] || extract_output_text(parsed["output"])
 
         # Add choices structure for compatibility with existing code
-        parsed["output_text"] ||= output_text
-        parsed["choices"] = [{
-          "text" => output_text,
-          "finish_reason" => parsed["status"] == "completed" ? "stop" : (parsed["status"] || "stop")
-        }]
-        parsed
+        build_choices_response(parsed, output_text)
       rescue JSON::ParserError => e
         { "type" => "error", "content" => "Error: JSON Parsing - #{e.message}" }
       end
