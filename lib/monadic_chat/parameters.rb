@@ -5,6 +5,37 @@ class MonadicApp
   # methods for parameter setting
   ##################################################
 
+  # Helper: Ask for numeric value with range validation
+  # @param prompt [String] The prompt message
+  # @param min [Numeric] Minimum value
+  # @param max [Numeric] Maximum value
+  # @param type [Symbol] :int or :float
+  # @return [Numeric, nil] The entered value or nil if cancelled
+  def ask_numeric_value(prompt, min:, max:, type: :int)
+    PROMPT_SYSTEM.ask(prompt, convert: type) do |q|
+      q.in "#{min}-#{max}"
+      q.messages[:range?] = "Value out of expected range [#{min} to #{max}]"
+    end
+  end
+
+  # Helper: Select from options with Cancel and current value highlight
+  # @param prompt [String] The prompt message
+  # @param options [Array<String>] Available options
+  # @param current [String, nil] Current value to highlight
+  # @return [String, nil] Selected value or nil if cancelled
+  def select_from_options(prompt, options:, current: nil)
+    return nil if options.nil? || options.empty?
+
+    selected = PROMPT_SYSTEM.select(prompt, per_page: 6, cycle: true, show_help: :never, default: 1) do |menu|
+      menu.choice "#{BULLET} Cancel", "cancel"
+      options.each do |opt|
+        label = (current && opt == current) ? "#{opt} (current)" : opt
+        menu.choice "#{BULLET} #{label}", opt
+      end
+    end
+    selected == "cancel" ? nil : selected
+  end
+
   def change_parameter
     # Check if current model supports reasoning_effort and verbosity
     model = @params["model"]
@@ -49,32 +80,20 @@ class MonadicApp
   end
 
   def change_max_tokens
-    PROMPT_SYSTEM.ask("Set value of max tokens [1000 to 16000]:", convert: :int) do |q|
-      q.in "1000-16000"
-      q.messages[:range?] = "Value out of expected range [1000 to 16000]"
-    end
+    ask_numeric_value("Set value of max tokens [1000 to 16000]:", min: 1000, max: 16000, type: :int)
   end
 
   def change_reasoning_effort
     model = @params["model"]
     available = OpenAI.available_reasoning_efforts(model)
-    current = @params["reasoning_effort"] || OpenAI.default_reasoning_effort(model)
 
     unless available
       print PASTEL.red("This model does not support reasoning_effort\n")
       return nil
     end
 
-    effort = PROMPT_SYSTEM.select("Select reasoning effort:", per_page: 6, cycle: true, show_help: :never, default: 1) do |menu|
-      menu.choice "#{BULLET} Cancel", "cancel"
-      available.each do |e|
-        label = e == current ? "#{e} (current)" : e
-        menu.choice "#{BULLET} #{label}", e
-      end
-    end
-    return nil if effort == "cancel"
-
-    effort
+    current = @params["reasoning_effort"] || OpenAI.default_reasoning_effort(model)
+    select_from_options("Select reasoning effort:", options: available, current: current)
   end
 
   def change_verbosity
@@ -93,31 +112,15 @@ class MonadicApp
     end
 
     current = @params["verbosity"] || OpenAI.default_verbosity(model)
-
-    verbosity = PROMPT_SYSTEM.select("Select verbosity level:", per_page: 6, cycle: true, show_help: :never, default: 1) do |menu|
-      menu.choice "#{BULLET} Cancel", "cancel"
-      available.each do |v|
-        label = v == current ? "#{v} (current)" : v
-        menu.choice "#{BULLET} #{label}", v
-      end
-    end
-    return nil if verbosity == "cancel"
-
-    verbosity
+    select_from_options("Select verbosity level:", options: available, current: current)
   end
 
   def change_temperature
-    PROMPT_SYSTEM.ask("Set value of temperature [0.0 to 1.0]:", convert: :float) do |q|
-      q.in "0.0-1.0"
-      q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
-    end
+    ask_numeric_value("Set value of temperature [0.0 to 1.0]:", min: 0.0, max: 1.0, type: :float)
   end
 
   def change_top_p
-    PROMPT_SYSTEM.ask("Set value of top_p [0.0 to 1.0]:", convert: :float) do |q|
-      q.in "0.0-1.0"
-      q.messages[:range?] = "Value out of expected range [0.0 to 1.0]"
-    end
+    ask_numeric_value("Set value of top_p [0.0 to 1.0]:", min: 0.0, max: 1.0, type: :float)
   end
 
 
