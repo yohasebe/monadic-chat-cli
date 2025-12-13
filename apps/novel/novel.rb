@@ -16,8 +16,6 @@ class Novel < MonadicApp
     params = {
       "temperature" => 0.3,
       "top_p" => 1.0,
-      "presence_penalty" => 0.1,
-      "frequency_penalty" => 0.1,
       "model" => research_mode ? SETTINGS["research_model"] : SETTINGS["normal_model"],
       "max_tokens" => max_tokens,
       "stream" => stream,

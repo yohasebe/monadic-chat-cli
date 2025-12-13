@@ -16,8 +16,6 @@ class {{APP_CLASS_NAME}} < MonadicApp
     params = {
       "temperature" => 0.3,
       "top_p" => 1.0,
-      "presence_penalty" => 0.2,
-      "frequency_penalty" => 0.2,
       "model" => research_mode ? SETTINGS["research_model"] : SETTINGS["normal_model"],
       "max_tokens" => max_tokens,
       "stream" => stream,

@@ -26,8 +26,6 @@ class MonadicApp
       if verbosity_available
         menu.choice "#{BULLET} verbosity: #{current_verbosity}", "verbosity"
       end
-      menu.choice "#{BULLET} frequency_penalty: #{@params["frequency_penalty"]}", "frequency_penalty"
-      menu.choice "#{BULLET} presence_penalty: #{@params["presence_penalty"]}", "presence_penalty"
     end
     return if parameter == "cancel"
 
@@ -45,10 +43,6 @@ class MonadicApp
       value = change_temperature
     when "top_p"
       value = change_top_p
-    when "frequency_penalty"
-      value = change_frequency_penalty
-    when "presence_penalty"
-      value = change_presence_penalty
     end
     @params[parameter] = value if value
     print "Parameter #{parameter} has been set to #{PASTEL.green(value)}\n" if value
@@ -126,19 +120,6 @@ class MonadicApp
     end
   end
 
-  def change_frequency_penalty
-    PROMPT_SYSTEM.ask("Set value of frequency penalty [-2.0 to 2.0]:", convert: :float) do |q|
-      q.in "-2.0-2.0"
-      q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
-    end
-  end
-
-  def change_presence_penalty
-    PROMPT_SYSTEM.ask("Set value of presence penalty [-2.0 to 2.0]:", convert: :float) do |q|
-      q.in "-2.0-2.0"
-      q.messages[:range?] = "Value out of expected range [-2.0 to 2.0]"
-    end
-  end
 
   def change_model
     model = PROMPT_SYSTEM.select("Select a model:", per_page: 12, cycle: false, show_help: :never, default: 1) do |menu|
