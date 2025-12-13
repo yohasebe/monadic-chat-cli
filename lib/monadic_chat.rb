@@ -27,8 +27,8 @@ Oj.mimic_JSON
 
 module MonadicChat
   SETTINGS = {
-    "normal_model" => "gpt-4o-mini",
-    "research_model" => "gpt-4o",
+    "normal_model" => "gpt-5-mini",
+    "research_model" => "gpt-5",
     "max_tokens_wiki" => 1600,
     "num_retrials" => 2,
     "min_query_size" => 5,

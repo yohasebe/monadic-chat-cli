@@ -8,10 +8,11 @@ require_relative "./monadic_chat/menu"
 require_relative "./monadic_chat/parameters"
 require_relative "./monadic_chat/internals"
 require_relative "./monadic_chat/tools"
+require_relative "./monadic_chat/research_schemas"
 
 class MonadicApp
   include MonadicChat
-  attr_reader :template, :messages, :turns
+  attr_reader :template, :messages, :turns, :app_name
 
   def initialize(mode:, params:, template_json:, template_md:, placeholders:, prop_accumulator:, prop_newdata:, update_proc:)
     @mode = mode.to_sym
@@ -23,6 +24,9 @@ class MonadicApp
     @params_initial = params
     @params = @params_initial.dup
     @html = false
+
+    # Store app name for structured output schema lookup
+    @app_name = self.class.name.downcase
 
     @method = OpenAI.model_to_method(@params["model"])
 

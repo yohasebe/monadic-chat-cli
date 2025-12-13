@@ -15,3 +15,6 @@
 .rubocop.yml
 .solargraph.yml
 tags
+
+# Maintainer scripts (not shared on GitHub)
+/scripts/

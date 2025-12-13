@@ -27,7 +27,7 @@ module MonadicChat
         if message
           SPINNER.stop
           print TTY::Cursor.restore, "\n"
-          mdprint "#{PASTEL.on_green(" System ")} Config file: `#{CONFIG}`\n"
+          mdprint "#{PASTEL.black.on_bright_green(" System ")} Config file: `#{CONFIG}`\n"
           print "\n"
           mdprint "- Authentication: #{PASTEL.bold.green("Success")}\n"
         end

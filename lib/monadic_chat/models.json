@@ -1,0 +1,1369 @@
+{
+  "gpt-5": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      128000
+    ],
+    "reasoning_effort": [
+      [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "minimal"
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "verbosity": [
+      [
+        "low",
+        "medium",
+        "high"
+      ],
+      "medium"
+    ],
+    "api_type": "responses",
+    "supports_web_search": true,
+    "supports_pdf_upload": true,
+    "skip_in_progress_events": true,
+    "feature_constraints": {
+      "reasoning_effort": {
+        "incompatible_with": {
+          "web_search": [
+            "minimal"
+          ]
+        }
+      }
+    }
+  },
+  "gpt-5-mini": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      128000
+    ],
+    "reasoning_effort": [
+      [
+        "low",
+        "medium",
+        "high"
+      ],
+      "low"
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "verbosity": [
+      [
+        "low",
+        "medium",
+        "high"
+      ],
+      "medium"
+    ],
+    "api_type": "responses",
+    "supports_web_search": true,
+    "supports_pdf_upload": true,
+    "skip_in_progress_events": true
+  },
+  "gpt-5-nano": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      128000
+    ],
+    "reasoning_effort": [
+      [
+        "low",
+        "medium",
+        "high"
+      ],
+      "low"
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "verbosity": [
+      [
+        "low",
+        "medium",
+        "high"
+      ],
+      "medium"
+    ],
+    "api_type": "responses",
+    "supports_web_search": true,
+    "skip_in_progress_events": true
+  },
+  "gpt-5-pro": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      272000
+    ],
+    "reasoning_effort": [
+      [
+        "high"
+      ],
+      "high"
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "supports_structured_output": true,
+    "api_type": "responses",
+    "supports_web_search": true,
+    "supports_image_generation": true,
+    "supports_pdf_upload": true,
+    "skip_in_progress_events": true,
+    "streaming_not_supported": true
+  },
+  "gpt-4.1": {
+    "context_window": [
+      1,
+      1047576
+    ],
+    "max_output_tokens": [
+      1,
+      32768
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "supports_web_search": true,
+    "supports_pdf_upload": true,
+    "api_type": "responses",
+    "skip_in_progress_events": true
+  },
+  "gpt-4.1-mini": {
+    "context_window": [
+      1,
+      1047576
+    ],
+    "max_output_tokens": [
+      1,
+      32768
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "supports_web_search": true,
+    "supports_pdf_upload": true,
+    "api_type": "responses",
+    "skip_in_progress_events": true
+  },
+  "gpt-4.1-nano": {
+    "context_window": [
+      1,
+      1047576
+    ],
+    "max_output_tokens": [
+      1,
+      32768
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "api_type": "responses",
+    "skip_in_progress_events": true
+  },
+  "gpt-5-chat-latest": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "verbosity": [
+      [
+        "medium"
+      ],
+      "medium"
+    ],
+    "supports_structured_output": true,
+    "api_type": "responses",
+    "supports_web_search": true,
+    "supports_image_generation": true,
+    "supports_pdf_upload": true,
+    "skip_in_progress_events": true
+  },
+  "gpt-5.1": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      128000
+    ],
+    "reasoning_effort": [
+      [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ],
+      "none"
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "verbosity": [
+      [
+        "low",
+        "medium",
+        "high"
+      ],
+      "medium"
+    ],
+    "supports_structured_output": true,
+    "api_type": "responses",
+    "supports_web_search": true,
+    "supports_pdf_upload": true,
+    "skip_in_progress_events": true
+  },
+  "gpt-5.1-chat-latest": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "reasoning_effort": [
+      [
+        "medium"
+      ],
+      "medium"
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "verbosity": [
+      [
+        "medium"
+      ],
+      "medium"
+    ],
+    "supports_structured_output": true,
+    "api_type": "responses",
+    "supports_web_search": true,
+    "supports_image_generation": true,
+    "supports_pdf_upload": true,
+    "skip_in_progress_events": true
+  },
+  "gpt-5.1-codex": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      128000
+    ],
+    "reasoning_effort": [
+      [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ],
+      "none"
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "api_type": "responses",
+    "supports_streaming": true,
+    "supports_temperature": false,
+    "supports_top_p": false,
+    "supports_presence_penalty": false,
+    "supports_frequency_penalty": false,
+    "supports_structured_output": true,
+    "is_agent_model": true,
+    "agent_type": "coding",
+    "adaptive_reasoning": true,
+    "supports_web_search": false,
+    "supports_pdf": false,
+    "skip_in_progress_events": true
+  },
+  "gpt-5.1-codex-mini": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      128000
+    ],
+    "reasoning_effort": [
+      [
+        "none",
+        "low",
+        "medium"
+      ],
+      "none"
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "api_type": "responses",
+    "supports_streaming": true,
+    "supports_temperature": false,
+    "supports_top_p": false,
+    "supports_presence_penalty": false,
+    "supports_frequency_penalty": false,
+    "supports_structured_output": true,
+    "is_agent_model": true,
+    "agent_type": "coding",
+    "adaptive_reasoning": true,
+    "supports_web_search": false,
+    "supports_pdf": false,
+    "skip_in_progress_events": true
+  },
+  "gpt-5.1-codex-max": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      128000
+    ],
+    "reasoning_effort": [
+      [
+        "none",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "none"
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "api_type": "responses",
+    "supports_streaming": true,
+    "supports_temperature": false,
+    "supports_top_p": false,
+    "supports_presence_penalty": false,
+    "supports_frequency_penalty": false,
+    "supports_structured_output": true,
+    "is_agent_model": true,
+    "agent_type": "coding",
+    "adaptive_reasoning": true,
+    "supports_web_search": false,
+    "supports_pdf": false,
+    "skip_in_progress_events": true
+  },
+  "gpt-5.2": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      128000
+    ],
+    "reasoning_effort": [
+      [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "none"
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "verbosity": [
+      [
+        "low",
+        "medium",
+        "high"
+      ],
+      "medium"
+    ],
+    "supports_structured_output": true,
+    "api_type": "responses",
+    "supports_web_search": true,
+    "supports_pdf_upload": true,
+    "skip_in_progress_events": true
+  },
+  "gpt-5.2-chat-latest": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "reasoning_effort": [
+      [
+        "medium"
+      ],
+      "medium"
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "verbosity": [
+      [
+        "medium"
+      ],
+      "medium"
+    ],
+    "supports_structured_output": true,
+    "api_type": "responses",
+    "supports_web_search": true,
+    "supports_image_generation": true,
+    "supports_pdf_upload": true,
+    "skip_in_progress_events": true
+  },
+  "gpt-5.2-pro": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      128000
+    ],
+    "tool_capability": true,
+    "vision_capability": false,
+    "supports_structured_output": false,
+    "api_type": "responses",
+    "supports_web_search": false,
+    "supports_pdf_upload": false,
+    "skip_in_progress_events": true,
+    "requires_confirmation": true
+  },
+  "gpt-4o": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "supports_pdf_upload": true
+  },
+  "chatgpt-4o-latest": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "supports_pdf_upload": true,
+    "skip_in_progress_events": true
+  },
+  "gpt-4o-mini": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "supports_pdf_upload": true
+  },
+  "gpt-4o-audio-preview": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "audio_capability": true
+  },
+  "gpt-4o-realtime-preview": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      4096
+    ],
+    "temperature": [
+      [
+        0.6,
+        1.2
+      ],
+      0.8
+    ],
+    "tool_capability": true,
+    "vision_capability": false,
+    "audio_capability": true,
+    "realtime_capability": true
+  },
+  "gpt-4o-transcribe-diarize": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": false,
+    "vision_capability": false,
+    "supports_diarization": true
+  },
+  "gpt-5-codex": {
+    "context_window": [
+      1,
+      400000
+    ],
+    "max_output_tokens": [
+      1,
+      128000
+    ],
+    "tool_capability": true,
+    "vision_capability": false,
+    "api_type": "responses",
+    "supports_streaming": true,
+    "supports_temperature": false,
+    "supports_top_p": false,
+    "supports_presence_penalty": false,
+    "supports_frequency_penalty": false,
+    "is_agent_model": true,
+    "agent_type": "coding",
+    "adaptive_reasoning": true,
+    "supports_web_search": false,
+    "supports_pdf": false,
+    "supports_pdf_upload": false
+  },
+  "o1": {
+    "context_window": [
+      1,
+      200000
+    ],
+    "max_output_tokens": [
+      25000,
+      100000
+    ],
+    "tool_capability": false,
+    "vision_capability": false
+  },
+  "o1-pro": {
+    "context_window": [
+      1,
+      200000
+    ],
+    "max_output_tokens": [
+      25000,
+      100000
+    ],
+    "reasoning_effort": [
+      [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ],
+      "low"
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "supports_streaming": false,
+    "requires_confirmation": true
+  },
+  "o3": {
+    "context_window": [
+      1,
+      200000
+    ],
+    "max_output_tokens": [
+      1,
+      100000
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "reasoning_effort": [
+      [
+        "low",
+        "medium",
+        "high"
+      ],
+      "low"
+    ],
+    "api_type": "responses",
+    "supports_web_search": true,
+    "latency_tier": "slow",
+    "is_reasoning_model": true
+  },
+  "o3-pro": {
+    "context_window": [
+      1,
+      200000
+    ],
+    "max_output_tokens": [
+      1,
+      100000
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "reasoning_effort": [
+      [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ],
+      "medium"
+    ],
+    "supports_streaming": false,
+    "api_type": "responses",
+    "supports_web_search": true,
+    "latency_tier": "slow",
+    "is_reasoning_model": true,
+    "requires_confirmation": true
+  },
+  "o3-mini": {
+    "context_window": [
+      1,
+      200000
+    ],
+    "max_output_tokens": [
+      1,
+      100000
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": false,
+    "reasoning_effort": [
+      [
+        "low",
+        "medium",
+        "high"
+      ],
+      "low"
+    ],
+    "api_type": "responses",
+    "is_reasoning_model": true
+  },
+  "o3-deep-research": {
+    "context_window": [
+      1,
+      200000
+    ],
+    "max_output_tokens": [
+      1,
+      100000
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "reasoning_effort": [
+      [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ],
+      "high"
+    ],
+    "is_reasoning_model": true
+  },
+  "o4-mini": {
+    "context_window": [
+      1,
+      200000
+    ],
+    "max_output_tokens": [
+      1,
+      100000
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "reasoning_effort": [
+      [
+        "low",
+        "medium",
+        "high"
+      ],
+      "low"
+    ],
+    "api_type": "responses",
+    "supports_web_search": true
+  },
+  "o4-mini-deep-research": {
+    "context_window": [
+      1,
+      200000
+    ],
+    "max_output_tokens": [
+      1,
+      100000
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": true,
+    "reasoning_effort": [
+      [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ],
+      "high"
+    ]
+  },
+  "codex-mini-latest": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      0.7
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true
+  },
+  "gpt-4": {
+    "context_window": [
+      1,
+      8192
+    ],
+    "max_output_tokens": [
+      1,
+      4096
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": true,
+    "vision_capability": false
+  },
+  "gpt-4o-mini-transcribe": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": false,
+    "vision_capability": false
+  },
+  "gpt-4o-transcribe": {
+    "context_window": [
+      1,
+      128000
+    ],
+    "max_output_tokens": [
+      1,
+      16384
+    ],
+    "temperature": [
+      [
+        0.0,
+        2.0
+      ],
+      1.0
+    ],
+    "top_p": [
+      [
+        0.0,
+        1.0
+      ],
+      1.0
+    ],
+    "presence_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "frequency_penalty": [
+      [
+        -2.0,
+        2.0
+      ],
+      0.0
+    ],
+    "tool_capability": false,
+    "vision_capability": false
+  }
+}
