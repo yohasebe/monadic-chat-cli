@@ -205,16 +205,16 @@ In the function menu, you can use the cursor keys and the enter key to make a se
 
 **params/settings/config**
 
-You can set parameters to be sent to OpenAI's APIs. The items that can be set are listed below. 
+You can set parameters to be sent to OpenAI's APIs. The available parameters depend on the model being used:
 
-- `model`
-- `max_tokens`
-- `temperature`
-- `top_p`
-- `frequency_penalty`
-- `presence_penalty`
+- `model`: Select from available GPT-5 series models
+- `max_tokens`: Maximum tokens for the response (1000-16000)
+- `reasoning_effort`: Controls reasoning depth for GPT-5 reasoning models (minimal/low/medium/high/xhigh depending on model)
+- `temperature`: Controls randomness (0.0-1.0, only for non-reasoning models)
+- `top_p`: Nucleus sampling parameter (0.0-1.0, only for non-reasoning models)
+- `verbosity`: Controls response verbosity (low/medium/high, only for supported GPT-5 models)
 
-For detailed information on each parameter, please refer to OpenAI's [API Documentation](https://platform.openai.com/docs/). The default value of each parameter depends on the individual "mode" and "app."
+For detailed information on each parameter, please refer to OpenAI's [API Documentation](https://platform.openai.com/docs/). The default value of each parameter depends on the individual "mode," "app," and selected model.
 
 **data/context**
 

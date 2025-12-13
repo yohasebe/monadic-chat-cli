@@ -1,5 +1,27 @@
 ## [Unreleased]
 
+## [0.6.0] - 2024-12-13
+
+### Added
+- Support for OpenAI's Responses API (`/v1/responses`)
+- GPT-5 series models: gpt-5, gpt-5-mini, gpt-5-nano, gpt-5-pro, gpt-5-chat-latest
+- GPT-5.1 series models: gpt-5.1, gpt-5.1-chat-latest, gpt-5.1-codex, gpt-5.1-codex-mini, gpt-5.1-codex-max
+- GPT-5.2 series models: gpt-5.2, gpt-5.2-chat-latest, gpt-5.2-pro
+- Model-specific parameter handling (reasoning_effort, verbosity)
+- Expensive model confirmation for high-cost models (*-pro series)
+- Model specifications synced from Monadic Chat (non-CLI)
+
+### Changed
+- Default models updated: `gpt-5-mini` (normal mode), `gpt-5` (research mode)
+- UI limited to GPT-5 series models only
+- Reasoning models use reasoning_effort instead of temperature/top_p
+- Verbosity parameter available for supported GPT-5 models
+- Increased max_tokens: 8000 (research mode), 2000 (normal mode)
+
+### Removed
+- frequency_penalty and presence_penalty parameters (use API defaults)
+- Support for older models in UI (GPT-4 series still work via config file)
+
 ## [0.1.0] - 2023-01-03
 
 - Initial commit (private)
