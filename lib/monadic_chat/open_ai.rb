@@ -15,6 +15,49 @@ RETRY_MAX_COUNT = 10
 RETRY_WAIT_TIME_SEC = 1
 
 module OpenAI
+  # Build HTTP client with standard headers
+  # @param access_token [String] API access token
+  # @param streaming [Boolean] Whether to accept streaming responses
+  # @return [HTTP::Client] Configured HTTP client
+  def self.build_http_client(access_token, streaming: false)
+    headers = {
+      "Content-Type" => "application/json",
+      "Authorization" => "Bearer #{access_token}"
+    }
+    headers["Accept"] = "text/event-stream" if streaming
+    HTTP.headers(headers)
+  end
+
+  # Standard timeout settings
+  # @param timeout_sec [Integer] Read/write timeout in seconds
+  # @return [Hash] Timeout settings hash
+  def self.timeout_settings(timeout_sec)
+    {
+      connect: OPEN_TIMEOUT,
+      write: timeout_sec,
+      read: timeout_sec
+    }
+  end
+
+  # Execute block with retry logic for HTTP errors
+  # @param max_retries [Integer] Maximum retry attempts
+  # @param wait_time [Integer] Wait time between retries in seconds
+  # @yield Block to execute
+  # @return Result of block or error hash
+  def self.with_retry(max_retries: RETRY_MAX_COUNT, wait_time: RETRY_WAIT_TIME_SEC, &block)
+    retry_count = 0
+    begin
+      yield
+    rescue HTTP::Error, HTTP::TimeoutError => e
+      retry_count += 1
+      if retry_count < max_retries
+        sleep wait_time
+        retry
+      else
+        { "type" => "error", "content" => "Error: #{e.class} - #{e.message}" }
+      end
+    end
+  end
   # Legacy constant for backward compatibility with tests
   # Maps model name to api_type string
   AVAILABLE_MODELS = MODEL_SPECS.transform_values { |spec|
@@ -30,25 +73,15 @@ module OpenAI
   # Query method for Chat Completions API
   def self.query(access_token, mode, method, timeout_sec = 60, query = {}, &block)
     target_uri = "https://api.openai.com/v1/#{method}"
-    headers = {
-      "Content-Type" => "application/json",
-      "Authorization" => "Bearer #{access_token}"
-    }
-    headers["Accept"] = "text/event-stream" if query["stream"]
-    http = HTTP.headers(headers)
+    http = build_http_client(access_token, streaming: query["stream"])
+    timeouts = timeout_settings(timeout_sec)
 
-    timeout_settings = {
-      connect: OPEN_TIMEOUT,
-      write: timeout_sec,
-      read: timeout_sec
-    }
-
-    case mode
-    when "post"
-      res = http.timeout(timeout_settings).post(target_uri, json: query)
-    when "get"
-      res = http.timeout(timeout_settings).get(target_uri)
-    end
+    res = case mode
+          when "post"
+            http.timeout(timeouts).post(target_uri, json: query)
+          when "get"
+            http.timeout(timeouts).get(target_uri)
+          end
 
     if query["stream"]
       json = nil
@@ -122,20 +155,10 @@ module OpenAI
   # Handles the different request/response format of the Responses API
   def self.query_responses(access_token, timeout_sec = 60, query = {}, &block)
     target_uri = "https://api.openai.com/v1/responses"
-    headers = {
-      "Content-Type" => "application/json",
-      "Authorization" => "Bearer #{access_token}"
-    }
-    headers["Accept"] = "text/event-stream" if query["stream"]
-    http = HTTP.headers(headers)
+    http = build_http_client(access_token, streaming: query["stream"])
+    timeouts = timeout_settings(timeout_sec)
 
-    timeout_settings = {
-      connect: OPEN_TIMEOUT,
-      write: timeout_sec,
-      read: timeout_sec
-    }
-
-    res = http.timeout(timeout_settings).post(target_uri, json: query)
+    res = http.timeout(timeouts).post(target_uri, json: query)
 
     # Check response status
     unless res.status.success?
