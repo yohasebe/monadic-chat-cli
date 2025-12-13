@@ -39,6 +39,18 @@ RSpec.describe OpenAI do
       expect(OpenAI::AVAILABLE_MODELS).to be_frozen
     end
 
+    it "contains GPT-5.2 series models" do
+      expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5.2")
+      expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5.2-mini")
+      expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5.2-nano")
+    end
+
+    it "contains GPT-5.1 series models" do
+      expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5.1")
+      expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5.1-mini")
+      expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5.1-nano")
+    end
+
     it "contains GPT-5 series models" do
       expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5")
       expect(OpenAI::AVAILABLE_MODELS).to include("gpt-5-mini")
@@ -81,14 +93,20 @@ RSpec.describe OpenAI do
       expect(OpenAI::AVAILABLE_MODELS).not_to include("gpt-5-codex")
     end
 
-    it "all models use chat/completions endpoint" do
-      OpenAI::AVAILABLE_MODELS.each do |_model, endpoint|
-        expect(endpoint).to eq("chat/completions")
+    it "GPT-5+ models use Responses API" do
+      %w[gpt-5 gpt-5-mini gpt-5-nano gpt-5.1 gpt-5.1-mini gpt-5.2 gpt-5.2-mini].each do |model|
+        expect(OpenAI::AVAILABLE_MODELS[model]).to eq(OpenAI::API_RESPONSES)
       end
     end
 
-    it "has exactly 10 models" do
-      expect(OpenAI::AVAILABLE_MODELS.size).to eq(10)
+    it "GPT-4 models use Chat Completions API" do
+      %w[gpt-4.1 gpt-4.1-mini gpt-4o gpt-4o-mini gpt-4-turbo].each do |model|
+        expect(OpenAI::AVAILABLE_MODELS[model]).to eq(OpenAI::API_CHAT_COMPLETIONS)
+      end
+    end
+
+    it "has exactly 16 models" do
+      expect(OpenAI::AVAILABLE_MODELS.size).to eq(16)
     end
   end
 
@@ -97,8 +115,10 @@ RSpec.describe OpenAI do
       expect(OpenAI::RESPONSES_API_ONLY_MODELS).to be_frozen
     end
 
-    it "contains gpt-5-codex" do
+    it "contains gpt-5-codex variants" do
       expect(OpenAI::RESPONSES_API_ONLY_MODELS).to include("gpt-5-codex")
+      expect(OpenAI::RESPONSES_API_ONLY_MODELS).to include("gpt-5.1-codex")
+      expect(OpenAI::RESPONSES_API_ONLY_MODELS).to include("gpt-5.2-codex")
     end
 
     it "models are not in AVAILABLE_MODELS" do
@@ -108,45 +128,153 @@ RSpec.describe OpenAI do
     end
   end
 
+  describe "DUAL_API_MODELS" do
+    it "is a frozen array" do
+      expect(OpenAI::DUAL_API_MODELS).to be_frozen
+    end
+
+    it "contains GPT-5 series models" do
+      expect(OpenAI::DUAL_API_MODELS).to include("gpt-5")
+      expect(OpenAI::DUAL_API_MODELS).to include("gpt-5.1")
+      expect(OpenAI::DUAL_API_MODELS).to include("gpt-5.2")
+    end
+  end
+
+  describe ".responses_api?" do
+    it "returns true for GPT-5 models" do
+      expect(OpenAI.responses_api?("gpt-5")).to be true
+      expect(OpenAI.responses_api?("gpt-5.1")).to be true
+      expect(OpenAI.responses_api?("gpt-5.2")).to be true
+    end
+
+    it "returns false for GPT-4 models" do
+      expect(OpenAI.responses_api?("gpt-4o")).to be false
+      expect(OpenAI.responses_api?("gpt-4.1")).to be false
+    end
+  end
+
+  describe ".chat_completions_api?" do
+    it "returns true for GPT-4 models" do
+      expect(OpenAI.chat_completions_api?("gpt-4o")).to be true
+      expect(OpenAI.chat_completions_api?("gpt-4.1")).to be true
+    end
+
+    it "returns true for dual-API GPT-5 models (fallback support)" do
+      expect(OpenAI.chat_completions_api?("gpt-5")).to be true
+      expect(OpenAI.chat_completions_api?("gpt-5.1")).to be true
+    end
+  end
+
   describe ".model_to_method" do
-    it "returns chat/completions for gpt-5" do
-      expect(OpenAI.model_to_method("gpt-5")).to eq("chat/completions")
+    context "with Responses API models" do
+      it "returns responses for gpt-5" do
+        expect(OpenAI.model_to_method("gpt-5")).to eq("responses")
+      end
+
+      it "returns responses for gpt-5.1" do
+        expect(OpenAI.model_to_method("gpt-5.1")).to eq("responses")
+      end
+
+      it "returns responses for gpt-5.2" do
+        expect(OpenAI.model_to_method("gpt-5.2")).to eq("responses")
+      end
     end
 
-    it "returns chat/completions for gpt-5-mini" do
-      expect(OpenAI.model_to_method("gpt-5-mini")).to eq("chat/completions")
+    context "with force_chat_completions for dual-API models" do
+      it "returns chat/completions for gpt-5 when forced" do
+        expect(OpenAI.model_to_method("gpt-5", force_chat_completions: true)).to eq("chat/completions")
+      end
+
+      it "returns chat/completions for gpt-5.2 when forced" do
+        expect(OpenAI.model_to_method("gpt-5.2", force_chat_completions: true)).to eq("chat/completions")
+      end
     end
 
-    it "returns chat/completions for gpt-5-nano" do
-      expect(OpenAI.model_to_method("gpt-5-nano")).to eq("chat/completions")
+    context "with Chat Completions API models" do
+      it "returns chat/completions for gpt-4o-mini" do
+        expect(OpenAI.model_to_method("gpt-4o-mini")).to eq("chat/completions")
+      end
+
+      it "returns chat/completions for gpt-4.1" do
+        expect(OpenAI.model_to_method("gpt-4.1")).to eq("chat/completions")
+      end
+
+      it "returns chat/completions for gpt-4o" do
+        expect(OpenAI.model_to_method("gpt-4o")).to eq("chat/completions")
+      end
+
+      it "returns chat/completions for gpt-4-turbo" do
+        expect(OpenAI.model_to_method("gpt-4-turbo")).to eq("chat/completions")
+      end
     end
 
-    it "returns chat/completions for gpt-4o-mini" do
-      expect(OpenAI.model_to_method("gpt-4o-mini")).to eq("chat/completions")
+    context "with error cases" do
+      it "exits with error for invalid model" do
+        expect { OpenAI.model_to_method("invalid-model-name") }.to raise_error(SystemExit)
+      end
+
+      it "exits with error for deprecated model" do
+        expect { OpenAI.model_to_method("gpt-3.5-turbo") }.to raise_error(SystemExit)
+      end
+
+      it "exits with error for Responses API only model (gpt-5-codex)" do
+        expect { OpenAI.model_to_method("gpt-5-codex") }.to raise_error(SystemExit)
+      end
+    end
+  end
+
+  describe ".convert_to_responses_format" do
+    it "converts simple message to input string" do
+      params = {
+        "model" => "gpt-5",
+        "messages" => [
+          { "role" => "user", "content" => "Hello" }
+        ]
+      }
+      result = OpenAI.convert_to_responses_format(params)
+      expect(result["input"]).to eq("Hello")
+      expect(result["model"]).to eq("gpt-5")
     end
 
-    it "returns chat/completions for gpt-4.1" do
-      expect(OpenAI.model_to_method("gpt-4.1")).to eq("chat/completions")
+    it "extracts system message as instructions" do
+      params = {
+        "model" => "gpt-5",
+        "messages" => [
+          { "role" => "system", "content" => "You are helpful" },
+          { "role" => "user", "content" => "Hello" }
+        ]
+      }
+      result = OpenAI.convert_to_responses_format(params)
+      expect(result["instructions"]).to eq("You are helpful")
+      expect(result["input"]).to eq("Hello")
     end
 
-    it "returns chat/completions for gpt-4o" do
-      expect(OpenAI.model_to_method("gpt-4o")).to eq("chat/completions")
+    it "converts multi-turn conversation to array input" do
+      params = {
+        "model" => "gpt-5",
+        "messages" => [
+          { "role" => "user", "content" => "Hello" },
+          { "role" => "assistant", "content" => "Hi!" },
+          { "role" => "user", "content" => "How are you?" }
+        ]
+      }
+      result = OpenAI.convert_to_responses_format(params)
+      expect(result["input"]).to be_an(Array)
+      expect(result["input"].size).to eq(3)
     end
 
-    it "returns chat/completions for gpt-4-turbo" do
-      expect(OpenAI.model_to_method("gpt-4-turbo")).to eq("chat/completions")
-    end
-
-    it "exits with error for invalid model" do
-      expect { OpenAI.model_to_method("invalid-model-name") }.to raise_error(SystemExit)
-    end
-
-    it "exits with error for deprecated model" do
-      expect { OpenAI.model_to_method("gpt-3.5-turbo") }.to raise_error(SystemExit)
-    end
-
-    it "exits with error for Responses API only model (gpt-5-codex)" do
-      expect { OpenAI.model_to_method("gpt-5-codex") }.to raise_error(SystemExit)
+    it "copies compatible parameters" do
+      params = {
+        "model" => "gpt-5",
+        "messages" => [{ "role" => "user", "content" => "Hello" }],
+        "stream" => true,
+        "temperature" => 0.7,
+        "max_tokens" => 1000
+      }
+      result = OpenAI.convert_to_responses_format(params)
+      expect(result["stream"]).to be true
+      expect(result["temperature"]).to eq(0.7)
+      expect(result["max_output_tokens"]).to eq(1000)
     end
   end
 
