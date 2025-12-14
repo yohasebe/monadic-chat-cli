@@ -7,6 +7,10 @@ class Batch < MonadicApp
   DESC = "Interactive Batch Processing Assistant"
   COLOR = "cyan"
 
+  # Enable native tool use for batch processing
+  # This allows the model to call batch and file tools directly
+  enable_tools :batch, :file
+
   attr_accessor :template, :config, :params, :completion, :batch_config
 
   def initialize(openai_completion, research_mode: false, stream: true, params: {})

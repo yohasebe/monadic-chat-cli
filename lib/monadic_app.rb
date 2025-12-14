@@ -9,10 +9,94 @@ require_relative "./monadic_chat/parameters"
 require_relative "./monadic_chat/internals"
 require_relative "./monadic_chat/tools"
 require_relative "./monadic_chat/research_schemas"
+require_relative "./monadic_chat/tool_definitions"
+require_relative "./monadic_chat/tool_executor"
 
 class MonadicApp
   include MonadicChat
   attr_reader :template, :messages, :turns, :app_name
+
+  ##################################################
+  # Tool registration class methods
+  ##################################################
+
+  class << self
+    attr_accessor :registered_tools, :tools_enabled
+
+    # Enable native tool use for this app
+    # @param tool_sets [Array<Symbol>] Tool categories to enable
+    #   Available categories:
+    #   - :search - Wikipedia and web search tools
+    #   - :wikipedia - Only Wikipedia search
+    #   - :web - Only web search
+    #   - :batch - Batch processing tools
+    #   - :file - File operation tools
+    #   - :all - All available tools
+    #
+    # @example Enable search tools
+    #   class MyApp < MonadicApp
+    #     enable_tools :search
+    #   end
+    #
+    # @example Enable multiple tool sets
+    #   class BatchApp < MonadicApp
+    #     enable_tools :batch, :file
+    #   end
+    def enable_tools(*tool_sets)
+      @tools_enabled = true
+      @registered_tools ||= []
+
+      tool_sets.each do |set|
+        case set
+        when :search
+          @registered_tools.concat(MonadicChat::ToolDefinitions::SEARCH_TOOLS)
+        when :wikipedia
+          @registered_tools << MonadicChat::ToolDefinitions::WIKIPEDIA_SEARCH
+        when :web
+          @registered_tools << MonadicChat::ToolDefinitions::WEB_SEARCH
+        when :batch
+          @registered_tools.concat(MonadicChat::ToolDefinitions::BATCH_TOOLS)
+        when :file
+          @registered_tools.concat(MonadicChat::ToolDefinitions::FILE_TOOLS)
+        when :all
+          @registered_tools.concat(MonadicChat::ToolDefinitions::ALL_TOOLS)
+        end
+      end
+
+      @registered_tools.uniq! { |t| t.dig("function", "name") }
+    end
+
+    # Inherit tool registration from parent class
+    def inherited(subclass)
+      super
+      subclass.instance_variable_set(:@registered_tools, @registered_tools&.dup || [])
+      subclass.instance_variable_set(:@tools_enabled, @tools_enabled || false)
+    end
+  end
+
+  # Initialize class-level defaults
+  @registered_tools = []
+  @tools_enabled = false
+
+  ##################################################
+  # Tool registration instance methods
+  ##################################################
+
+  # Get tools array for API calls
+  # @return [Array<Hash>, nil] Tool definitions or nil if not enabled
+  def tools_for_api
+    return nil unless self.class.tools_enabled
+    return nil if self.class.registered_tools.nil? || self.class.registered_tools.empty?
+
+    # Check if model supports tool calling
+    spec = OpenAI.model_spec(@params["model"])
+    unless spec&.dig("tool_capability")
+      # Model doesn't support tools - fall back to pattern-based
+      return nil
+    end
+
+    self.class.registered_tools
+  end
 
   def initialize(mode:, params:, template_json:, template_md:, placeholders:, prop_accumulator:, prop_newdata:, update_proc:)
     @mode = mode.to_sym

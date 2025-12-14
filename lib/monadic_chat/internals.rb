@@ -63,6 +63,8 @@ class MonadicApp
                         "NEW PROMPT: ###\n#{input}\n###"
                       when "system" # i.e. search engine
                         "SEARCH SNIPPETS: ###\n#{input}\n###"
+                      when "tool" # continue after tool execution
+                        nil
                       end
 
     case @mode
@@ -75,6 +77,9 @@ class MonadicApp
         case role
         when "system"
           system << "#{content}\n" if system == ""
+        when "tool"
+          # Include tool results in messages
+          messages << "- tool: #{content}\n"
         else
           messages << "- #{mes["role"].strip}: #{content}\n"
         end
@@ -82,14 +87,14 @@ class MonadicApp
 
       delimited_messages = "MESSAGES: ###\n#{messages}\n###"
       template = @template.dup.sub("{{SYSTEM}}", system)
-                          .sub("{{PROMPT}}", delimited_input)
+                          .sub("{{PROMPT}}", delimited_input.to_s)
                           .sub("{{MESSAGES}}", delimited_messages.strip)
 
       @template_tokens = count_tokens(template)
 
       File.open(TEMP_MD, "w") { |f| f.write template }
 
-      @messages << { "role" => input_role, "content" => input }
+      @messages << { "role" => input_role, "content" => input } if input_role != "tool"
 
       case @method
       when "completions"
@@ -102,11 +107,15 @@ class MonadicApp
       end
 
     when :normal
-      @messages << { "role" => input_role, "content" => input }
+      @messages << { "role" => input_role, "content" => input } if input_role != "tool"
       params["messages"] = @messages
     end
 
-    @update_proc.call unless input_role == "system"
+    # Add tools if registered for this app
+    tools = tools_for_api
+    params["tools"] = tools if tools
+
+    @update_proc.call unless input_role == "system" || input_role == "tool"
 
     params
   end
@@ -141,6 +150,9 @@ class MonadicApp
   # function to bind data
   ##################################################
 
+  # Maximum iterations for tool execution loop to prevent infinite loops
+  MAX_TOOL_ITERATIONS = 10
+
   def bind(input, role: "user", num_retrials: 0)
     case role
     when "user"
@@ -167,40 +179,86 @@ class MonadicApp
       end
     end
 
-    escaping = +""
-    finished = false
+    # Tool execution loop - handles multiple iterations of tool calls
+    iteration = 0
+    res = nil
 
-    res = @completion.run(params,
-                          research_mode: research_mode,
-                          timeout_sec: SETTINGS["timeout_sec"],
-                          num_retrials: num_retrials,
-                          structured_output: structured_output) do |chunk|
-      if chunk.instance_of?(Hash) && chunk["content"] == "DONE"
-        finished = true
-      elsif chunk.instance_of?(String) && !finished
-        if escaping
-          chunk = escaping + chunk
-          escaping = ""
-        end
-
-        if /(?:\\\z)/ =~ chunk
-          escaping += chunk
-          next
-        else
-          chunk = chunk.gsub('\\n') { "\n" }
-        end
-
-        print chunk
+    loop do
+      iteration += 1
+      if iteration > MAX_TOOL_ITERATIONS
+        print PROMPT_SYSTEM.prefix, "Maximum tool iterations reached\n"
+        break
       end
+
+      escaping = +""
+      finished = false
+
+      res = @completion.run(params,
+                            research_mode: research_mode && iteration == 1 ? false : research_mode, # Skip JSON parsing during tool loop
+                            timeout_sec: SETTINGS["timeout_sec"],
+                            num_retrials: num_retrials,
+                            structured_output: structured_output) do |chunk|
+        if chunk.instance_of?(Hash) && chunk["content"] == "DONE"
+          finished = true
+        elsif chunk.instance_of?(String) && !finished
+          if escaping
+            chunk = escaping + chunk
+            escaping = ""
+          end
+
+          if /(?:\\\z)/ =~ chunk
+            escaping += chunk
+            next
+          else
+            chunk = chunk.gsub('\\n') { "\n" }
+          end
+
+          print chunk
+        end
+      end
+
+      # Check for native tool calls (Hash with "tool_calls" key)
+      if res.is_a?(Hash) && res["tool_calls"] && !res["tool_calls"].empty?
+        tool_calls = res["tool_calls"]
+        text_content = res["text"]
+
+        # Add assistant message with tool calls to messages
+        assistant_msg = { "role" => "assistant" }
+        assistant_msg["content"] = text_content if text_content && !text_content.empty?
+        assistant_msg["tool_calls"] = tool_calls
+        @messages << assistant_msg
+
+        # Execute tools and add results
+        print "\n", PROMPT_SYSTEM.prefix, "Executing #{tool_calls.size} tool(s)...\n"
+
+        tool_results = execute_tools_parallel(tool_calls)
+        tool_results.each do |tool_result|
+          @messages << tool_result
+          # Print tool result summary
+          result_preview = tool_result["content"].to_s[0, 100]
+          result_preview += "..." if tool_result["content"].to_s.length > 100
+          print "  Tool result: #{result_preview}\n"
+        end
+
+        # Continue the loop with tool results
+        params = prepare_params("tool", nil)
+        print PROMPT_ASSISTANT.prefix, "\n"
+        next
+      end
+
+      # No tool calls - exit the loop
+      break
     end
 
     print "\n"
 
+    # Handle the final response (after tool loop completes or if no tool calls)
     message = case role
               when "system" # i.e. search engine; the response given above should be by "assistant"
                 { role: "assistant", content: @mode == :research ? unit(res) : res }
-              when "user" # the response give above should be either "assistant"
-                searched = use_tool(res)
+              when "user", "tool" # the response give above should be either "assistant"
+                # Fallback to legacy pattern-based tool detection if native tools didn't fire
+                searched = use_tool_legacy(res)
                 # but if the response is a search query, it should be by "system" (search engine)
                 if searched
                   @messages << { "role" => "assistant",
@@ -224,10 +282,12 @@ class MonadicApp
   end
 
   ##################################################
-  # function to have GPT use tools
+  # Legacy pattern-based tool detection (backward compatibility)
+  # Used when native tool calls are not available or for apps
+  # that don't have tools registered
   ##################################################
 
-  def use_tool(res)
+  def use_tool_legacy(res)
     case @mode
     when :normal
       text = res
@@ -248,4 +308,7 @@ class MonadicApp
       false
     end
   end
+
+  # Alias for backward compatibility
+  alias use_tool use_tool_legacy
 end

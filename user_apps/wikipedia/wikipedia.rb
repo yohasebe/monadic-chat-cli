@@ -6,6 +6,10 @@ class Wikipedia < MonadicApp
   DESC = "Searches Wikipedia for you (experimental)"
   COLOR = "white"
 
+  # Enable native tool use for Wikipedia search
+  # Falls back to pattern-based detection if model doesn't support tools
+  enable_tools :search
+
   attr_accessor :template, :config, :params, :completion
 
   def initialize(openai_completion, research_mode: false, stream: true, params: {})

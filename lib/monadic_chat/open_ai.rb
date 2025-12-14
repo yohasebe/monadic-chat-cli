@@ -71,6 +71,7 @@ module OpenAI
   }.keys.freeze
 
   # Query method for Chat Completions API
+  # Supports tool calls - tool_calls are accumulated during streaming and returned in response
   def self.query(access_token, mode, method, timeout_sec = 60, query = {}, &block)
     target_uri = "https://api.openai.com/v1/#{method}"
     http = build_http_client(access_token, streaming: query["stream"])
@@ -86,6 +87,8 @@ module OpenAI
     if query["stream"]
       json = nil
       buffer = ""
+      # Accumulate tool calls from streaming deltas
+      tool_calls_buffer = {}
 
       res.body.each do |chunk|
         break if /\Rdata: \[DONE\]\R/ =~ chunk
@@ -101,17 +104,38 @@ module OpenAI
             begin
               res = JSON.parse(json_data)
               choice = res.dig("choices", 0) || {}
+              delta = choice["delta"] || {}
 
-              fragment = choice.dig("delta", "content").to_s
-              next if !fragment || fragment == ""
+              # Accumulate tool calls from delta chunks
+              if delta["tool_calls"]
+                delta["tool_calls"].each do |tc_delta|
+                  idx = tc_delta["index"]
+                  tool_calls_buffer[idx] ||= {
+                    "id" => nil,
+                    "type" => "function",
+                    "function" => { "name" => "", "arguments" => "" }
+                  }
+                  tool_calls_buffer[idx]["id"] ||= tc_delta["id"]
+                  if tc_delta.dig("function", "name")
+                    tool_calls_buffer[idx]["function"]["name"] += tc_delta["function"]["name"]
+                  end
+                  if tc_delta.dig("function", "arguments")
+                    tool_calls_buffer[idx]["function"]["arguments"] += tc_delta["function"]["arguments"]
+                  end
+                end
+              end
 
-              block&.call fragment
+              fragment = delta["content"].to_s
+              # Allow empty fragments when we have tool calls
+              next if fragment.empty? && tool_calls_buffer.empty?
+
+              block&.call fragment unless fragment.empty?
 
               json ||= res
               json["choices"][0]["text"] ||= +""
-              json["choices"][0]["text"] << fragment
+              json["choices"][0]["text"] << fragment unless fragment.empty?
 
-              if choice["finish_reason"] == "length" || choice["finish_reason"] == "stop"
+              if choice["finish_reason"] == "length" || choice["finish_reason"] == "stop" || choice["finish_reason"] == "tool_calls"
                 finish = { "type" => "message", "content" => "DONE" }
                 block&.call finish
                 break
@@ -127,10 +151,21 @@ module OpenAI
           end
         end
       end
+
+      # Add accumulated tool calls to response if any
+      if json && !tool_calls_buffer.empty?
+        json["tool_calls"] = tool_calls_buffer.values.sort_by { |tc| tool_calls_buffer.key(tc) }
+      end
+
       json
     else
       begin
-        JSON.parse res.body
+        parsed = JSON.parse res.body
+        # Extract tool_calls from non-streaming response
+        if parsed.dig("choices", 0, "message", "tool_calls")
+          parsed["tool_calls"] = parsed.dig("choices", 0, "message", "tool_calls")
+        end
+        parsed
       rescue JSON::ParserError
         res = { "type" => "error", "content" => "Error: JSON Parsing" }
         block&.call res
@@ -168,17 +203,49 @@ module OpenAI
     texts.join("")
   end
 
+  # Extract function calls from Responses API output array
+  # @param output [Array] The output array from Responses API
+  # @return [Array<Hash>] Array of function call hashes in Chat Completions format
+  def self.extract_function_calls(output)
+    return [] unless output.is_a?(Array)
+
+    calls = []
+    output.each do |item|
+      next unless item["type"] == "function_call"
+
+      calls << {
+        "id" => item["call_id"],
+        "type" => "function",
+        "function" => {
+          "name" => item["name"],
+          "arguments" => item["arguments"]
+        }
+      }
+    end
+    calls
+  end
+
   # Build choices structure for compatibility with Chat Completions API format
   # @param parsed [Hash] The parsed response
   # @param output_text [String] The extracted output text
+  # @param tool_calls [Array] Optional array of tool calls
   # @return [Hash] The response with choices structure added
-  def self.build_choices_response(parsed, output_text)
+  def self.build_choices_response(parsed, output_text, tool_calls: nil)
     parsed ||= {}
     parsed["output_text"] ||= output_text
+    finish_reason = if tool_calls && !tool_calls.empty?
+                      "tool_calls"
+                    elsif parsed["status"] == "completed"
+                      "stop"
+                    else
+                      parsed["status"] || "stop"
+                    end
     parsed["choices"] = [{
       "text" => output_text,
-      "finish_reason" => parsed["status"] == "completed" ? "stop" : (parsed["status"] || "stop")
+      "finish_reason" => finish_reason
     }]
+    # Add tool_calls at top level for easy access
+    parsed["tool_calls"] = tool_calls if tool_calls && !tool_calls.empty?
     parsed
   end
 
@@ -206,6 +273,7 @@ module OpenAI
       json = nil
       buffer = ""
       output_text = +""
+      function_calls = []
       current_event = nil
 
       res.body.each do |chunk|
@@ -234,8 +302,24 @@ module OpenAI
                   block&.call fragment
                   output_text << fragment
                 end
+              elsif current_event == "response.function_call_arguments.done" || parsed["type"] == "response.function_call_arguments.done"
+                # Function call completed - extract from parsed data
+                if parsed["call_id"] && parsed["name"]
+                  function_calls << {
+                    "id" => parsed["call_id"],
+                    "type" => "function",
+                    "function" => {
+                      "name" => parsed["name"],
+                      "arguments" => parsed["arguments"] || "{}"
+                    }
+                  }
+                end
               elsif current_event == "response.completed" || parsed["type"] == "response.completed"
                 json = parsed["response"] || parsed
+                # Extract function calls from completed response
+                if json["output"]
+                  function_calls.concat(extract_function_calls(json["output"]))
+                end
                 finish = { "type" => "message", "content" => "DONE" }
                 block&.call finish
               elsif current_event == "response.done" || parsed["type"] == "response.done"
@@ -252,6 +336,8 @@ module OpenAI
                 # Response with output array
                 json = parsed
                 output_text << extract_output_text(parsed["output"])
+                # Also extract any function calls
+                function_calls.concat(extract_function_calls(parsed["output"]))
               end
 
               current_event = nil
@@ -266,7 +352,8 @@ module OpenAI
 
       # Build final response structure compatible with existing code
       final_text = output_text.empty? ? json&.dig("output_text") : output_text
-      (json || !output_text.empty?) ? build_choices_response(json, final_text) : json
+      tool_calls = function_calls.uniq { |tc| tc["id"] }
+      (json || !output_text.empty? || !tool_calls.empty?) ? build_choices_response(json, final_text, tool_calls: tool_calls.empty? ? nil : tool_calls) : json
     else
       begin
         parsed = JSON.parse(res.body)
@@ -277,8 +364,11 @@ module OpenAI
         # Extract text from output array if present
         output_text = parsed["output_text"] || extract_output_text(parsed["output"])
 
+        # Extract function calls from output array
+        tool_calls = extract_function_calls(parsed["output"])
+
         # Add choices structure for compatibility with existing code
-        build_choices_response(parsed, output_text)
+        build_choices_response(parsed, output_text, tool_calls: tool_calls.empty? ? nil : tool_calls)
       rescue JSON::ParserError => e
         { "type" => "error", "content" => "Error: JSON Parsing - #{e.message}" }
       end
@@ -375,6 +465,9 @@ module OpenAI
     # Only add text parameter if there's something to include
     responses_params["text"] = text_params unless text_params.empty?
 
+    # Pass through tools parameter for function calling
+    responses_params["tools"] = params["tools"] if params["tools"]
+
     responses_params
   end
 
@@ -400,6 +493,11 @@ module OpenAI
     # structured_output: optional structured output schema
     #   For Responses API: { "format" => { "type" => "json_schema", ... } }
     #   For Chat Completions API: { "type" => "json_schema", "json_schema" => { ... } }
+    #
+    # Returns:
+    #   - String: text response (normal case)
+    #   - Hash with tool_calls: when model wants to call tools
+    #   - Hash: parsed JSON in research_mode
     def run(params, research_mode: false, timeout_sec: 60, num_retrials: 1, force_chat_completions: false, structured_output: nil, &block)
       model = params["model"]
       method = OpenAI.model_to_method(model, force_chat_completions: force_chat_completions)
@@ -424,6 +522,14 @@ module OpenAI
         raise error_msg
       elsif response.dig("choices", 0, "finish_reason") == "length"
         raise "finished because of length"
+      end
+
+      # Check for tool calls - return them for the caller to handle
+      if response["tool_calls"] && !response["tool_calls"].empty?
+        return {
+          "tool_calls" => response["tool_calls"],
+          "text" => response.dig("choices", 0, "text") || response.dig("choices", 0, "message", "content")
+        }
       end
 
       # Extract text from response - handle different response formats

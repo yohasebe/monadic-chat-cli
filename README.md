@@ -27,6 +27,13 @@
 
 **Change Log**
 
+- [December 14, 2024] **Version 0.7.0**: Batch Processing and Native Tool Use
+  - Added batch processing feature with OpenAI Batch API (50% cost savings)
+  - Two processing modes: parallel (async) and sequential (monadic with context passing)
+  - Interactive Batch Assistant app with native tool calling
+  - Native tool use API support (JSON Schema-based function calling)
+  - File operation tools with security restrictions
+  - 370 unit tests
 - [December 13, 2024] **Version 0.6.0**: Major update with GPT-5 and Responses API support
   - Added support for OpenAI's Responses API (`/v1/responses`)
   - Default models updated: `gpt-5-mini` (normal), `gpt-5` (research)
@@ -52,13 +59,58 @@
 
 ## Introduction
 
-**Monadic Chat** is a user-friendly command-line client application that utilizes OpenAI’s Text Completion API and Chat API to facilitate ChatGPT-style conversations with OpenAI’s large language models (LLM) on any terminal application of your choice.
+**Monadic Chat** is a user-friendly command-line client application that utilizes OpenAI's Text Completion API and Chat API to facilitate ChatGPT-style conversations with OpenAI's large language models (LLM) on any terminal application of your choice.
 
 The conversation history can be saved in a JSON file, which can be loaded later to continue the conversation. Additionally, the conversation data can be converted to HTML and viewed in a web browser for better readability.
 
-Monadic Chat includes four pre-built apps (`Chat`, `Code`, `Novel`, and `Translate`) that are designed for different types of discourse through interactive conversation with the LLM. Users also have the option to create their own apps by writing new templates.
+Monadic Chat includes several pre-built apps (`Chat`, `Code`, `Novel`, `Translate`, `Batch`, and `Wikipedia`) that are designed for different types of discourse through interactive conversation with the LLM. Users also have the option to create their own apps by writing new templates.
 
-Monadic Chat's `normal` mode enables ChatGPT-like conversations on the command line. The `research` mode has a mechanism to handle various related information as "state" behind the conversation. This allows, for example, to retrieve the current conversation *topic* at each utterance turn, and to keep its development as a list. 
+Monadic Chat's `normal` mode enables ChatGPT-like conversations on the command line. The `research` mode has a mechanism to handle various related information as "state" behind the conversation. This allows, for example, to retrieve the current conversation *topic* at each utterance turn, and to keep its development as a list.
+
+## Batch Processing
+
+Monadic Chat CLI supports batch processing of multiple inputs using OpenAI's Batch API.
+
+### Features
+
+- **50% cost savings** with OpenAI Batch API (parallel mode)
+- **Two processing modes**:
+  - **Parallel**: Asynchronous processing, results within 24 hours
+  - **Sequential**: Real-time processing with context passing between records (monadic processing)
+- **Multiple input formats**: Text files, CSV, or folders
+- **Interactive Batch Assistant**: AI-guided setup with native tool calling
+
+### Quick Start
+
+```bash
+# Start a batch job
+monadic-chat batch start ./input.txt --mode parallel
+
+# Check job status
+monadic-chat batch status <JOB_ID>
+
+# Get results
+monadic-chat batch result <JOB_ID>
+
+# List all jobs
+monadic-chat batch list
+```
+
+### Interactive Batch Assistant
+
+Run the `batch` app for AI-guided batch processing setup:
+
+```bash
+monadic-chat -a batch
+```
+
+The assistant can:
+- Check input files and directories
+- Start and monitor batch jobs
+- Retrieve and format results
+- Save reusable profiles
+
+For detailed documentation, see [docs/BATCH_PROCESSING_PLAN.md](docs/BATCH_PROCESSING_PLAN.md).
 
 ## Dependencies
 
