@@ -46,13 +46,121 @@ class MonadicApp
     case @mode
     when :research
       m = /JSON:\n+```json\s*(\{.+\})\s*```\n\n/m.match(@template)
+      return @messages unless m # Return messages if no JSON match
       json = m[1].gsub(/(?!\\\\\\)\\\\"/) { '\\\"' }
-      res = JSON.parse(json)
+
+      res = parse_research_json(json)
       res["messages"] = @messages
       res
     when :normal
       @messages
     end
+  end
+
+  # Parse research mode JSON with fallback for nested markdown structures
+  def parse_research_json(json)
+    # First try direct parsing
+    begin
+      res = JSON.parse(json)
+      # Check if result is nested markdown wrapper ({"response":"```json...```"})
+      if res.is_a?(Hash) && res.keys == ["response"] && res["response"].is_a?(String)
+        inner_str = res["response"]
+        # Try to extract inner JSON from markdown wrapper
+        inner_result = extract_json_from_markdown(inner_str)
+        return inner_result if inner_result
+      end
+      return res
+    rescue JSON::ParserError
+      # Fall through to try extraction methods
+    end
+
+    # Try to extract JSON from markdown wrapper in the raw string
+    extracted = extract_json_from_markdown(json)
+    return extracted if extracted
+
+    # Try with escaped newlines/quotes unescaped
+    begin
+      unescaped = json.gsub(/\\n/, "\n").gsub(/\\"/, '"')
+      extracted = extract_json_from_markdown(unescaped)
+      return extracted if extracted
+      return JSON.parse(unescaped)
+    rescue JSON::ParserError
+      # Fall through
+    end
+
+    # Last resort: return with error flag
+    { "response" => json, "error" => "JSON parsing failed" }
+  end
+
+  # Extract JSON object from markdown code block
+  def extract_json_from_markdown(str)
+    return nil unless str.is_a?(String)
+
+    # Unescape common escape sequences
+    unescaped = str.gsub(/\\n/, "\n").gsub(/\\"/, '"').gsub(/\\\\/, "\\")
+
+    # Try to find JSON in markdown code block
+    if unescaped =~ /```json\s*(\{[\s\S]*?\})\s*```/m
+      candidate = Regexp.last_match(1)
+      begin
+        return JSON.parse(candidate)
+      rescue JSON::ParserError
+        # Try again with better brace matching
+      end
+    end
+
+    # Try balanced brace extraction for JSON objects
+    if unescaped =~ /\{.*"mode"\s*:/m
+      begin
+        # Find the JSON object containing "mode"
+        extracted = extract_balanced_json(unescaped)
+        return JSON.parse(extracted) if extracted
+      rescue JSON::ParserError
+        # Fall through
+      end
+    end
+
+    nil
+  end
+
+  # Extract a balanced JSON object from a string
+  def extract_balanced_json(str)
+    start_idx = str.index("{")
+    return nil unless start_idx
+
+    depth = 0
+    in_string = false
+    escape_next = false
+
+    (start_idx...str.length).each do |i|
+      char = str[i]
+
+      if escape_next
+        escape_next = false
+        next
+      end
+
+      if char == "\\"
+        escape_next = true
+        next
+      end
+
+      if char == '"' && !escape_next
+        in_string = !in_string
+        next
+      end
+
+      next if in_string
+
+      if char == "{"
+        depth += 1
+      elsif char == "}"
+        depth -= 1
+        return str[start_idx..i] if depth.zero?
+      end
+    end
+
+    nil
   end
 
   def prepare_params(input_role, input)
@@ -251,6 +359,15 @@ class MonadicApp
     end
 
     print "\n"
+
+    # If we exited the loop with tool_calls still in response (max iterations reached),
+    # extract the text content for further processing
+    if res.is_a?(Hash) && res["tool_calls"]
+      res = res["text"] || ""
+    end
+
+    # Handle nil response (should not happen normally)
+    res ||= ""
 
     # Handle the final response (after tool loop completes or if no tool calls)
     message = case role

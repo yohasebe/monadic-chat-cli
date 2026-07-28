@@ -74,7 +74,22 @@ class MonadicApp
     tool_calls.map do |tool_call|
       name = tool_call.dig("function", "name")
       args_str = tool_call.dig("function", "arguments") || "{}"
-      args = args_str.is_a?(String) ? JSON.parse(args_str) : args_str
+
+      # Parse arguments with error handling for malformed JSON
+      args = if args_str.is_a?(String)
+               begin
+                 JSON.parse(args_str)
+               rescue JSON::ParserError => e
+                 # Return error result for malformed arguments
+                 next {
+                   "tool_call_id" => tool_call["id"],
+                   "role" => "tool",
+                   "content" => JSON.generate({ "error" => "Invalid tool arguments: #{e.message}" })
+                 }
+               end
+             else
+               args_str
+             end
 
       result = execute_tool(name, args)
 

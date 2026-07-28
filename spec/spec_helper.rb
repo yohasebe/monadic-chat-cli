@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "rspec/retry"
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
@@ -16,4 +18,15 @@ RSpec.configure do |config|
 
   # Output formatting
   config.formatter = :documentation if ENV["VERBOSE"]
+
+  # Retry configuration for flaky integration tests
+  # Integration tests depend on external API and may fail intermittently
+  config.verbose_retry = true
+  config.default_retry_count = 2
+  config.exceptions_to_retry = [RSpec::Expectations::ExpectationNotMetError]
+
+  # Only retry integration tests
+  config.around(:each, :integration) do |example|
+    example.run_with_retry retry: 2
+  end
 end

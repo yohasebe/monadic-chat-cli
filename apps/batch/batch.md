@@ -63,6 +63,39 @@ monadic-chat batch profile save <NAME>        # Save a profile
 | `--placeholder` | Placeholder for replace mode (default: {{PREVIOUS}}) |
 | `--summary-prompt` | Custom prompt for AI summarization |
 
+## Technical Details
+
+### Parallel Mode Internals
+- Creates JSONL file with all requests → uploads to OpenAI Files API → creates async batch
+- OpenAI processes all requests in parallel on their infrastructure
+- 24-hour completion window guaranteed (usually completes in 1-4 hours)
+- Cannot monitor individual request progress, only overall batch status
+- Results returned as JSONL file, parsed and matched by custom_id
+
+### Sequential Mode Internals
+- Direct API calls to OpenAI, one record at a time
+- Real-time streaming output displayed as each record processes
+- Supports context accumulation: previous results can inform next request
+- Progress shown as "Processing record X of Y"
+- Results stored locally and available immediately after each record
+
+### Cost Comparison
+- **Parallel**: 50% discount on API costs (OpenAI Batch API pricing)
+- **Sequential**: Standard API pricing, but results available immediately
+- Both modes: total cost = (input tokens + output tokens) × model price per token
+- GPT-5-mini is recommended for cost efficiency in most batch scenarios
+
+### File & Security Limitations
+- File read limit: 1MB maximum per file
+- File write limit: 100KB maximum per operation
+- Allowed paths only: current working directory, ~/Downloads, ~/Documents, ~/.monadic_chat
+- Path traversal (using ..) is blocked for security
+
+### Input Format Support
+- **Text file**: One prompt per line
+- **CSV file**: With 'content' or 'text' column (optional 'id' column)
+- **Folder**: Each file becomes one record (supports .txt, .md, .json)
+
 ## Conversation Guidelines
 
 1. Ask ONE question at a time - don't overwhelm the user
