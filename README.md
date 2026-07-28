@@ -6,12 +6,23 @@
 
 <p>&nbsp;</p>
 
-> **Note**
+> **This repository is archived.**
 >
-> **Monadic Chat** is currently being actively developed as a web browser application. The command-line version has been renamed to **Monadic Chat CLI**. New features will mainly be implemented in the web application version. At present, both versions have many common features, but please note that the format of the exported data files and the specifications for creating custom applications are different from each other.
+> It is preserved as the record of the tool presented in:
+>
+> 長谷部陽一郎 (2023)「Monadic Chat：テキスト補完 API で文脈を保持するためのフレームワーク」
+> 言語処理学会 第29回年次大会 発表論文集, pp. 3138–3141.
+> [https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/Q12-9.pdf](https://www.anlp.jp/proceedings/annual_meeting/2023/pdf_dir/Q12-9.pdf)
+>
+> The paper cites this repository under its former name, `monadic_chat`; that URL redirects here.
+> The state of the code at the time of the conference is tagged [`nlp2023`](https://github.com/yohasebe/monadic-chat-cli/releases/tag/nlp2023).
+> Later commits (through 2025) are kept as well, so the tag — not the default branch — is the reference point for the paper.
+>
+> Development continues in **Monadic Chat**, a web application with a different architecture:
+> [https://github.com/yohasebe/monadic-chat](https://github.com/yohasebe/monadic-chat)
 
 - Monadic Chat: [https://github.com/yohasebe/monadic-chat](https://github.com/yohasebe/monadic-chat) (active)
-- Monadic Chat CLI: [https://github.com/yohasebe/monadic-chat-cli](https://github.com/yohasebe/monadic-chat-cli) (this repo; less active)
+- Monadic Chat CLI: [https://github.com/yohasebe/monadic-chat-cli](https://github.com/yohasebe/monadic-chat-cli) (this repo; archived)
 
 <p>&nbsp;</p>
 
